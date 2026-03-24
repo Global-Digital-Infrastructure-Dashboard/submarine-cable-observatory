@@ -1,0 +1,47 @@
+{
+  "regional_clustering": {
+    "Europe": {
+      "total_cables": 195,
+      "supplier_distribution": {
+        "Unknown": 92,
+        "Europe": 70,
+        "Other": 24,
+        "China": 4,
+        "Mixed": 3,
+        "Japan": 2
+      },
+      "pct_chinese_supplier": 2.051282051282051,
+      "pct_us_supplier": 0.0,
+      "supplier_hhi": 3673.64
+    },
+    "Africa": {
+      "total_cables": 51,
+      "supplier_distribution": {
+        "Europe": 26,
+        "Unknown": 8,
+        "Other": 8,
+        "China": 4,
+        "Mixed": 3,
+        "Japan": 2
+      },
+      "pct_chinese_supplier": 7.8431372549019605,
+      "pct_us_supplier": 0.0,
+      "supplier_hhi": 3202.61
+    },
+    "Middle East": {
+      "total_cables": 43,
+      "supplier_distribution": {
+        "Europe": 21,
+        "Unknown": 9,
+        "Other": 7,
+        "Mixed": 3,
+        "Japan": 2,
+        "China": 1
+      },
+      "pct_chinese_supplier": 2.3255813953488373,
+      "pct_us_supplier": 0.0,
+      "supplier_hhi": 3163.87
+    }
+  },
+  "total_regions": 3
+}

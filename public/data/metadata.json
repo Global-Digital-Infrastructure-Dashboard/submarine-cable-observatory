@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "updated": "2026-02-26",
+  "infrastructure_type": "submarine_cables",
+  "total_cables": 453,
+  "year_range": {
+    "min": 1989,
+    "max": 2028
+  },
+  "blocs": [
+    "Europe",
+    "Other",
+    "China",
+    "Unknown",
+    "Japan",
+    "Mixed"
+  ],
+  "files": [
+    "cables_data.json",
+    "market_structure.json",
+    "geographic_distribution.json",
+    "sovereignty_dependency.json",
+    "temporal_dynamics.json",
+    "policy_regulation.json"
+  ]
+}
