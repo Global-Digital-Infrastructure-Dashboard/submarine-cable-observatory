@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom'
 import Auth from './Auth'
+import Hero from './components/Hero'
 import InfrastructureSelector from './components/InfrastructureSelector'
-import './App.css'
 import './components/InfrastructureSelector.css'
 
-// Page components
 import SystemOverview from './pages/SystemOverview'
 import MarketStructure from './pages/MarketStructure'
 import GeographicDistribution from './pages/GeographicDistribution'
@@ -14,7 +13,6 @@ import TemporalDynamics from './pages/TemporalDynamics'
 import PolicyRegulation from './pages/PolicyRegulation'
 import Methodology from './pages/Methodology'
 
-// Navigation items matching the 7 modules
 const navItems = [
   { path: '/', label: 'System Overview' },
   { path: '/market-structure', label: 'Market Structure' },
@@ -29,7 +27,6 @@ function App() {
   const [infrastructureType, setInfrastructureType] = useState('cables')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Check if already authenticated
   useEffect(() => {
     const auth = sessionStorage.getItem('authenticated')
     if (auth === 'true') {
@@ -41,36 +38,28 @@ function App() {
     setIsAuthenticated(true)
   }
 
-  // Show auth page if not authenticated
   if (!isAuthenticated) {
     return <Auth onAuthenticate={handleAuthenticate} />
   }
 
   return (
     <Router>
-      <div className="app">
-        {/* Header */}
-        <header className="header">
-          <div className="header-content">
-            <h1 className="title">Global Digital Infrastructure Political Economy Observatory</h1>
-            <p className="subtitle">Phase 1: Submarine Cable Analysis</p>
-            <div className="meta-info">
-              <span>Data Version: 1.0</span>
-              <span className="separator">|</span>
-              <span>Updated: February 2026</span>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
+        <Hero />
 
-        {/* Navigation Tabs */}
-        <nav className="navigation">
-          <div className="nav-content">
+        {/* Navigation - matching original design exactly */}
+        <nav className="bg-white">
+          <div className="max-w-[1400px] mx-auto px-8 flex gap-2 overflow-x-auto">
             {navItems.map(item => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) => 
-                  isActive ? 'nav-link nav-link-active' : 'nav-link'
+                  `px-5 py-4 text-sm font-medium whitespace-nowrap transition-all border-b-[3px] ${
+                    isActive 
+                      ? 'text-[#0D47A1] border-b-[#0D47A1] font-semibold' 
+                      : 'text-[#616161] border-b-transparent hover:text-[#0D47A1] hover:bg-[#FAFAFA]'
+                  }`
                 }
               >
                 {item.label}
@@ -79,15 +68,13 @@ function App() {
           </div>
         </nav>
 
-        {/* Main Content Area */}
-        <main className="main">
-          {/* Infrastructure Type Selector */}
+        {/* Main Content */}
+        <main className="flex-1 max-w-[1400px] mx-auto w-full px-8 py-8">
           <InfrastructureSelector 
             selected={infrastructureType}
             onSelect={setInfrastructureType}
           />
 
-          {/* Routes */}
           <Routes>
             <Route path="/" element={<SystemOverview infrastructureType={infrastructureType} />} />
             <Route path="/market-structure" element={<MarketStructure infrastructureType={infrastructureType} />} />
@@ -99,38 +86,42 @@ function App() {
           </Routes>
         </main>
 
-        {/* Footer */}
-        <footer className="footer">
-          <div className="footer-content">
-            <div className="footer-section">
-              <h3>About This Project</h3>
-              <p>
-                A political economy research instrument for analyzing global digital 
-                infrastructure patterns, geopolitical dependencies, and market structures 
-                across multiple infrastructure types.
-              </p>
+        {/* Footer - matching original design */}
+        <footer className="bg-[#212121] text-white/70 mt-auto pt-12 pb-6 px-8 border-t border-[#424242]">
+          <div className="max-w-[1400px] mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-12 mb-8">
+              <div>
+                <h3 className="font-serif text-base font-semibold mb-4 text-white">About This Project</h3>
+                <p className="text-sm leading-relaxed">
+                  A political economy research platform analyzing global digital infrastructure patterns, 
+                  geopolitical dependencies, and market structures. Developed as part of Professor Shen's 
+                  research on technology and society at Northeastern University.
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-serif text-base font-semibold mb-4 text-white">Data Sources</h3>
+                <ul className="text-sm space-y-2 list-none p-0">
+                  <li>TeleGeography Submarine Cable Database</li>
+                  <li>PriMetrica Infrastructure Dataset</li>
+                  <li>Public regulatory filings</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3 className="font-serif text-base font-semibold mb-4 text-white">Citation</h3>
+                <p className="text-sm leading-relaxed">
+                  Global Digital Infrastructure Political Economy Observatory. (2026). 
+                  Submarine Cable Analysis Dashboard. Version 1.0.
+                </p>
+              </div>
             </div>
             
-            <div className="footer-section">
-              <h3>Data Sources</h3>
-              <ul>
-                <li>TeleGeography Submarine Cable Database</li>
-                <li>PriMetrica Infrastructure Dataset</li>
-                <li>Public filings and press releases</li>
-              </ul>
-            </div>
-            
-            <div className="footer-section">
-              <h3>Citation</h3>
-              <p>
-                Global Digital Infrastructure Political Economy Observatory. (2026). 
-                Submarine Cable Analysis Dashboard. Version 1.0.
+            <div className="border-t border-[#424242] pt-6 text-center">
+              <p className="text-xs text-white/50">
+                © 2026 Digital Infrastructure Observatory | Northeastern University | Research Use Only
               </p>
             </div>
-          </div>
-          
-          <div className="footer-bottom">
-            <p>© 2026 Digital Infrastructure Observatory. Research use only.</p>
           </div>
         </footer>
       </div>

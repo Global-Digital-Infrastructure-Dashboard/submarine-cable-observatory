@@ -1,0 +1,694 @@
+{
+  "countries": [
+    {
+      "name": "United States",
+      "cables": 85
+    },
+    {
+      "name": "United Kingdom",
+      "cables": 52
+    },
+    {
+      "name": "Indonesia",
+      "cables": 42
+    },
+    {
+      "name": "Spain",
+      "cables": 31
+    },
+    {
+      "name": "Japan",
+      "cables": 30
+    },
+    {
+      "name": "Italy",
+      "cables": 27
+    },
+    {
+      "name": "Singapore",
+      "cables": 25
+    },
+    {
+      "name": "France",
+      "cables": 24
+    },
+    {
+      "name": "Denmark",
+      "cables": 24
+    },
+    {
+      "name": "Sweden",
+      "cables": 23
+    },
+    {
+      "name": "Australia",
+      "cables": 21
+    },
+    {
+      "name": "Saudi Arabia",
+      "cables": 20
+    },
+    {
+      "name": "Brazil",
+      "cables": 20
+    },
+    {
+      "name": "India",
+      "cables": 19
+    },
+    {
+      "name": "United Arab Emirates",
+      "cables": 18
+    },
+    {
+      "name": "Egypt",
+      "cables": 17
+    },
+    {
+      "name": "Malaysia",
+      "cables": 17
+    },
+    {
+      "name": "Greece",
+      "cables": 16
+    },
+    {
+      "name": "Portugal",
+      "cables": 16
+    },
+    {
+      "name": "Canada",
+      "cables": 15
+    },
+    {
+      "name": "Oman",
+      "cables": 14
+    },
+    {
+      "name": "Guam",
+      "cables": 14
+    },
+    {
+      "name": "Norway",
+      "cables": 14
+    },
+    {
+      "name": "Ireland",
+      "cables": 12
+    },
+    {
+      "name": "Taiwan",
+      "cables": 11
+    },
+    {
+      "name": "Cyprus",
+      "cables": 11
+    },
+    {
+      "name": "Djibouti",
+      "cables": 10
+    },
+    {
+      "name": "South Africa",
+      "cables": 10
+    },
+    {
+      "name": "Philippines",
+      "cables": 10
+    },
+    {
+      "name": "Pakistan",
+      "cables": 9
+    },
+    {
+      "name": "Mexico",
+      "cables": 9
+    },
+    {
+      "name": "China",
+      "cables": 9
+    },
+    {
+      "name": "Thailand",
+      "cables": 9
+    },
+    {
+      "name": "Finland",
+      "cables": 9
+    },
+    {
+      "name": "South Korea",
+      "cables": 9
+    },
+    {
+      "name": "Colombia",
+      "cables": 8
+    },
+    {
+      "name": "Germany",
+      "cables": 8
+    },
+    {
+      "name": "French Polynesia",
+      "cables": 8
+    },
+    {
+      "name": "Netherlands",
+      "cables": 8
+    },
+    {
+      "name": "Chile",
+      "cables": 8
+    },
+    {
+      "name": "Congo",
+      "cables": 7
+    },
+    {
+      "name": "Qatar",
+      "cables": 7
+    },
+    {
+      "name": "Virgin Islands (U.S.)",
+      "cables": 7
+    },
+    {
+      "name": "Panama",
+      "cables": 7
+    },
+    {
+      "name": "Argentina",
+      "cables": 7
+    },
+    {
+      "name": "Israel",
+      "cables": 7
+    },
+    {
+      "name": "Bahrain",
+      "cables": 6
+    },
+    {
+      "name": "Nigeria",
+      "cables": 6
+    },
+    {
+      "name": "Venezuela",
+      "cables": 6
+    },
+    {
+      "name": "New Zealand",
+      "cables": 6
+    },
+    {
+      "name": "Sri Lanka",
+      "cables": 6
+    },
+    {
+      "name": "Isle of Man",
+      "cables": 6
+    },
+    {
+      "name": "Iran",
+      "cables": 6
+    },
+    {
+      "name": "Dem. Rep.",
+      "cables": 5
+    },
+    {
+      "name": "Cte d'Ivoire",
+      "cables": 5
+    },
+    {
+      "name": "Ghana",
+      "cables": 5
+    },
+    {
+      "name": "Kenya",
+      "cables": 5
+    },
+    {
+      "name": "Kuwait",
+      "cables": 5
+    },
+    {
+      "name": "Sudan",
+      "cables": 5
+    },
+    {
+      "name": "Yemen",
+      "cables": 5
+    },
+    {
+      "name": "Martinique",
+      "cables": 5
+    },
+    {
+      "name": "Morocco",
+      "cables": 5
+    },
+    {
+      "name": "Russia",
+      "cables": 5
+    },
+    {
+      "name": "Fiji",
+      "cables": 5
+    },
+    {
+      "name": "Maldives",
+      "cables": 5
+    },
+    {
+      "name": "Turkey",
+      "cables": 5
+    },
+    {
+      "name": "Comoros",
+      "cables": 4
+    },
+    {
+      "name": "Somalia",
+      "cables": 4
+    },
+    {
+      "name": "Algeria",
+      "cables": 4
+    },
+    {
+      "name": "Cuba",
+      "cables": 4
+    },
+    {
+      "name": "French Guiana",
+      "cables": 4
+    },
+    {
+      "name": "Guatemala",
+      "cables": 4
+    },
+    {
+      "name": "Estonia",
+      "cables": 4
+    },
+    {
+      "name": "Lebanon",
+      "cables": 4
+    },
+    {
+      "name": "Uruguay",
+      "cables": 4
+    },
+    {
+      "name": "Jordan",
+      "cables": 4
+    },
+    {
+      "name": "Iceland",
+      "cables": 4
+    },
+    {
+      "name": "Libya",
+      "cables": 4
+    },
+    {
+      "name": "New Caledonia",
+      "cables": 4
+    },
+    {
+      "name": "Guernsey",
+      "cables": 4
+    },
+    {
+      "name": "Malta",
+      "cables": 4
+    },
+    {
+      "name": "Belgium",
+      "cables": 4
+    },
+    {
+      "name": "Angola",
+      "cables": 3
+    },
+    {
+      "name": "Gabon",
+      "cables": 3
+    },
+    {
+      "name": "Iraq",
+      "cables": 3
+    },
+    {
+      "name": "Madagascar",
+      "cables": 3
+    },
+    {
+      "name": "Mozambique",
+      "cables": 3
+    },
+    {
+      "name": "Senegal",
+      "cables": 3
+    },
+    {
+      "name": "Tanzania",
+      "cables": 3
+    },
+    {
+      "name": "Syria",
+      "cables": 3
+    },
+    {
+      "name": "Trinidad and Tobago",
+      "cables": 3
+    },
+    {
+      "name": "Costa Rica",
+      "cables": 3
+    },
+    {
+      "name": "Dominican Republic",
+      "cables": 3
+    },
+    {
+      "name": "Myanmar",
+      "cables": 3
+    },
+    {
+      "name": "Vietnam",
+      "cables": 3
+    },
+    {
+      "name": "Northern Mariana Islands",
+      "cables": 3
+    },
+    {
+      "name": "Latvia",
+      "cables": 3
+    },
+    {
+      "name": "Lithuania",
+      "cables": 3
+    },
+    {
+      "name": "Equatorial Guinea",
+      "cables": 3
+    },
+    {
+      "name": "Cameroon",
+      "cables": 3
+    },
+    {
+      "name": "Tunisia",
+      "cables": 3
+    },
+    {
+      "name": "Togo",
+      "cables": 3
+    },
+    {
+      "name": "Peru",
+      "cables": 3
+    },
+    {
+      "name": "Saint Martin",
+      "cables": 3
+    },
+    {
+      "name": "Jersey",
+      "cables": 3
+    },
+    {
+      "name": "Mauritius",
+      "cables": 3
+    },
+    {
+      "name": "Samoa",
+      "cables": 3
+    },
+    {
+      "name": "Bangladesh",
+      "cables": 3
+    },
+    {
+      "name": "Rep.",
+      "cables": 2
+    },
+    {
+      "name": "Seychelles",
+      "cables": 2
+    },
+    {
+      "name": "Jamaica",
+      "cables": 2
+    },
+    {
+      "name": "Curacao",
+      "cables": 2
+    },
+    {
+      "name": "Belize",
+      "cables": 2
+    },
+    {
+      "name": "Curaao",
+      "cables": 2
+    },
+    {
+      "name": "Honduras",
+      "cables": 2
+    },
+    {
+      "name": "Cambodia",
+      "cables": 2
+    },
+    {
+      "name": "Christmas Island",
+      "cables": 2
+    },
+    {
+      "name": "Mayotte",
+      "cables": 2
+    },
+    {
+      "name": "Grenada",
+      "cables": 2
+    },
+    {
+      "name": "Saint Vincent and the Grenadines",
+      "cables": 2
+    },
+    {
+      "name": "Ecuador",
+      "cables": 2
+    },
+    {
+      "name": "Bulgaria",
+      "cables": 2
+    },
+    {
+      "name": "Georgia",
+      "cables": 2
+    },
+    {
+      "name": "Antigua and Barbuda",
+      "cables": 2
+    },
+    {
+      "name": "Bonaire",
+      "cables": 2
+    },
+    {
+      "name": "Sint Eustatius and Saba",
+      "cables": 2
+    },
+    {
+      "name": "Palau",
+      "cables": 2
+    },
+    {
+      "name": "Cape Verde",
+      "cables": 2
+    },
+    {
+      "name": "Namibia",
+      "cables": 2
+    },
+    {
+      "name": "Monaco",
+      "cables": 2
+    },
+    {
+      "name": "Faroe Islands",
+      "cables": 2
+    },
+    {
+      "name": "Guadeloupe",
+      "cables": 2
+    },
+    {
+      "name": "Saint Barthlemy",
+      "cables": 2
+    },
+    {
+      "name": "Bermuda",
+      "cables": 2
+    },
+    {
+      "name": "Greenland",
+      "cables": 2
+    },
+    {
+      "name": "American Samoa",
+      "cables": 2
+    },
+    {
+      "name": "Albania",
+      "cables": 2
+    },
+    {
+      "name": "Uganda",
+      "cables": 2
+    },
+    {
+      "name": "Runion",
+      "cables": 2
+    },
+    {
+      "name": "Benin",
+      "cables": 2
+    },
+    {
+      "name": "Bahamas",
+      "cables": 1
+    },
+    {
+      "name": "Nicaragua",
+      "cables": 1
+    },
+    {
+      "name": "Turks and Caicos Islands",
+      "cables": 1
+    },
+    {
+      "name": "Brunei",
+      "cables": 1
+    },
+    {
+      "name": "Timor-Leste",
+      "cables": 1
+    },
+    {
+      "name": "Poland",
+      "cables": 1
+    },
+    {
+      "name": "Aruba",
+      "cables": 1
+    },
+    {
+      "name": "Guyana",
+      "cables": 1
+    },
+    {
+      "name": "Suriname",
+      "cables": 1
+    },
+    {
+      "name": "Mauritania",
+      "cables": 1
+    },
+    {
+      "name": "Saint Helena",
+      "cables": 1
+    },
+    {
+      "name": "Ascension and Tristan da Cunha",
+      "cables": 1
+    },
+    {
+      "name": "Gibraltar",
+      "cables": 1
+    },
+    {
+      "name": "Haiti",
+      "cables": 1
+    },
+    {
+      "name": "Tonga",
+      "cables": 1
+    },
+    {
+      "name": "Croatia",
+      "cables": 1
+    },
+    {
+      "name": "Romania",
+      "cables": 1
+    },
+    {
+      "name": "Cook Islands",
+      "cables": 1
+    },
+    {
+      "name": "Niue",
+      "cables": 1
+    },
+    {
+      "name": "Papua New Guinea",
+      "cables": 1
+    },
+    {
+      "name": "Micronesia",
+      "cables": 1
+    },
+    {
+      "name": "Sint Maarten",
+      "cables": 1
+    },
+    {
+      "name": "Barbados",
+      "cables": 1
+    },
+    {
+      "name": "Dominica",
+      "cables": 1
+    },
+    {
+      "name": "Montserrat",
+      "cables": 1
+    },
+    {
+      "name": "Saint Kitts and Nevis",
+      "cables": 1
+    },
+    {
+      "name": "Saint Lucia",
+      "cables": 1
+    },
+    {
+      "name": "Kiribati",
+      "cables": 1
+    },
+    {
+      "name": "Tokelau",
+      "cables": 1
+    },
+    {
+      "name": "Vanuatu",
+      "cables": 1
+    },
+    {
+      "name": "Wallis and Futuna",
+      "cables": 1
+    },
+    {
+      "name": "Sao Tome and Principe",
+      "cables": 1
+    }
+  ],
+  "total_countries": 172,
+  "total_cables": 453
+}
