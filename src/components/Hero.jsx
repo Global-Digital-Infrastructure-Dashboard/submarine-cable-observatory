@@ -26,7 +26,7 @@ function Hero() {
             Phase 1: Submarine Cable Analysis
           </p>
           <p className="font-sans text-base font-light text-white/75 tracking-wider">
-            Research Platform | Professor Shen's Research Group, Northeastern University
+            Research Platform | Northeastern University
           </p>
         </div>
       </div>
