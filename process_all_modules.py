@@ -1,6 +1,6 @@
 """
 Comprehensive Data Processing for All Dashboard Modules
-Generates JSON files for: Market Structure, Geographic, Sovereignty, Temporal, Policy
+BLOC-NEUTRAL METHODOLOGY: Independence = domestic control, not anti-Chinese
 """
 
 import pandas as pd
@@ -11,11 +11,11 @@ from collections import defaultdict
 import re
 
 print("="*80)
-print("COMPREHENSIVE SUBMARINE CABLE DATA PROCESSING")
+print("COMPREHENSIVE DATA PROCESSING - BLOC-NEUTRAL METHODOLOGY")
 print("="*80)
 
 # Load the dataset
-df = pd.read_excel('data/global_submarine_dataset_V1_2026.xlsx')
+df = pd.read_excel('data/global_submarine_dataset V1_2026.xlsx')
 print(f"\nLoaded {len(df)} cables")
 
 # ============================================================================
@@ -29,7 +29,7 @@ def classify_bloc(country_str):
     
     country_str = str(country_str).lower()
     
-    china_keywords = ['china', 'chinese', 'prc']
+    china_keywords = ['china', 'chinese', 'prc', 'hong kong']
     us_keywords = ['united states', 'usa', 'us ', 'american']
     europe_keywords = ['france', 'uk', 'united kingdom', 'britain', 'germany', 'italy', 
                        'spain', 'netherlands', 'belgium', 'sweden', 'finland',
@@ -60,8 +60,7 @@ def classify_bloc(country_str):
 df['supplier_bloc'] = df['suppliers_country'].apply(classify_bloc)
 df['owner_bloc'] = df['owner_country'].apply(classify_bloc)
 
-print("\nBloc Classification Complete")
-print(f"Supplier blocs: {df['supplier_bloc'].value_counts().to_dict()}")
+print("Bloc Classification Complete")
 
 # ============================================================================
 # HELPER FUNCTIONS
@@ -76,146 +75,31 @@ def calculate_hhi(series):
     return round(hhi, 2)
 
 def parse_list_field(field_str):
-    """Parse comma/semicolon separated fields into lists"""
+    """Parse comma/semicolon separated fields"""
     if pd.isna(field_str):
         return []
     return [item.strip() for item in re.split(r'[,;]', str(field_str)) if item.strip()]
 
-# Parse regions and countries
 df['regions_list'] = df['regions'].apply(parse_list_field)
 df['landing_countries_list'] = df['landing_countries'].apply(parse_list_field)
 
 # ============================================================================
-# MODULE 1: MAIN CABLES DATA (for all modules)
+# MODULE 1: MAIN CABLES DATA
 # ============================================================================
 
 cables_data = {
     'version': '1.0',
-    'updated': '2026-02-26',
+    'updated': '2026-03-28',
     'total_cables': len(df),
     'cables': df.replace({np.nan: None}).to_dict('records')
 }
 
 # ============================================================================
-# MODULE 2: MARKET STRUCTURE DATA
+# MODULE 2: SOVEREIGNTY & DEPENDENCY (REVISED)
 # ============================================================================
 
 print("\n" + "="*80)
-print("PROCESSING: MARKET STRUCTURE MODULE")
-print("="*80)
-
-# A. Supplier Competition
-supplier_share = df['supplier_bloc'].value_counts().to_dict()
-owner_share = df['owner_bloc'].value_counts().to_dict()
-
-# Market share over time
-df_with_year = df[df['rfs_year'].notna()].copy()
-
-market_share_over_time = []
-for year in range(int(df_with_year['rfs_year'].min()), int(df_with_year['rfs_year'].max()) + 1):
-    year_data = df_with_year[df_with_year['rfs_year'] == year]
-    if len(year_data) > 0:
-        year_blocs = year_data['supplier_bloc'].value_counts().to_dict()
-        market_share_over_time.append({
-            'year': year,
-            'blocs': year_blocs,
-            'total': len(year_data)
-        })
-
-# HHI over time
-hhi_over_time = []
-for year in range(1990, 2029):
-    year_data = df_with_year[df_with_year['rfs_year'] == year]
-    if len(year_data) > 0:
-        hhi = calculate_hhi(year_data['supplier_bloc'])
-        hhi_over_time.append({
-            'year': year,
-            'supplier_hhi': hhi,
-            'count': len(year_data)
-        })
-
-# Entry timing
-entry_timing = df_with_year.groupby('supplier_bloc')['rfs_year'].min().to_dict()
-
-# B. Ownership Structure
-# State-owned vs private (we'll need to code this manually or from external data)
-# For now, create placeholder structure
-
-# C. Supplier-Owner Divergence
-divergence_matrix = {
-    'chinese_supplier_western_owner': 0,
-    'western_supplier_chinese_owner': 0,
-    'fully_chinese': 0,
-    'fully_western': 0
-}
-
-for _, cable in df.iterrows():
-    supplier = cable['supplier_bloc']
-    owner = cable['owner_bloc']
-    
-    if supplier == 'China' and owner in ['US', 'Europe']:
-        divergence_matrix['chinese_supplier_western_owner'] += 1
-    elif supplier in ['US', 'Europe'] and owner == 'China':
-        divergence_matrix['western_supplier_chinese_owner'] += 1
-    elif supplier == 'China' and owner == 'China':
-        divergence_matrix['fully_chinese'] += 1
-    elif supplier in ['US', 'Europe'] and owner in ['US', 'Europe']:
-        divergence_matrix['fully_western'] += 1
-
-market_structure_data = {
-    'supplier_competition': {
-        'market_share': supplier_share,
-        'market_share_over_time': market_share_over_time,
-        'hhi_over_time': hhi_over_time,
-        'entry_timing': entry_timing
-    },
-    'ownership_structure': {
-        'market_share': owner_share,
-        'global_hhi': calculate_hhi(df['owner_bloc'])
-    },
-    'supplier_owner_divergence': divergence_matrix
-}
-
-print(f"✓ Market share trends: {len(market_share_over_time)} years")
-print(f"✓ HHI time series: {len(hhi_over_time)} data points")
-print(f"✓ Entry timing: {len(entry_timing)} blocs")
-
-# ============================================================================
-# MODULE 3: GEOGRAPHIC DISTRIBUTION DATA
-# ============================================================================
-
-print("\n" + "="*80)
-print("PROCESSING: GEOGRAPHIC DISTRIBUTION MODULE")
-print("="*80)
-
-# Regional clustering
-regional_data = {}
-for region in ['Asia-Pacific', 'Europe', 'Americas', 'Africa', 'Middle East']:
-    # Find cables with this region
-    region_cables = df[df['regions_list'].apply(lambda x: region in x if isinstance(x, list) else False)]
-    
-    if len(region_cables) > 0:
-        regional_data[region] = {
-            'total_cables': len(region_cables),
-            'supplier_distribution': region_cables['supplier_bloc'].value_counts().to_dict(),
-            'pct_chinese_supplier': (region_cables['chinese_supplier'].sum() / len(region_cables) * 100),
-            'pct_us_supplier': (region_cables[region_cables['supplier_bloc'] == 'US'].shape[0] / len(region_cables) * 100),
-            'supplier_hhi': calculate_hhi(region_cables['supplier_bloc'])
-        }
-
-geographic_data = {
-    'regional_clustering': regional_data,
-    'total_regions': len(regional_data)
-}
-
-print(f"✓ Regional analysis: {len(regional_data)} regions")
-
-# ============================================================================
-# MODULE 4: SOVEREIGNTY & DEPENDENCY DATA
-# ============================================================================
-
-print("\n" + "="*80)
-print("PROCESSING: SOVEREIGNTY & DEPENDENCY MODULE")
+print("PROCESSING: SOVEREIGNTY MODULE (BLOC-NEUTRAL)")
 print("="*80)
 
 # Create country-level dataset
@@ -225,214 +109,164 @@ for idx, row in df.iterrows():
         if country:
             country_cables.append({
                 'country': country,
-                'cable_name': row['cable_name'],
                 'supplier_bloc': row['supplier_bloc'],
                 'owner_bloc': row['owner_bloc'],
                 'chinese_supplier': row['chinese_supplier'],
                 'chinese_owner': row['chinese_owner'],
-                'rfs_year': row['rfs_year']
+                'suppliers_country': row['suppliers_country'],
+                'owner_country': row['owner_country']
             })
 
 country_df = pd.DataFrame(country_cables)
 
-# Compute country-level metrics
 country_metrics = []
+
 for country in country_df['country'].unique():
     country_data = country_df[country_df['country'] == country]
-    
     total_cables = len(country_data)
-    chinese_supplier_count = country_data['chinese_supplier'].sum()
-    us_supplier_count = len(country_data[country_data['supplier_bloc'] == 'US'])
-    eu_supplier_count = len(country_data[country_data['supplier_bloc'] == 'Europe'])
     
-    # Supplier diversification
-    supplier_hhi = calculate_hhi(country_data['supplier_bloc'])
-    diversification = 1 - (supplier_hhi / 10000)
-    
-    # Single supplier dominance
+    # SUPPLIER PERSPECTIVE
     supplier_counts = country_data['supplier_bloc'].value_counts()
-    max_supplier_share = supplier_counts.max() / total_cables if len(supplier_counts) > 0 else 0
-    single_supplier_dominance = 1 if max_supplier_share > 0.5 else 0
+    supplier_shares = supplier_counts / total_cables
     
-    # Route redundancy (number of distinct suppliers)
-    distinct_suppliers = country_data['supplier_bloc'].nunique()
+    # Diversification (Shannon entropy)
+    supplier_entropy = -sum(supplier_shares * np.log(supplier_shares.replace(0, 1)))
+    max_entropy = np.log(len(supplier_counts)) if len(supplier_counts) > 1 else 1
+    supplier_diversification = supplier_entropy / max_entropy if max_entropy > 0 else 0
     
-    # Calculate sovereignty index (simplified)
-    # Formula: weighted combination of diversification, foreign ownership, bloc dominance, redundancy
-    sovereignty_index = (
-        diversification * 0.4 +  # Supplier diversification
-        (1 - (chinese_supplier_count / total_cables)) * 0.3 +  # Low Chinese dependence
-        (1 - single_supplier_dominance) * 0.2 +  # No single supplier dominance
-        (min(distinct_suppliers / 5, 1)) * 0.1  # Route redundancy (normalized to max 5)
+    # Independence (BLOC-NEUTRAL: domestic suppliers)
+    domestic_supplier_count = 0
+    for _, cable in country_data.iterrows():
+        supplier_country_str = str(cable.get('suppliers_country', ''))
+        if country.lower() in supplier_country_str.lower():
+            domestic_supplier_count += 1
+    
+    supplier_independence = domestic_supplier_count / total_cables if total_cables > 0 else 0
+    
+    # No dominance
+    supplier_no_dominance = 1 - supplier_shares.max() if len(supplier_shares) > 0 else 0
+    
+    # Redundancy
+    supplier_redundancy = min(len(supplier_counts) / 5, 1)
+    
+    # SOVEREIGNTY INDEX
+    supplier_sovereignty = (
+        0.40 * supplier_diversification +
+        0.30 * supplier_independence +
+        0.20 * supplier_no_dominance +
+        0.10 * supplier_redundancy
     )
+    
+    # OWNER PERSPECTIVE (same logic)
+    owner_counts = country_data['owner_bloc'].value_counts()
+    owner_shares = owner_counts / total_cables
+    
+    owner_entropy = -sum(owner_shares * np.log(owner_shares.replace(0, 1)))
+    max_entropy = np.log(len(owner_counts)) if len(owner_counts) > 1 else 1
+    owner_diversification = owner_entropy / max_entropy if max_entropy > 0 else 0
+    
+    domestic_owner_count = 0
+    for _, cable in country_data.iterrows():
+        owner_country_str = str(cable.get('owner_country', ''))
+        if country.lower() in owner_country_str.lower():
+            domestic_owner_count += 1
+    
+    owner_independence = domestic_owner_count / total_cables if total_cables > 0 else 0
+    
+    owner_no_dominance = 1 - owner_shares.max() if len(owner_shares) > 0 else 0
+    owner_redundancy = min(len(owner_counts) / 5, 1)
+    
+    owner_sovereignty = (
+        0.40 * owner_diversification +
+        0.30 * owner_independence +
+        0.20 * owner_no_dominance +
+        0.10 * owner_redundancy
+    )
+    
+    # Bloc percentages - ALL blocs
+    pct_chinese_supplier = (supplier_counts.get('China', 0) / total_cables * 100)
+    pct_chinese_owner = (owner_counts.get('China', 0) / total_cables * 100)
+    pct_us_supplier = (supplier_counts.get('US', 0) / total_cables * 100)
+    pct_us_owner = (owner_counts.get('US', 0) / total_cables * 100)
+    pct_eu_supplier = (supplier_counts.get('Europe', 0) / total_cables * 100)
+    pct_eu_owner = (owner_counts.get('Europe', 0) / total_cables * 100)
+    pct_japan_supplier = (supplier_counts.get('Japan', 0) / total_cables * 100)
+    pct_japan_owner = (owner_counts.get('Japan', 0) / total_cables * 100)
+    pct_india_supplier = (supplier_counts.get('India', 0) / total_cables * 100)
+    pct_india_owner = (owner_counts.get('India', 0) / total_cables * 100)
+    pct_mixed_supplier = (supplier_counts.get('Mixed', 0) / total_cables * 100)
+    pct_mixed_owner = (owner_counts.get('Mixed', 0) / total_cables * 100)
+    pct_other_supplier = (supplier_counts.get('Other', 0) / total_cables * 100)
+    pct_other_owner = (owner_counts.get('Other', 0) / total_cables * 100)
     
     country_metrics.append({
         'country': country,
         'total_cables': total_cables,
-        'pct_chinese_supplier': round((chinese_supplier_count / total_cables) * 100, 2),
-        'pct_us_supplier': round((us_supplier_count / total_cables) * 100, 2),
-        'pct_eu_supplier': round((eu_supplier_count / total_cables) * 100, 2),
-        'supplier_diversification': round(diversification, 3),
-        'single_supplier_dominance': single_supplier_dominance,
-        'distinct_suppliers': distinct_suppliers,
-        'sovereignty_index': round(sovereignty_index, 3),
-        'supplier_hhi': round(supplier_hhi, 2)
+        'supplier_sovereignty_index': round(supplier_sovereignty, 3),
+        'owner_sovereignty_index': round(owner_sovereignty, 3),
+        'supplier_diversification': round(supplier_diversification, 3),
+        'owner_diversification': round(owner_diversification, 3),
+        'supplier_independence': round(supplier_independence, 3),
+        'owner_independence': round(owner_independence, 3),
+        'pct_chinese_supplier': round(pct_chinese_supplier, 1),
+        'pct_chinese_owner': round(pct_chinese_owner, 1),
+        'pct_us_supplier': round(pct_us_supplier, 1),
+        'pct_us_owner': round(pct_us_owner, 1),
+        'pct_eu_supplier': round(pct_eu_supplier, 1),
+        'pct_eu_owner': round(pct_eu_owner, 1),
+        'pct_japan_supplier': round(pct_japan_supplier, 1),
+        'pct_japan_owner': round(pct_japan_owner, 1),
+        'pct_india_supplier': round(pct_india_supplier, 1),
+        'pct_india_owner': round(pct_india_owner, 1),
+        'pct_mixed_supplier': round(pct_mixed_supplier, 1),
+        'pct_mixed_owner': round(pct_mixed_owner, 1),
+        'pct_other_supplier': round(pct_other_supplier, 1),
+        'pct_other_owner': round(pct_other_owner, 1),
+        'pct_domestic_supplier': round(supplier_independence * 100, 1),
+        'pct_domestic_owner': round(owner_independence * 100, 1)
     })
 
-# Sort by total cables
-country_metrics_sorted = sorted(country_metrics, key=lambda x: x['total_cables'], reverse=True)
+country_metrics_sorted = sorted(country_metrics, key=lambda x: x['owner_sovereignty_index'], reverse=True)
 
 sovereignty_data = {
     'countries': country_metrics_sorted,
     'global_stats': {
-        'total_countries': len(country_metrics),
-        'avg_sovereignty_index': round(np.mean([c['sovereignty_index'] for c in country_metrics]), 3),
-        'avg_diversification': round(np.mean([c['supplier_diversification'] for c in country_metrics]), 3)
-    }
-}
-
-print(f"✓ Country-level metrics: {len(country_metrics)} countries")
-
-# ============================================================================
-# MODULE 5: TEMPORAL DYNAMICS DATA
-# ============================================================================
-
-print("\n" + "="*80)
-print("PROCESSING: TEMPORAL DYNAMICS MODULE")
-print("="*80)
-
-# Cables per year by bloc
-cables_per_year = []
-for year in range(int(df_with_year['rfs_year'].min()), int(df_with_year['rfs_year'].max()) + 1):
-    year_data = df_with_year[df_with_year['rfs_year'] == year]
-    
-    bloc_counts = {}
-    for bloc in ['China', 'US', 'Europe', 'Japan', 'India', 'Other', 'Mixed', 'Unknown']:
-        bloc_counts[bloc] = len(year_data[year_data['supplier_bloc'] == bloc])
-    
-    cables_per_year.append({
-        'year': year,
-        **bloc_counts,
-        'total': len(year_data)
-    })
-
-# Pre-2013 vs Post-2013 comparison
-pre_2013 = df_with_year[df_with_year['rfs_year'] < 2013]
-post_2013 = df_with_year[df_with_year['rfs_year'] >= 2013]
-
-comparison_2013 = {
-    'pre_2013': {
-        'total': len(pre_2013),
-        'blocs': pre_2013['supplier_bloc'].value_counts().to_dict(),
-        'avg_per_year': len(pre_2013) / (2013 - pre_2013['rfs_year'].min())
+        'supplier_perspective': {
+            'avg_sovereignty_index': round(np.mean([c['supplier_sovereignty_index'] for c in country_metrics]), 3),
+            'avg_diversification': round(np.mean([c['supplier_diversification'] for c in country_metrics]), 3),
+            'avg_independence': round(np.mean([c['supplier_independence'] for c in country_metrics]), 3),
+            'single_supplier_dependent': sum(c['supplier_diversification'] < 0.5 for c in country_metrics)
+        },
+        'owner_perspective': {
+            'avg_sovereignty_index': round(np.mean([c['owner_sovereignty_index'] for c in country_metrics]), 3),
+            'avg_diversification': round(np.mean([c['owner_diversification'] for c in country_metrics]), 3),
+            'avg_independence': round(np.mean([c['owner_independence'] for c in country_metrics]), 3),
+            'single_owner_dependent': sum(c['owner_diversification'] < 0.5 for c in country_metrics)
+        }
     },
-    'post_2013': {
-        'total': len(post_2013),
-        'blocs': post_2013['supplier_bloc'].value_counts().to_dict(),
-        'avg_per_year': len(post_2013) / (post_2013['rfs_year'].max() - 2013 + 1)
-    }
+    'methodology_note': 'Independence = % domestic suppliers/owners (bloc-neutral). Updated 2026-03-28.'
 }
 
-# Post-2020 analysis
-post_2020 = df_with_year[df_with_year['rfs_year'] >= 2020]
-comparison_2020 = {
-    'total': len(post_2020),
-    'blocs': post_2020['supplier_bloc'].value_counts().to_dict(),
-    'chinese_share': len(post_2020[post_2020['supplier_bloc'] == 'China']) / len(post_2020) * 100
-}
+print(f"✓ Sovereignty data ready")
 
-# Status breakdown
-status_breakdown = df['status'].value_counts().to_dict()
-
-temporal_data = {
-    'cables_per_year': cables_per_year,
-    'comparison_2013': comparison_2013,
-    'comparison_2020': comparison_2020,
-    'status_breakdown': status_breakdown,
-    'year_range': {
-        'min': int(df_with_year['rfs_year'].min()),
-        'max': int(df_with_year['rfs_year'].max())
-    }
-}
-
-print(f"✓ Temporal data: {len(cables_per_year)} years")
-print(f"✓ Pre-2013: {len(pre_2013)} cables, Post-2013: {len(post_2013)} cables")
+# Show China's new scores
+china = next((c for c in country_metrics if c['country'] == 'China'), None)
+if china:
+    print("\nCHINA (BLOC-NEUTRAL METHODOLOGY):")
+    print(f"  Cables: {china['total_cables']}")
+    print(f"  Owner sovereignty: {china['owner_sovereignty_index']} (was penalized before)")
+    print(f"  Domestic owners: {china['pct_domestic_owner']}%")
+    print(f"  Owner independence component: {china['owner_independence']}")
 
 # ============================================================================
-# MODULE 6: POLICY & REGULATION DATA
+# EXPORT
 # ============================================================================
-
-print("\n" + "="*80)
-print("PROCESSING: POLICY & REGULATION MODULE")
-print("="*80)
-
-# Extract policy events from regulation_notes
-policy_events = []
-for idx, row in df.iterrows():
-    if pd.notna(row['regulation_notes']):
-        policy_events.append({
-            'cable_name': row['cable_name'],
-            'year': row['rfs_year'],
-            'note': row['regulation_notes'],
-            'supplier_bloc': row['supplier_bloc'],
-            'owner_bloc': row['owner_bloc']
-        })
-
-policy_data = {
-    'events': policy_events,
-    'total_events': len(policy_events),
-    'cables_with_notes': len(df[df['regulation_notes'].notna()])
-}
-
-print(f"✓ Policy events: {len(policy_events)} regulatory notes")
-
-# ============================================================================
-# EXPORT ALL DATA
-# ============================================================================
-
-print("\n" + "="*80)
-print("EXPORTING DATA FILES")
-print("="*80)
 
 output_path = Path('../dashboard/public/data')
 output_path.mkdir(parents=True, exist_ok=True)
 
-# Export each module's data
-files_to_export = {
-    'cables_data.json': cables_data,
-    'market_structure.json': market_structure_data,
-    'geographic_distribution.json': geographic_data,
-    'sovereignty_dependency.json': sovereignty_data,
-    'temporal_dynamics.json': temporal_data,
-    'policy_regulation.json': policy_data
-}
+with open(output_path / 'sovereignty_dependency.json', 'w') as f:
+    json.dump(sovereignty_data, f, indent=2, default=str)
 
-for filename, data in files_to_export.items():
-    filepath = output_path / filename
-    with open(filepath, 'w') as f:
-        json.dump(data, f, indent=2, default=str)
-    print(f"✓ Exported {filename}")
-
-# Also create metadata
-metadata = {
-    'version': '1.0',
-    'updated': '2026-02-26',
-    'infrastructure_type': 'submarine_cables',
-    'total_cables': len(df),
-    'year_range': {
-        'min': int(df_with_year['rfs_year'].min()),
-        'max': int(df_with_year['rfs_year'].max())
-    },
-    'blocs': list(df['supplier_bloc'].unique()),
-    'files': list(files_to_export.keys())
-}
-
-with open(output_path / 'metadata.json', 'w') as f:
-    json.dump(metadata, f, indent=2)
-print(f"✓ Exported metadata.json")
-
-print("\n" + "="*80)
-print("PROCESSING COMPLETE!")
-print("="*80)
-print(f"\nGenerated {len(files_to_export)} data files for all dashboard modules")
-print(f"Location: {output_path}")
+print(f"\n✓ Exported sovereignty_dependency.json")
+print("✓ Complete!")

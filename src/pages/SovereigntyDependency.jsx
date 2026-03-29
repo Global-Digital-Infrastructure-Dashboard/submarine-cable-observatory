@@ -7,6 +7,8 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
   const [perspective, setPerspective] = useState('owner')
   const [hoveredCountry, setHoveredCountry] = useState(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [searchTerm, setSearchTerm] = useState('')
+  const [highlightedCountry, setHighlightedCountry] = useState(null)
 
   useEffect(() => {
     async function loadData() {
@@ -20,7 +22,6 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
         return
       }
   
-      // Rebuild the data structure
       const formattedData = {
         countries: countries,
         global_stats: {
@@ -43,6 +44,20 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
     
     loadData()
   }, [infrastructureType])
+
+  // Handle search
+  const handleSearch = (value) => {
+    setSearchTerm(value)
+    if (value.trim() === '') {
+      setHighlightedCountry(null)
+      return
+    }
+    
+    const found = countriesForViz.find(c => 
+      c.country.toLowerCase().includes(value.toLowerCase())
+    )
+    setHighlightedCountry(found ? found.country : null)
+  }
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-16">
@@ -133,13 +148,38 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
         </div>
       </section>
 
-      {/* Scatter Plot */}
+      {/* Scatter Plot with Search */}
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
-          <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-2">Sovereignty vs Infrastructure Density</h2>
-          <p className="text-sm text-[#616161] mb-6 leading-relaxed">
-            Hover over dots to see country details (showing countries with 3+ cables)
-          </p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-2">Sovereignty vs Infrastructure Density</h2>
+              <p className="text-sm text-[#616161] leading-relaxed">
+                Search for a country or hover over dots for details (showing countries with 3+ cables)
+              </p>
+            </div>
+
+            {/* Search Bar */}
+            <div className="ml-6 w-80">
+              <input
+                type="text"
+                placeholder="Search country (e.g., China, Singapore)..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#0D47A1] focus:border-transparent"
+              />
+              {highlightedCountry && (
+                <div className="mt-2 text-xs text-[#0D47A1]">
+                  ✓ Highlighting: {highlightedCountry}
+                </div>
+              )}
+              {searchTerm && !highlightedCountry && (
+                <div className="mt-2 text-xs text-[#C62828]">
+                  No country found matching "{searchTerm}"
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="mt-8 bg-[#FAFAFA] p-8 rounded-lg relative">
             <svg 
@@ -160,6 +200,13 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
                   <stop offset="50%" stopColor="#FFF3E0" />
                   <stop offset="100%" stopColor="#E8F5E9" />
                 </linearGradient>
+                <filter id="highlightGlow">
+                  <feGaussianBlur stdDeviation="4" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
               </defs>
 
               <rect x="80" y="40" width="880" height="400" fill="url(#riskGradient)" opacity="0.25" />
@@ -200,6 +247,9 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
                 const y = 440 - c[metrics.sovereignty] * 400
                 const size = Math.min(Math.max(c.total_cables / 3, 6), 20)
                 
+                const isHighlighted = highlightedCountry === c.country
+                const isHovered = hoveredCountry === c.country
+                
                 const color = c[metrics.sovereignty] > 0.7 ? '#2E7D32' :
                              c[metrics.sovereignty] > 0.6 ? '#689F38' :
                              c[metrics.sovereignty] > 0.5 ? '#FFA726' :
@@ -210,12 +260,13 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
                     key={c.country}
                     cx={x}
                     cy={y}
-                    r={size}
+                    r={isHighlighted ? size * 1.5 : size}
                     fill={color}
-                    opacity={hoveredCountry === c.country ? 1 : 0.7}
-                    stroke={hoveredCountry === c.country ? '#212121' : 'white'}
-                    strokeWidth={hoveredCountry === c.country ? 3 : 2}
+                    opacity={isHighlighted ? 1 : (isHovered ? 1 : 0.7)}
+                    stroke={isHighlighted ? '#0D47A1' : (isHovered ? '#212121' : 'white')}
+                    strokeWidth={isHighlighted ? 4 : (isHovered ? 3 : 2)}
                     className="cursor-pointer transition-all"
+                    filter={isHighlighted ? "url(#highlightGlow)" : "none"}
                     onMouseEnter={() => setHoveredCountry(c.country)}
                     onMouseLeave={() => setHoveredCountry(null)}
                   />
@@ -227,13 +278,18 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
             </svg>
 
             {/* Tooltip */}
-            {hoveredCountry && (
+            {(hoveredCountry || highlightedCountry) && (
               <div 
                 className="absolute bg-gray-900/95 text-white px-4 py-3 rounded-md text-sm pointer-events-none z-50 shadow-xl min-w-[200px]"
-                style={{ left: mousePos.x + 15, top: mousePos.y - 10 }}
+                style={{ 
+                  left: highlightedCountry ? '50%' : mousePos.x + 15, 
+                  top: highlightedCountry ? 20 : mousePos.y - 10,
+                  transform: highlightedCountry ? 'translateX(-50%)' : 'none'
+                }}
               >
                 {(() => {
-                  const c = countriesForViz.find(country => country.country === hoveredCountry)
+                  const displayCountry = hoveredCountry || highlightedCountry
+                  const c = countriesForViz.find(country => country.country === displayCountry)
                   if (!c) return null
                   return (
                     <>
@@ -268,6 +324,7 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
         </div>
       </section>
 
+      {/* Rest of component stays the same... */}
       {/* Dependency Assessment */}
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
@@ -281,9 +338,7 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
               {Object.entries(groupedRisks).map(([type, countries]) => (
                 <div key={type}>
                   <div className="p-3 bg-[#F5F5F5] border-l-4 border-[#E65100] mb-4 rounded">
-                    <h3 className="font-serif text-base font-semibold m-0 text-[#212121]">
-                      {type}
-                    </h3>
+                    <h3 className="font-serif text-base font-semibold m-0 text-[#212121]">{type}</h3>
                     <p className="text-xs text-[#757575] mt-1 m-0">
                       {countries.length} {countries.length === 1 ? 'country' : 'countries'} • {countries.reduce((sum, c) => sum + c.total_cables, 0)} total cables
                     </p>
@@ -295,24 +350,51 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
                         <th className="text-left py-3 px-3 font-semibold text-[#616161] text-xs uppercase">Country</th>
                         <th className="text-right py-3 px-3 font-semibold text-[#616161] text-xs uppercase">Cables</th>
                         <th className="text-right py-3 px-3 font-semibold text-[#616161] text-xs uppercase">Sovereignty</th>
-                        <th className="text-right py-3 px-3 font-semibold text-[#616161] text-xs uppercase">Chinese %</th>
+                        <th className="text-right py-3 px-3 font-semibold text-[#616161] text-xs uppercase">Dominant Bloc</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {countries.map((c, idx) => (
-                        <tr key={c.country} className={idx < countries.length - 1 ? 'border-b border-[#F0F0F0]' : ''}>
-                          <td className="py-3 px-3 font-medium">{c.country}</td>
-                          <td className="py-3 px-3 text-right text-[#616161]">{c.total_cables}</td>
-                          <td className="py-3 px-3 text-right">
-                            <span className="font-semibold text-[#D32F2F]">
-                              {c[metrics.sovereignty].toFixed(3)}
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 text-right text-[#616161]">
-                            {c[metrics.cn_pct].toFixed(1)}%
-                          </td>
-                        </tr>
-                      ))}
+                      {countries.map((c, idx) => {
+                        // Get ALL bloc percentages
+                        const allBlocs = {
+                          'China': c[perspective === 'supplier' ? 'pct_chinese_supplier' : 'pct_chinese_owner'] || 0,
+                          'US': c[perspective === 'supplier' ? 'pct_us_supplier' : 'pct_us_owner'] || 0,
+                          'EU': c[perspective === 'supplier' ? 'pct_eu_supplier' : 'pct_eu_owner'] || 0,
+                          'Japan': c[perspective === 'supplier' ? 'pct_japan_supplier' : 'pct_japan_owner'] || 0,
+                          'India': c[perspective === 'supplier' ? 'pct_india_supplier' : 'pct_india_owner'] || 0,
+                          'Mixed': c[perspective === 'supplier' ? 'pct_mixed_supplier' : 'pct_mixed_owner'] || 0,
+                          'Other': c[perspective === 'supplier' ? 'pct_other_supplier' : 'pct_other_owner'] || 0
+                        }
+                        
+                        // Find true dominant
+                        const [dominantName, dominantPct] = Object.entries(allBlocs)
+                          .sort(([,a], [,b]) => b - a)[0]
+                        
+                        const blocColor = dominantName === 'China' ? 'bg-red-100 text-red-800' :
+                                        dominantName === 'US' ? 'bg-blue-100 text-blue-800' :
+                                        dominantName === 'EU' ? 'bg-purple-100 text-purple-800' :
+                                        dominantName === 'Japan' ? 'bg-teal-100 text-teal-800' :
+                                        dominantName === 'India' ? 'bg-orange-100 text-orange-800' :
+                                        dominantName === 'Mixed' ? 'bg-indigo-100 text-indigo-800' :
+                                        'bg-gray-100 text-gray-700'
+                        
+                        return (
+                          <tr key={c.country} className={idx < countries.length - 1 ? 'border-b border-[#F0F0F0]' : ''}>
+                            <td className="py-3 px-3 font-medium">{c.country}</td>
+                            <td className="py-3 px-3 text-right text-[#616161]">{c.total_cables}</td>
+                            <td className="py-3 px-3 text-right">
+                              <span className="font-semibold text-[#D32F2F]">
+                                {c[metrics.sovereignty].toFixed(3)}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-right">
+                              <span className={`inline-block px-2.5 py-1 text-xs font-semibold rounded ${blocColor}`}>
+                                {dominantName} ({dominantPct.toFixed(0)}%)
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -380,11 +462,11 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
 
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
-          <h3 className="font-serif text-base font-semibold mb-3">Methodology</h3>
+          <h3 className="font-serif text-base font-semibold mb-3">Methodology (Updated)</h3>
           <p className="text-sm leading-relaxed text-[#616161] m-0">
-            Sovereignty Index = 40% Diversification + 30% Independence + 20% No Dominance + 10% Redundancy. 
-            Scores below 0.6 with ≥10 cables indicate high concentration risk - dependence on limited suppliers/owners 
-            creates exposure to supply chain disruption or geopolitical leverage.
+            Sovereignty Index = 40% Diversification + 30% Independence (domestic control) + 20% No Dominance + 10% Redundancy. 
+            <strong className="text-[#0D47A1]">Independence now measures % domestic suppliers/owners (bloc-neutral)</strong>, 
+            not specifically Chinese presence. This allows all countries, including China, to score high sovereignty when infrastructure is domestically controlled.
           </p>
         </div>
       </section>
