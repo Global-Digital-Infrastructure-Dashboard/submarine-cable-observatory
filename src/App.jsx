@@ -94,25 +94,8 @@ function App() {
                 <h3 className="font-serif text-base font-semibold mb-4 text-white">About This Project</h3>
                 <p className="text-sm leading-relaxed">
                   A political economy research platform analyzing global digital infrastructure patterns, 
-                  geopolitical dependencies, and market structures. Developed as part of Professor Shen's 
+                  geopolitical dependencies, and market structures. Developed as part of Professor Tsai's and Professor Shen's 
                   research on technology and society at Northeastern University.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="font-serif text-base font-semibold mb-4 text-white">Data Sources</h3>
-                <ul className="text-sm space-y-2 list-none p-0">
-                  <li>TeleGeography Submarine Cable Database</li>
-                  <li>PriMetrica Infrastructure Dataset</li>
-                  <li>Public regulatory filings</li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="font-serif text-base font-semibold mb-4 text-white">Citation</h3>
-                <p className="text-sm leading-relaxed">
-                  Global Digital Infrastructure Political Economy Observatory. (2026). 
-                  Submarine Cable Analysis Dashboard. Version 1.0.
                 </p>
               </div>
             </div>

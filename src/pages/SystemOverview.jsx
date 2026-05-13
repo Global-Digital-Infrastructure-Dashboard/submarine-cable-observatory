@@ -7,7 +7,6 @@ function SystemOverview() {
 
   useEffect(() => {
     async function loadCables() {
-      console.log('Fetching from Supabase...')
       const { data: cables, error } = await supabase
         .from('submarinecables')
         .select('*')
@@ -16,8 +15,6 @@ function SystemOverview() {
         setLoading(false)
         return
       }
-      console.log('Loaded cables:', cables?.length || 0)
-      console.log('First cable:', cables?.[0])
       setData(cables)
       setLoading(false)
     }
@@ -37,11 +34,11 @@ function SystemOverview() {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-6">
         <p className="text-red-600">No data found. Check console for details.</p>
-        <p className="text-sm text-gray-600 mt-2">Data length: {data?.length || 0}</p>
       </div>
     )
   }
 
+  // ── Bloc counts ───────────────────────────────────────────────────────────
   const blocCounts = data.reduce((acc, cable) => {
     const bloc = cable.supplier_bloc || 'Unknown'
     acc[bloc] = (acc[bloc] || 0) + 1
@@ -57,32 +54,48 @@ function SystemOverview() {
   const activeCables = data.filter(c => c.status === 'In service').length
   const chineseCables = data.filter(c => c.chinese_supplier === 1 || c.chinese_supplier === '1').length
   const westernCount = blocCounts['Western'] || 0
+  const unknownOwnerPct = (((ownerBlocCounts['Unknown'] || 0) / data.length) * 100).toFixed(1)
 
-  // HHI calculated live: sum of squared market share percentages per supplier/owner
-  const supplierNameCounts = data.reduce((acc, cable) => {
-    const s = cable.suppliers || 'Unknown'
-    acc[s] = (acc[s] || 0) + 1
-    return acc
-  }, {})
+  // ── Supplier HHI — split on semicolons to count individual suppliers ───────
+  const supplierNameCounts = {}
+  data.forEach(cable => {
+    const raw = cable.suppliers || 'Unknown'
+    raw.split(';').map(s => s.trim()).filter(Boolean).forEach(supplier => {
+      supplierNameCounts[supplier] = (supplierNameCounts[supplier] || 0) + 1
+    })
+  })
+  const totalSupplierEntries = Object.values(supplierNameCounts).reduce((a, b) => a + b, 0)
   const supplierHHI = Math.round(
     Object.values(supplierNameCounts).reduce((sum, count) => {
-      const share = (count / data.length) * 100
+      const share = (count / totalSupplierEntries) * 100
       return sum + share * share
     }, 0)
   )
 
-  const ownerNameCounts = data.reduce((acc, cable) => {
-    const o = cable.owners || 'Unknown'
-    acc[o] = (acc[o] || 0) + 1
-    return acc
-  }, {})
-  const ownerHHI = Math.round(
-    Object.values(ownerNameCounts).reduce((sum, count) => {
-      const share = (count / data.length) * 100
-      return sum + share * share
-    }, 0)
+  // ── Owner HHI — split on semicolons to count individual owners ────────────
+  const ownerNameCounts = {}
+  data.forEach(cable => {
+    const raw = cable.owners || 'Unknown'
+    raw.split(';').map(o => o.trim()).filter(Boolean).forEach(owner => {
+      ownerNameCounts[owner] = (ownerNameCounts[owner] || 0) + 1
+    })
+  })
+  const totalOwnerEntries = Object.values(ownerNameCounts).reduce((a, b) => a + b, 0)
+  // Owner HHI at bloc level — more meaningful for geopolitical analysis
+const ownerHHI = Math.round(
+  Object.values(ownerBlocCounts).reduce((sum, count) => {
+    const share = (count / data.length) * 100
+    return sum + share * share
+  }, 0)
   )
 
+  // ── HHI concentration label ───────────────────────────────────────────────
+  const hhiLabel = (hhi) =>
+    hhi > 2500 ? 'Highly concentrated (>2500)' :
+    hhi > 1500 ? 'Moderately concentrated' :
+    'Competitive (<1500)'
+
+  // ── Render bar ────────────────────────────────────────────────────────────
   const renderBar = (bloc, count, total) => {
     const pct = parseFloat(((count / total) * 100).toFixed(1))
     const label = `${pct.toFixed(1)}%`
@@ -117,10 +130,10 @@ function SystemOverview() {
   }
 
   const statCards = [
-    { value: data.length,        label: 'Total Cables',      sub: '↑ Infrastructure count',                                         accent: '#0D47A1' },
-    { value: supplierHHI.toLocaleString(), label: 'Supplier HHI', sub: 'High concentration',                                        accent: '#0D47A1' },
-    { value: `${((chineseCables / data.length) * 100).toFixed(1)}%`, label: 'Chinese Suppliers', sub: `${chineseCables} cables`,     accent: '#0D47A1' },
-    { value: activeCables,       label: 'Active Cables',     sub: `${((activeCables / data.length) * 100).toFixed(1)}% operational`, accent: '#0D47A1' },
+    { value: data.length,                                                              label: 'Total Cables',      sub: '↑ Infrastructure count' },
+    { value: supplierHHI.toLocaleString(),                                             label: 'Supplier HHI',      sub: hhiLabel(supplierHHI) },
+    { value: `${((chineseCables / data.length) * 100).toFixed(1)}%`,                  label: 'Chinese Suppliers', sub: `${chineseCables} cables` },
+    { value: activeCables,                                                             label: 'Active Cables',     sub: `${((activeCables / data.length) * 100).toFixed(1)}% operational` },
   ]
 
   return (
@@ -134,7 +147,7 @@ function SystemOverview() {
         </p>
       </div>
 
-      {/* Key Metrics — unified light cards */}
+      {/* Key Metrics */}
       <section className="mb-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {statCards.map((card, i) => (
@@ -157,7 +170,7 @@ function SystemOverview() {
         </div>
       </section>
 
-      {/* Key Findings — white cards, single dark left border */}
+      {/* Key Findings */}
       <section className="mb-10">
         <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">Key Findings</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -182,7 +195,7 @@ function SystemOverview() {
           <div className="p-6 bg-white rounded-lg border border-[#E0E0E0] border-l-4 border-l-[#212121] shadow-sm">
             <h3 className="text-base font-semibold mb-3 text-[#212121]">Data Coverage</h3>
             <p className="text-sm leading-relaxed text-[#616161] m-0">
-              {blocCounts['Unknown'] || 0} cables ({(((blocCounts['Unknown'] || 0) / data.length) * 100).toFixed(1)}%) have unknown suppliers. Owner data has 97% coverage.
+              {blocCounts['Unknown'] || 0} cables ({(((blocCounts['Unknown'] || 0) / data.length) * 100).toFixed(1)}%) have unknown suppliers. Owner data has {(100 - parseFloat(unknownOwnerPct)).toFixed(1)}% coverage.
             </p>
           </div>
         </div>
@@ -257,7 +270,7 @@ function SystemOverview() {
         </div>
       </section>
 
-      {/* Concentration Indicators — all three numbers in calm red */}
+      {/* Market Concentration Indicators */}
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
           <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-2">Market Concentration Indicators</h2>
@@ -266,12 +279,12 @@ function SystemOverview() {
             <div className="text-center p-6">
               <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">Supplier HHI</h3>
               <div className="font-serif text-5xl font-bold text-[#C62828] my-4">{supplierHHI.toLocaleString()}</div>
-              <p className="text-sm text-[#616161]">Highly concentrated market (&gt;2500)</p>
+              <p className="text-sm text-[#616161]">{hhiLabel(supplierHHI)}</p>
             </div>
             <div className="text-center p-6">
               <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">Owner HHI</h3>
               <div className="font-serif text-5xl font-bold text-[#C62828] my-4">{ownerHHI.toLocaleString()}</div>
-              <p className="text-sm text-[#616161]">Highly concentrated ownership (&gt;2500)</p>
+              <p className="text-sm text-[#616161]">Bloc-level concentration</p>
             </div>
             <div className="text-center p-6">
               <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">Growth Rate</h3>
@@ -295,6 +308,7 @@ function SystemOverview() {
                 <tr className="border-b-2 border-[#E0E0E0]">
                   <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Cable Name</th>
                   <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Year</th>
+                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Supplier</th>
                   <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Owner Bloc</th>
                   <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Status</th>
                 </tr>
@@ -306,8 +320,9 @@ function SystemOverview() {
                   .slice(0, 10)
                   .map((cable, idx) => (
                     <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3.5 text-sm text-gray-800">{cable.cable_name}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-800">{cable.rfs_year || 'N/A'}</td>
+                      <td className="px-4 py-3.5 text-sm font-medium text-[#212121]">{cable.cable_name}</td>
+                      <td className="px-4 py-3.5 text-sm text-[#616161]">{cable.rfs_year || 'N/A'}</td>
+                      <td className="px-4 py-3.5 text-sm text-[#616161]">{cable.suppliers || '—'}</td>
                       <td className="px-4 py-3.5">
                         <span className={`inline-block px-3 py-1.5 text-xs font-semibold rounded ${
                           cable.owner_bloc?.toLowerCase() === 'chinese' ? 'bg-red-100 text-red-800' :
@@ -319,7 +334,7 @@ function SystemOverview() {
                           {cable.owner_bloc || 'Unknown'}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-sm text-gray-800">{cable.status}</td>
+                      <td className="px-4 py-3.5 text-sm text-[#616161]">{cable.status}</td>
                     </tr>
                   ))}
               </tbody>
