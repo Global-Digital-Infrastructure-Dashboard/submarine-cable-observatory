@@ -1,47 +1,52 @@
-import { useState } from 'react'
-
-const INFRASTRUCTURE_TYPES = [
-  { 
-    id: 'cables', 
-    label: 'Submarine Cables', 
-    available: true,
-    description: 'Undersea fiber optic cable networks',
-    dataVersion: 'V1.0 (453 cables)'
-  },
-  { 
-    id: '5g', 
-    label: '5G Networks', 
-    available: false,
-    description: 'Fifth-generation cellular networks',
-    dataVersion: 'Coming soon'
-  },
-  { 
-    id: 'cloud', 
-    label: 'Cloud Infrastructure', 
-    available: false,
-    description: 'Data centers and cloud computing facilities',
-    dataVersion: 'Coming soon'
-  },
-  { 
-    id: 'ai', 
-    label: 'AI Infrastructure', 
-    available: false,
-    description: 'AI training and deployment infrastructure',
-    dataVersion: 'Coming soon'
-  },
-]
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 function InfrastructureSelector({ selected, onSelect }) {
   const [isOpen, setIsOpen] = useState(false)
-  
+  const [cableCount, setCableCount] = useState(null)
+
+  useEffect(() => {
+    async function fetchCount() {
+      const { count, error } = await supabase
+        .from('submarinecables')
+        .select('*', { count: 'exact', head: true })
+      if (!error) setCableCount(count)
+    }
+    fetchCount()
+  }, [])
+
+  const INFRASTRUCTURE_TYPES = [
+    {
+      id: 'cables',
+      label: 'Submarine Cables',
+      available: true,
+      description: 'Undersea fiber optic cable networks',
+      dataVersion: cableCount !== null ? `V1.0 (${cableCount.toLocaleString()} cables)` : 'V1.0 (loading...)'
+    },
+    {
+      id: '5g',
+      label: '5G Networks',
+      available: false,
+      description: 'Fifth-generation cellular networks',
+      dataVersion: 'Coming soon'
+    },
+    {
+      id: 'centers',
+      label: 'Data Centers',
+      available: false,
+      description: 'Data center infrastructures',
+      dataVersion: 'Coming soon'
+    },
+  ]
+
   const selectedInfra = INFRASTRUCTURE_TYPES.find(i => i.id === selected)
 
   return (
     <div className="infrastructure-selector">
       <label className="selector-label">Infrastructure Type:</label>
-      
+
       <div className="selector-wrapper">
-        <button 
+        <button
           className="selector-button"
           onClick={() => setIsOpen(!isOpen)}
         >
@@ -82,11 +87,10 @@ function InfrastructureSelector({ selected, onSelect }) {
         )}
       </div>
 
-      {/* Info banner about future infrastructure types */}
       <div className="infrastructure-info">
         <span className="info-icon">ℹ️</span>
         <span className="info-text">
-          Future phases will add 5G, cloud, and AI infrastructure datasets using the same analytical framework
+          Future phases will add 5G, and Data Centers datasets using the same analytical framework
         </span>
       </div>
     </div>

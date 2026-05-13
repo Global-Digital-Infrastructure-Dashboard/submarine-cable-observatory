@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom'
-import Auth from './Auth'
+//import Auth from './Auth'
 import Hero from './components/Hero'
 import InfrastructureSelector from './components/InfrastructureSelector'
 import './components/InfrastructureSelector.css'
@@ -25,22 +25,22 @@ const navItems = [
 
 function App() {
   const [infrastructureType, setInfrastructureType] = useState('cables')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  //const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  useEffect(() => {
-    const auth = sessionStorage.getItem('authenticated')
-    if (auth === 'true') {
-      setIsAuthenticated(true)
-    }
-  }, [])
+  // useEffect(() => {
+  //   const auth = sessionStorage.getItem('authenticated')
+  //   if (auth === 'true') {
+  //     setIsAuthenticated(true)
+  //   }
+  // }, [])
 
-  const handleAuthenticate = () => {
-    setIsAuthenticated(true)
-  }
+  // const handleAuthenticate = () => {
+  //   setIsAuthenticated(true)
+  // }
 
-  if (!isAuthenticated) {
-    return <Auth onAuthenticate={handleAuthenticate} />
-  }
+  // if (!isAuthenticated) {
+  //   return <Auth onAuthenticate={handleAuthenticate} />
+  // }
 
   return (
     <Router>
