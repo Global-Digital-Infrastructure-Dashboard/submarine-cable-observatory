@@ -131,17 +131,17 @@ function SovereigntyDependency({ infrastructureType = 'cables' }) {
             <div className="font-serif text-4xl font-bold text-[#212121] mb-2">{data.countries.length}</div>
             <div className="text-sm text-[#616161] font-medium uppercase tracking-wide">Countries</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#6A1B9A] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
+          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
             <div className="font-serif text-4xl font-bold text-[#212121] mb-2">{stats.avg_sovereignty_index.toFixed(3)}</div>
             <div className="text-sm text-[#616161] font-medium uppercase tracking-wide">Global Average</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#2E7D32] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
+          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
             <div className="font-serif text-4xl font-bold text-[#212121] mb-2">
               {countriesForViz.filter(c => c[metrics.sovereignty] > 0.7).length}
             </div>
             <div className="text-sm text-[#616161] font-medium uppercase tracking-wide">High Sovereignty</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#C62828] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
+          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
             <div className="font-serif text-4xl font-bold text-[#212121] mb-2">{concentrationRisks.length}</div>
             <div className="text-sm text-[#616161] font-medium uppercase tracking-wide">High Concentration Risk</div>
           </div>

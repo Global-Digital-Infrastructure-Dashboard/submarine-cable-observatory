@@ -269,37 +269,46 @@ function GeographicDistribution({ infrastructureType = 'cables' }) {
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
           <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">Key Geographic Insights</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="p-6 bg-[#E3F2FD] rounded-lg border-l-4 border-[#0D47A1]">
-              <h4 className="font-serif text-base font-semibold mb-3 text-[#0D47A1]">
-                Major Hubs
-              </h4>
-              <p className="text-sm leading-relaxed text-[#212121] m-0">
-                United States (85), United Kingdom (52), and Indonesia (42) serve as primary cable landing hubs, 
-                connecting major trade routes and population centers.
-              </p>
-            </div>
+          {(() => {
+            const top = countryData.countries
+            const top3 = top.slice(0, 3)
 
-            <div className="p-6 bg-[#FFF3E0] rounded-lg border-l-4 border-[#F57C00]">
-              <h4 className="font-serif text-base font-semibold mb-3 text-[#E65100]">
-                European Density
-              </h4>
-              <p className="text-sm leading-relaxed text-[#212121] m-0">
-                Europe shows highest cable density with UK, Spain, Italy, France, and Scandinavia forming 
-                a concentrated network hub serving as gateway between Americas and Asia.
-              </p>
-            </div>
+            const usRegion = ['United States', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Argentina', 'Peru', 'Venezuela']
+            const europeRegion = ['United Kingdom', 'France', 'Germany', 'Spain', 'Italy', 'Portugal', 'Netherlands', 'Denmark', 'Sweden', 'Norway', 'Finland', 'Ireland', 'Poland', 'Greece']
+            const apacRegion = ['Japan', 'Singapore', 'China', 'Hong Kong', 'Taiwan', 'South Korea', 'Australia', 'Indonesia', 'Philippines', 'Malaysia', 'Thailand', 'Vietnam', 'India', 'New Zealand']
 
-            <div className="p-6 bg-[#F3E5F5] rounded-lg border-l-4 border-[#6A1B9A]">
-              <h4 className="font-serif text-base font-semibold mb-3 text-[#4A148C]">
-                Asia-Pacific Growth
-              </h4>
-              <p className="text-sm leading-relaxed text-[#212121] m-0">
-                Singapore, Japan, Hong Kong, and Indonesia anchor the Asia-Pacific network, 
-                with Indonesia's 42 cables reflecting its strategic position connecting Asia to Australia.
-              </p>
-            </div>
-          </div>
+            const topEurope = top.filter(c => europeRegion.includes(c.name)).slice(0, 3)
+            const topAPAC = top.filter(c => apacRegion.includes(c.name)).slice(0, 3)
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="p-6 bg-[#F0F4FA] rounded-lg border border-[#E8EDF5] border-l-4 border-l-[#0D47A1]">
+                  <h4 className="font-serif text-base font-semibold mb-3 text-[#212121]">Major Hubs</h4>
+                  <p className="text-sm leading-relaxed text-[#616161] m-0">
+                    {top3.map((c, i) => `${c.name} (${c.cables})`).join(', ')} serve as the top cable landing hubs globally, connecting major trade routes and population centers.
+                  </p>
+                </div>
+
+                <div className="p-6 bg-[#F0F4FA] rounded-lg border border-[#E8EDF5] border-l-4 border-l-[#0D47A1]">
+                  <h4 className="font-serif text-base font-semibold mb-3 text-[#212121]">European Density</h4>
+                  <p className="text-sm leading-relaxed text-[#616161] m-0">
+                    {topEurope.length > 0
+                      ? `${topEurope.map(c => `${c.name} (${c.cables})`).join(', ')} lead European cable infrastructure, forming a concentrated network hub serving as gateway between the Americas and Asia.`
+                      : 'European cable infrastructure data loading...'}
+                  </p>
+                </div>
+
+                <div className="p-6 bg-[#F0F4FA] rounded-lg border border-[#E8EDF5] border-l-4 border-l-[#0D47A1]">
+                  <h4 className="font-serif text-base font-semibold mb-3 text-[#212121]">Asia-Pacific Growth</h4>
+                  <p className="text-sm leading-relaxed text-[#616161] m-0">
+                    {topAPAC.length > 0
+                      ? `${topAPAC.map(c => `${c.name} (${c.cables})`).join(', ')} anchor the Asia-Pacific network, reflecting the region's strategic role in global digital infrastructure.`
+                      : 'Asia-Pacific cable infrastructure data loading...'}
+                  </p>
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </section>
     </div>

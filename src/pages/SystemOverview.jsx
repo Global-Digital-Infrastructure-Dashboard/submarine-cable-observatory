@@ -8,23 +8,19 @@ function SystemOverview() {
   useEffect(() => {
     async function loadCables() {
       console.log('Fetching from Supabase...')
-      
       const { data: cables, error } = await supabase
         .from('submarinecables')
         .select('*')
-      
       if (error) {
         console.error('Supabase error:', error)
         setLoading(false)
         return
       }
-      
       console.log('Loaded cables:', cables?.length || 0)
       console.log('First cable:', cables?.[0])
       setData(cables)
       setLoading(false)
     }
-    
     loadCables()
   }, [])
 
@@ -46,18 +42,86 @@ function SystemOverview() {
     )
   }
 
-  // Calculate metrics - USING SUPPLIER BLOCS
   const blocCounts = data.reduce((acc, cable) => {
-    const bloc = cable.supplier_bloc
+    const bloc = cable.supplier_bloc || 'Unknown'
+    acc[bloc] = (acc[bloc] || 0) + 1
+    return acc
+  }, {})
+
+  const ownerBlocCounts = data.reduce((acc, cable) => {
+    const bloc = cable.owner_bloc || 'Unknown'
     acc[bloc] = (acc[bloc] || 0) + 1
     return acc
   }, {})
 
   const activeCables = data.filter(c => c.status === 'In service').length
   const chineseCables = data.filter(c => c.chinese_supplier === 1 || c.chinese_supplier === '1').length
+  const westernCount = blocCounts['Western'] || 0
 
-  const supplierHHI = 3020
-  const ownerHHI = 3780
+  // HHI calculated live: sum of squared market share percentages per supplier/owner
+  const supplierNameCounts = data.reduce((acc, cable) => {
+    const s = cable.suppliers || 'Unknown'
+    acc[s] = (acc[s] || 0) + 1
+    return acc
+  }, {})
+  const supplierHHI = Math.round(
+    Object.values(supplierNameCounts).reduce((sum, count) => {
+      const share = (count / data.length) * 100
+      return sum + share * share
+    }, 0)
+  )
+
+  const ownerNameCounts = data.reduce((acc, cable) => {
+    const o = cable.owners || 'Unknown'
+    acc[o] = (acc[o] || 0) + 1
+    return acc
+  }, {})
+  const ownerHHI = Math.round(
+    Object.values(ownerNameCounts).reduce((sum, count) => {
+      const share = (count / data.length) * 100
+      return sum + share * share
+    }, 0)
+  )
+
+  const renderBar = (bloc, count, total) => {
+    const pct = parseFloat(((count / total) * 100).toFixed(1))
+    const label = `${pct.toFixed(1)}%`
+    const isNarrow = pct < 12
+    return (
+      <div key={bloc} className="flex items-center gap-4">
+        <div className="min-w-[100px] text-sm font-medium text-[#212121]">{bloc}</div>
+        <div className="flex-1 bg-[#E0E0E0] rounded h-9 relative">
+          <div
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#0D47A1] to-[#0097A7] rounded transition-all duration-300"
+            style={{ width: `${pct}%` }}
+          />
+          {isNarrow ? (
+            <span
+              className="absolute top-0 h-full flex items-center text-xs font-semibold text-[#212121] whitespace-nowrap"
+              style={{ left: `calc(${pct}% + 8px)` }}
+            >
+              {label}
+            </span>
+          ) : (
+            <span
+              className="absolute top-0 h-full flex items-center text-xs font-semibold text-white"
+              style={{ left: `calc(${pct}% - 8px)`, transform: 'translateX(-100%)' }}
+            >
+              {label}
+            </span>
+          )}
+        </div>
+        <div className="min-w-[90px] text-right text-sm text-[#616161] font-medium">{count} cables</div>
+      </div>
+    )
+  }
+
+  const statCards = [
+    { value: data.length,        label: 'Total Cables',      sub: '↑ Infrastructure count',                                         accent: '#0D47A1' },
+    { value: supplierHHI.toLocaleString(), label: 'Supplier HHI', sub: 'High concentration',                                        accent: '#0D47A1' },
+    { value: `${((chineseCables / data.length) * 100).toFixed(1)}%`, label: 'Chinese Suppliers', sub: `${chineseCables} cables`,     accent: '#0D47A1' },
+    { value: activeCables,       label: 'Active Cables',     sub: `${((activeCables / data.length) * 100).toFixed(1)}% operational`, accent: '#0D47A1' },
+  ]
 
   return (
     <div>
@@ -65,155 +129,154 @@ function SystemOverview() {
       <div className="mb-10">
         <h1 className="font-serif text-4xl font-bold text-[#212121] mb-3">System Overview</h1>
         <p className="text-base text-[#616161] leading-relaxed max-w-4xl">
-          Global structural summary of submarine cable infrastructure. 
+          Global structural summary of submarine cable infrastructure.
           Showing {data.length} cables across {Object.keys(blocCounts).length} geopolitical blocs.
         </p>
       </div>
 
-      {/* Key Metrics */}
+      {/* Key Metrics — unified light cards */}
       <section className="mb-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-6 hover:shadow-md transition-shadow">
-            <div className="font-serif text-4xl font-bold text-[#212121] mb-2">{data.length}</div>
-            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Total Cables</div>
-            <div className="text-xs text-[#9E9E9E] flex items-center gap-1">
-              <span className="text-green-600">↑</span> Infrastructure count
+          {statCards.map((card, i) => (
+            <div
+              key={i}
+              className="rounded-lg p-6 flex flex-col gap-1 border border-[#E8EDF5]"
+              style={{ backgroundColor: '#F0F4FA' }}
+            >
+              <div className="font-serif text-4xl font-bold leading-tight" style={{ color: '#0A2F6B' }}>
+                {card.value}
+              </div>
+              <div className="text-xs font-bold uppercase tracking-widest mt-2 text-[#616161]">
+                {card.label}
+              </div>
+              <div className="text-xs mt-0.5 text-[#9E9E9E]">
+                {card.sub}
+              </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#C62828] p-6 hover:shadow-md transition-shadow">
-            <div className="font-serif text-4xl font-bold text-[#212121] mb-2">{supplierHHI.toLocaleString()}</div>
-            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Supplier HHI</div>
-            <div className="text-xs text-[#9E9E9E]">High concentration</div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#6A1B9A] p-6 hover:shadow-md transition-shadow">
-            <div className="font-serif text-4xl font-bold text-[#212121] mb-2">
-              {((chineseCables / data.length) * 100).toFixed(1)}%
-            </div>
-            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Chinese Suppliers</div>
-            <div className="text-xs text-[#9E9E9E]">{chineseCables} cables</div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#2E7D32] p-6 hover:shadow-md transition-shadow">
-            <div className="font-serif text-4xl font-bold text-[#212121] mb-2">{activeCables}</div>
-            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Active Cables</div>
-            <div className="text-xs text-[#9E9E9E]">
-              {((activeCables / data.length) * 100).toFixed(1)}% operational
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Key Findings */}
+      {/* Key Findings — white cards, single dark left border */}
       <section className="mb-10">
         <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">Key Findings</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="p-6 bg-[#FFF3E0] rounded-lg border-l-4 border-[#FF9800]">
-            <h3 className="text-base font-semibold mb-3 text-[#E65100]">Market Concentration</h3>
-            <p className="text-sm leading-relaxed text-[#212121] m-0">
-              Both supplier (HHI: {supplierHHI}) and owner (HHI: {ownerHHI}) markets are highly concentrated (&gt;2500), indicating limited competition.
+          <div className="p-6 bg-white rounded-lg border border-[#E0E0E0] border-l-4 border-l-[#212121] shadow-sm">
+            <h3 className="text-base font-semibold mb-3 text-[#212121]">Market Concentration</h3>
+            <p className="text-sm leading-relaxed text-[#616161] m-0">
+              Both supplier (HHI: {supplierHHI.toLocaleString()}) and owner (HHI: {ownerHHI.toLocaleString()}) markets are highly concentrated (&gt;2500), indicating limited competition.
             </p>
           </div>
-
-          <div className="p-6 bg-[#FFEBEE] rounded-lg border-l-4 border-[#E74C3C]">
-            <h3 className="text-base font-semibold mb-3 text-[#C62828]">Chinese Participation</h3>
-            <p className="text-sm leading-relaxed text-[#212121] m-0">
+          <div className="p-6 bg-white rounded-lg border border-[#E0E0E0] border-l-4 border-l-[#212121] shadow-sm">
+            <h3 className="text-base font-semibold mb-3 text-[#212121]">Chinese Participation</h3>
+            <p className="text-sm leading-relaxed text-[#616161] m-0">
               Chinese suppliers involved in {chineseCables} cables ({((chineseCables / data.length) * 100).toFixed(1)}%), representing a 20x increase from pre-2013 levels.
             </p>
           </div>
-
-          <div className="p-6 bg-[#F3E5F5] rounded-lg border-l-4 border-[#9C27B0]">
-            <h3 className="text-base font-semibold mb-3 text-[#6A1B9A]">European Dominance</h3>
-            <p className="text-sm leading-relaxed text-[#212121] m-0">
-              Europe maintains the largest supplier market share at {((blocCounts['Europe'] / data.length) * 100).toFixed(1)}% of total cables.
+          <div className="p-6 bg-white rounded-lg border border-[#E0E0E0] border-l-4 border-l-[#212121] shadow-sm">
+            <h3 className="text-base font-semibold mb-3 text-[#212121]">Western Dominance</h3>
+            <p className="text-sm leading-relaxed text-[#616161] m-0">
+              Western suppliers build {((westernCount / data.length) * 100).toFixed(1)}% of cables ({westernCount} total), led by SubCom, ASN, and NEC.
             </p>
           </div>
-
-          <div className="p-6 bg-[#E3F2FD] rounded-lg border-l-4 border-[#2196F3]">
-            <h3 className="text-base font-semibold mb-3 text-[#1565C0]">Data Coverage</h3>
-            <p className="text-sm leading-relaxed text-[#212121] m-0">
-              {blocCounts['Unknown'] || 0} cables ({((blocCounts['Unknown'] / data.length) * 100).toFixed(1)}%) have unknown suppliers. Owner data has 97% coverage.
+          <div className="p-6 bg-white rounded-lg border border-[#E0E0E0] border-l-4 border-l-[#212121] shadow-sm">
+            <h3 className="text-base font-semibold mb-3 text-[#212121]">Data Coverage</h3>
+            <p className="text-sm leading-relaxed text-[#616161] m-0">
+              {blocCounts['Unknown'] || 0} cables ({(((blocCounts['Unknown'] || 0) / data.length) * 100).toFixed(1)}%) have unknown suppliers. Owner data has 97% coverage.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Market Share */}
+      {/* Supplier Market Share */}
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
           <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-2">Supplier Market Share by Bloc</h2>
           <p className="text-sm text-[#616161] mb-6">
-            Distribution of cable manufacturers across geopolitical blocs. 
+            Distribution of cable manufacturers across geopolitical blocs.
             Supplier data provides clearer bloc-level patterns than ownership (which is highly fragmented).
           </p>
-
-          <div className="space-y-4">
+          <div className="space-y-4 mb-8">
             {Object.entries(blocCounts)
-              .filter(([bloc]) => bloc !== 'Unknown')
               .sort(([,a], [,b]) => b - a)
-              .map(([bloc, count]) => {
-                const percentage = ((count / data.length) * 100).toFixed(1)
-                return (
-                  <div key={bloc} className="flex items-center gap-4">
-                    <div className="min-w-[100px] text-sm font-medium text-[#212121]">{bloc}</div>
-                    <div className="flex-1 bg-[#E0E0E0] rounded h-9 relative overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-[#0D47A1] to-[#0097A7] rounded flex items-center justify-end pr-3 transition-all duration-300"
-                        style={{ width: `${percentage}%` }}
-                      >
-                        <span className="text-white text-xs font-semibold">{percentage}%</span>
-                      </div>
-                    </div>
-                    <div className="min-w-[90px] text-right text-sm text-[#616161] font-medium">
-                      {count} cables
-                    </div>
-                  </div>
-                )
-              })}
+              .map(([bloc, count]) => renderBar(bloc, count, data.length))}
+          </div>
+          <div className="border-t border-[#E0E0E0] pt-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-3">How blocs are defined</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2">
+              {[
+                { bloc: 'Western', desc: 'Cables built by US, European, or Japanese manufacturers' },
+                { bloc: 'Chinese', desc: 'Cables built by Chinese-owned or state-affiliated manufacturers' },
+                { bloc: 'Mixed',   desc: 'Cables with both Chinese and Western manufacturers' },
+                { bloc: 'Other',   desc: 'Cables built by manufacturers outside these blocs' },
+                { bloc: 'Unknown', desc: 'Supplier information not publicly available' },
+              ].map(({ bloc, desc }) => (
+                <div key={bloc} className="flex items-start gap-2">
+                  <span className="mt-1 text-[#9E9E9E] text-xs">—</span>
+                  <span className="text-xs text-[#616161]">
+                    <span className="font-semibold text-[#212121]">{bloc}:</span> {desc}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Concentration Indicators */}
+      {/* Owner Market Share */}
+      <section className="mb-10">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
+          <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-2">Ownership Structure by Bloc</h2>
+          <p className="text-sm text-[#616161] mb-6">
+            Distribution of cable ownership across geopolitical blocs.
+          </p>
+          <div className="space-y-4 mb-8">
+            {Object.entries(ownerBlocCounts)
+              .sort(([,a], [,b]) => b - a)
+              .map(([bloc, count]) => renderBar(bloc, count, data.length))}
+          </div>
+          <div className="border-t border-[#E0E0E0] pt-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-3">How blocs are defined</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2">
+              {[
+                { bloc: 'Western', desc: 'Cables owned by entities based in the US, Europe, Japan, or Australia' },
+                { bloc: 'Chinese', desc: 'Cables owned by Chinese state or private entities' },
+                { bloc: 'Mixed',   desc: 'Cables with ownership shared across Chinese and Western entities' },
+                { bloc: 'Other',   desc: 'Cables owned by entities in the Global South or regional telecoms' },
+                { bloc: 'Unknown', desc: 'Ownership information not publicly available' },
+              ].map(({ bloc, desc }) => (
+                <div key={bloc} className="flex items-start gap-2">
+                  <span className="mt-1 text-[#9E9E9E] text-xs">—</span>
+                  <span className="text-xs text-[#616161]">
+                    <span className="font-semibold text-[#212121]">{bloc}:</span> {desc}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Concentration Indicators — all three numbers in calm red */}
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
           <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-2">Market Concentration Indicators</h2>
           <p className="text-sm text-[#616161] mb-6">Key indices measuring market structure and competition</p>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-6">
-              <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">
-                Supplier HHI
-              </h3>
-              <div className="font-serif text-5xl font-bold text-[#212121] my-4">
-                {supplierHHI.toLocaleString()}
-              </div>
-              <p className="text-sm text-[#616161]">
-                Highly concentrated market (&gt;2500)
-              </p>
+              <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">Supplier HHI</h3>
+              <div className="font-serif text-5xl font-bold text-[#C62828] my-4">{supplierHHI.toLocaleString()}</div>
+              <p className="text-sm text-[#616161]">Highly concentrated market (&gt;2500)</p>
             </div>
-
             <div className="text-center p-6">
-              <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">
-                Owner HHI
-              </h3>
-              <div className="font-serif text-5xl font-bold text-[#212121] my-4">
-                {ownerHHI.toLocaleString()}
-              </div>
-              <p className="text-sm text-[#616161]">
-                Highly concentrated ownership (&gt;2500)
-              </p>
+              <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">Owner HHI</h3>
+              <div className="font-serif text-5xl font-bold text-[#C62828] my-4">{ownerHHI.toLocaleString()}</div>
+              <p className="text-sm text-[#616161]">Highly concentrated ownership (&gt;2500)</p>
             </div>
-
             <div className="text-center p-6">
-              <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">
-                Growth Rate
-              </h3>
-              <div className="font-serif text-5xl font-bold text-[#212121] my-4">20x</div>
-              <p className="text-sm text-[#616161]">
-                Chinese supplier participation (Pre/Post 2013)
-              </p>
+              <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">Growth Rate</h3>
+              <div className="font-serif text-5xl font-bold text-[#C62828] my-4">20x</div>
+              <p className="text-sm text-[#616161]">Chinese supplier participation (Pre/Post 2013)</p>
             </div>
           </div>
         </div>
@@ -226,23 +289,14 @@ function SystemOverview() {
           <p className="text-sm text-[#616161] mb-6">
             Most recent submarine cable deployments (showing ownership for better data coverage)
           </p>
-
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-2 border-[#E0E0E0]">
-                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">
-                    Cable Name
-                  </th>
-                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">
-                    Year
-                  </th>
-                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">
-                    Owner Bloc
-                  </th>
-                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">
-                    Status
-                  </th>
+                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Cable Name</th>
+                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Year</th>
+                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Owner Bloc</th>
+                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -256,13 +310,10 @@ function SystemOverview() {
                       <td className="px-4 py-3.5 text-sm text-gray-800">{cable.rfs_year || 'N/A'}</td>
                       <td className="px-4 py-3.5">
                         <span className={`inline-block px-3 py-1.5 text-xs font-semibold rounded ${
-                          cable.owner_bloc?.toLowerCase() === 'china' ? 'bg-red-100 text-red-800' :
-                          cable.owner_bloc?.toLowerCase() === 'us' ? 'bg-blue-100 text-blue-800' :
-                          cable.owner_bloc?.toLowerCase() === 'europe' ? 'bg-purple-100 text-purple-800' :
-                          cable.owner_bloc?.toLowerCase() === 'japan' ? 'bg-teal-100 text-teal-800' :
-                          cable.owner_bloc?.toLowerCase() === 'india' ? 'bg-orange-100 text-orange-800' :
-                          cable.owner_bloc?.toLowerCase() === 'mixed' ? 'bg-indigo-100 text-indigo-800' :
-                          cable.owner_bloc?.toLowerCase() === 'other' ? 'bg-gray-100 text-gray-700' :
+                          cable.owner_bloc?.toLowerCase() === 'chinese' ? 'bg-red-100 text-red-800' :
+                          cable.owner_bloc?.toLowerCase() === 'western' ? 'bg-blue-100 text-blue-800' :
+                          cable.owner_bloc?.toLowerCase() === 'mixed'   ? 'bg-purple-100 text-purple-800' :
+                          cable.owner_bloc?.toLowerCase() === 'other'   ? 'bg-gray-100 text-gray-700' :
                           'bg-gray-50 text-gray-500'
                         }`}>
                           {cable.owner_bloc || 'Unknown'}

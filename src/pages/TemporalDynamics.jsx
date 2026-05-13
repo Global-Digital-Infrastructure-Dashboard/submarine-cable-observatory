@@ -8,65 +8,76 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
 
   useEffect(() => {
     async function loadData() {
-      const { data: temporal, error } = await supabase
+      // Load temporal data
+      const { data: temporal, error: temporalError } = await supabase
         .from('temporal_dynamics')
         .select('*')
         .order('year', { ascending: true })
-      
-      if (error) {
-        console.error('Error:', error)
+
+      if (temporalError) {
+        console.error('Error:', temporalError)
         setLoading(false)
         return
       }
-  
-      // Rebuild data structure
+
+      // Load status breakdown live from cables table
+      const { data: cables, error: cablesError } = await supabase
+        .from('submarinecables')
+        .select('status')
+
+      if (cablesError) {
+        console.error('Cables error:', cablesError)
+      }
+
+      const statusBreakdown = cables
+        ? cables.reduce((acc, c) => {
+            const s = c.status || 'Unknown'
+            acc[s] = (acc[s] || 0) + 1
+            return acc
+          }, {})
+        : {}
+
       const cables_per_year = temporal.map(t => ({
-        year: t.year,
-        total: t.total_cables,
-        China: t.china_count,
-        Europe: t.europe_count,
-        US: t.us_count,
-        Japan: t.japan_count,
-        India: t.india_count,
-        Mixed: t.mixed_count,
-        Other: t.other_count,
-        Unknown: t.unknown_count
+        year:    t.year,
+        total:   t.total_cables,
+        Chinese: t.china_count,
+        Western: t.western_count,
+        Other:   t.other_count,
+        Unknown: t.unknown_count,
       }))
-  
-      const pre2013 = temporal.filter(t => t.year < 2013)
+
+      const pre2013  = temporal.filter(t => t.year < 2013)
       const post2013 = temporal.filter(t => t.year >= 2013)
-  
+
       setData({
-        cables_per_year: cables_per_year,
+        cables_per_year,
         year_range: { min: temporal[0].year, max: temporal[temporal.length - 1].year },
         comparison_2013: {
           pre_2013: {
             total: pre2013.reduce((sum, t) => sum + t.total_cables, 0),
             avg_per_year: pre2013.reduce((sum, t) => sum + t.total_cables, 0) / pre2013.length,
             blocs: {
-              China: pre2013.reduce((sum, t) => sum + t.china_count, 0),
-              Europe: pre2013.reduce((sum, t) => sum + t.europe_count, 0),
-              US: pre2013.reduce((sum, t) => sum + t.us_count, 0),
-              Japan: pre2013.reduce((sum, t) => sum + t.japan_count, 0)
+              Chinese: pre2013.reduce((sum, t) => sum + t.china_count,   0),
+              Western: pre2013.reduce((sum, t) => sum + t.western_count, 0),
+              Other:   pre2013.reduce((sum, t) => sum + t.other_count,   0),
             }
           },
           post_2013: {
             total: post2013.reduce((sum, t) => sum + t.total_cables, 0),
             avg_per_year: post2013.reduce((sum, t) => sum + t.total_cables, 0) / post2013.length,
             blocs: {
-              China: post2013.reduce((sum, t) => sum + t.china_count, 0),
-              Europe: post2013.reduce((sum, t) => sum + t.europe_count, 0),
-              US: post2013.reduce((sum, t) => sum + t.us_count, 0),
-              Japan: post2013.reduce((sum, t) => sum + t.japan_count, 0)
+              Chinese: post2013.reduce((sum, t) => sum + t.china_count,   0),
+              Western: post2013.reduce((sum, t) => sum + t.western_count, 0),
+              Other:   post2013.reduce((sum, t) => sum + t.other_count,   0),
             }
           }
         },
-        status_breakdown: { 'In service': 398, 'Planned': 55 } // You can calculate this from cables table
+        status_breakdown: statusBreakdown
       })
       setTimeRange([temporal[0].year, temporal[temporal.length - 1].year])
       setLoading(false)
     }
-    
+
     loadData()
   }, [infrastructureType])
 
@@ -85,7 +96,7 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
     </div>
   )
 
-  const filteredData = data.cables_per_year.filter(d => 
+  const filteredData = data.cables_per_year.filter(d =>
     d.year >= timeRange[0] && d.year <= timeRange[1]
   )
 
@@ -99,21 +110,29 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
     return acc
   }, {})
 
+  // Chinese market entry % pre vs post
+  const preTotal = data.comparison_2013.pre_2013.total
+  const postTotal = data.comparison_2013.post_2013.total
+  const preChinaPct = preTotal > 0
+    ? ((data.comparison_2013.pre_2013.blocs.Chinese / preTotal) * 100).toFixed(1)
+    : '0.0'
+  const postChinaPct = postTotal > 0
+    ? ((data.comparison_2013.post_2013.blocs.Chinese / postTotal) * 100).toFixed(1)
+    : '0.0'
+
   return (
     <div>
       <div className="mb-10">
         <h1 className="font-serif text-4xl font-bold text-[#212121] mb-3">Temporal Dynamics</h1>
         <p className="text-base text-[#616161] leading-relaxed max-w-4xl">
-          Time-series analysis from {data.year_range.min} to {data.year_range.max}. 
-          Currently showing {timeRange[0]}-{timeRange[1]}.
+          Time-series analysis from {data.year_range.min} to {data.year_range.max}.
+          Currently showing {timeRange[0]}–{timeRange[1]}.
         </p>
       </div>
 
       {/* Time Filter */}
       <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-6 mb-10">
-        <h3 className="text-sm font-semibold mb-4 uppercase text-[#616161]">
-          Time Period Filter
-        </h3>
+        <h3 className="text-sm font-semibold mb-4 uppercase text-[#616161]">Time Period Filter</h3>
         <div className="flex items-center gap-6 flex-wrap">
           <div className="flex-1 min-w-[200px]">
             <label className="text-xs text-[#616161] block mb-2">Start Year</label>
@@ -145,14 +164,14 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
 
           <button
             onClick={() => setTimeRange([data.year_range.min, data.year_range.max])}
-            className="px-6 py-3 mt-6 bg-[#2196F3] text-white rounded text-sm cursor-pointer font-medium hover:bg-[#1976D2] transition-colors"
+            className="px-6 py-3 mt-6 bg-[#0D47A1] text-white rounded text-sm cursor-pointer font-medium hover:bg-[#0A2F6B] transition-colors"
           >
             Reset
           </button>
         </div>
 
-        <div className="mt-4 p-3 bg-[#F0F7FF] rounded text-sm text-[#1565C0]">
-          <strong>Filtered range:</strong> {totalInRange} cables deployed between {timeRange[0]}-{timeRange[1]}
+        <div className="mt-4 p-3 bg-[#F0F4FA] rounded text-sm text-[#0D47A1]">
+          <strong>Filtered range:</strong> {totalInRange} cables deployed between {timeRange[0]}–{timeRange[1]}
         </div>
       </div>
 
@@ -161,28 +180,25 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
         <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">Selected Period Summary</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
-            <div className="font-serif text-4xl font-bold text-[#212121] mb-2">{totalInRange}</div>
+            <div className="font-serif text-4xl font-bold text-[#0A2F6B] mb-2">{totalInRange}</div>
             <div className="text-sm text-[#616161] font-medium uppercase tracking-wide">Total Cables</div>
           </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#C62828] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
-            <div className="font-serif text-4xl font-bold text-[#212121] mb-2">{(blocTotals['China'] || 0)}</div>
+          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
+            <div className="font-serif text-4xl font-bold text-[#0A2F6B] mb-2">{blocTotals['Chinese'] || 0}</div>
             <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Chinese Suppliers</div>
             <div className="text-xs text-[#9E9E9E]">
-              {totalInRange > 0 ? ((blocTotals['China'] || 0) / totalInRange * 100).toFixed(1) : 0}%
+              {totalInRange > 0 ? (((blocTotals['Chinese'] || 0) / totalInRange) * 100).toFixed(1) : 0}%
             </div>
           </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#6A1B9A] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
-            <div className="font-serif text-4xl font-bold text-[#212121] mb-2">{(blocTotals['Europe'] || 0)}</div>
-            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">European Suppliers</div>
+          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
+            <div className="font-serif text-4xl font-bold text-[#0A2F6B] mb-2">{blocTotals['Western'] || 0}</div>
+            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Western Suppliers</div>
             <div className="text-xs text-[#9E9E9E]">
-              {totalInRange > 0 ? ((blocTotals['Europe'] || 0) / totalInRange * 100).toFixed(1) : 0}%
+              {totalInRange > 0 ? (((blocTotals['Western'] || 0) / totalInRange) * 100).toFixed(1) : 0}%
             </div>
           </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#2E7D32] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
-            <div className="font-serif text-4xl font-bold text-[#212121] mb-2">
+          <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
+            <div className="font-serif text-4xl font-bold text-[#0A2F6B] mb-2">
               {filteredData.length > 0 ? (totalInRange / filteredData.length).toFixed(1) : 0}
             </div>
             <div className="text-sm text-[#616161] font-medium uppercase tracking-wide">Avg/Year</div>
@@ -196,20 +212,14 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
           <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">Pre-2013 vs Post-2013</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Pre-2013 */}
-            <div className="p-6 bg-[#FAFAFA] rounded-lg border-2 border-[#9E9E9E]">
-              <h3 className="text-lg font-semibold mb-4 text-[#616161]">Pre-2013</h3>
-
+            <div className="p-6 bg-[#F0F4FA] rounded-lg border border-[#E8EDF5] border-l-4 border-l-[#0D47A1]">
+              <h3 className="text-lg font-semibold mb-4 text-[#212121]">Pre-2013</h3>
               <div className="mb-6 text-center">
                 <div className="text-5xl font-bold font-serif text-[#212121]">{data.comparison_2013.pre_2013.total}</div>
-                <div className="text-sm text-[#616161] mt-1">
-                  ~{data.comparison_2013.pre_2013.avg_per_year.toFixed(1)}/year
-                </div>
+                <div className="text-sm text-[#616161] mt-1">~{data.comparison_2013.pre_2013.avg_per_year.toFixed(1)}/year</div>
               </div>
-
               <div className="space-y-3">
                 {Object.entries(data.comparison_2013.pre_2013.blocs)
-                  .filter(([bloc]) => bloc !== 'Unknown')
                   .sort(([,a], [,b]) => b - a)
                   .slice(0, 4)
                   .map(([bloc, count]) => {
@@ -217,11 +227,10 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
                     return (
                       <div key={bloc}>
                         <div className="text-sm mb-1.5 flex justify-between font-medium">
-                          <span>{bloc}</span>
-                          <span>{pct}%</span>
+                          <span>{bloc}</span><span>{pct}%</span>
                         </div>
                         <div className="h-2.5 bg-[#E0E0E0] rounded overflow-hidden">
-                          <div className="h-full bg-[#757575] rounded transition-all duration-300" style={{ width: `${pct}%` }}></div>
+                          <div className="h-full bg-gradient-to-r from-[#0D47A1] to-[#0097A7] rounded transition-all duration-300" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     )
@@ -229,20 +238,14 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
               </div>
             </div>
 
-            {/* Post-2013 */}
-            <div className="p-6 bg-[#E3F2FD] rounded-lg border-2 border-[#2196F3]">
-              <h3 className="text-lg font-semibold mb-4 text-[#1976D2]">Post-2013</h3>
-
+            <div className="p-6 bg-[#F0F4FA] rounded-lg border border-[#E8EDF5] border-l-4 border-l-[#0D47A1]">
+              <h3 className="text-lg font-semibold mb-4 text-[#212121]">Post-2013</h3>
               <div className="mb-6 text-center">
                 <div className="text-5xl font-bold font-serif text-[#212121]">{data.comparison_2013.post_2013.total}</div>
-                <div className="text-sm text-[#616161] mt-1">
-                  ~{data.comparison_2013.post_2013.avg_per_year.toFixed(1)}/year
-                </div>
+                <div className="text-sm text-[#616161] mt-1">~{data.comparison_2013.post_2013.avg_per_year.toFixed(1)}/year</div>
               </div>
-
               <div className="space-y-3">
                 {Object.entries(data.comparison_2013.post_2013.blocs)
-                  .filter(([bloc]) => bloc !== 'Unknown')
                   .sort(([,a], [,b]) => b - a)
                   .slice(0, 4)
                   .map(([bloc, count]) => {
@@ -250,11 +253,10 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
                     return (
                       <div key={bloc}>
                         <div className="text-sm mb-1.5 flex justify-between font-medium">
-                          <span>{bloc}</span>
-                          <span>{pct}%</span>
+                          <span>{bloc}</span><span>{pct}%</span>
                         </div>
                         <div className="h-2.5 bg-[#E0E0E0] rounded overflow-hidden">
-                          <div className="h-full bg-[#1976D2] rounded transition-all duration-300" style={{ width: `${pct}%` }}></div>
+                          <div className="h-full bg-gradient-to-r from-[#0D47A1] to-[#0097A7] rounded transition-all duration-300" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     )
@@ -263,39 +265,35 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
             </div>
           </div>
 
-          {/* Key Insights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
-            <div className="p-6 bg-[#FFEBEE] rounded-lg border-l-4 border-[#E74C3C]">
-              <h4 className="text-base font-semibold mb-3 text-[#C62828]">Chinese Market Entry</h4>
-              <p className="text-sm leading-relaxed text-[#212121] m-0">
-                From 0.4% to 8.5% — 20x growth
-              </p>
+          {/* Key Insights — inline stat row, no more cards */}
+          <div className="mt-8 pt-6 border-t border-[#E0E0E0] grid grid-cols-3 divide-x divide-[#E0E0E0]">
+            <div className="px-6 first:pl-0">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-1">Chinese Market Entry</div>
+              <div className="font-serif text-2xl font-bold text-[#212121]">{preChinaPct}% → {postChinaPct}%</div>
+              <div className="text-xs text-[#9E9E9E] mt-1">supplier share pre vs post 2013</div>
             </div>
-
-            <div className="p-6 bg-[#E8F5E9] rounded-lg border-l-4 border-[#4CAF50]">
-              <h4 className="text-base font-semibold mb-3 text-[#2E7D32]">Deployment Acceleration</h4>
-              <p className="text-sm leading-relaxed text-[#212121] m-0">
-                {data.comparison_2013.pre_2013.avg_per_year.toFixed(1)} → {data.comparison_2013.post_2013.avg_per_year.toFixed(1)} cables/year
-              </p>
+            <div className="px-6">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-1">Deployment Rate</div>
+              <div className="font-serif text-2xl font-bold text-[#212121]">{data.comparison_2013.pre_2013.avg_per_year.toFixed(1)} → {data.comparison_2013.post_2013.avg_per_year.toFixed(1)}</div>
+              <div className="text-xs text-[#9E9E9E] mt-1">cables/year average</div>
             </div>
-
-            <div className="p-6 bg-[#F3E5F5] rounded-lg border-l-4 border-[#9C27B0]">
-              <h4 className="text-base font-semibold mb-3 text-[#6A1B9A]">Market Diversification</h4>
-              <p className="text-sm leading-relaxed text-[#212121] m-0">
-                More blocs actively deploying
-              </p>
+            <div className="px-6">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-1">Growth Factor</div>
+              <div className="font-serif text-2xl font-bold text-[#212121]">
+                {preChinaPct > 0 ? (postChinaPct / preChinaPct).toFixed(1) : '20'}×
+              </div>
+              <div className="text-xs text-[#9E9E9E] mt-1">increase in Chinese participation</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Deployment by Bloc */}
+      {/* Deployment by Bloc — uniform teal bars */}
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
           <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">
-            Deployment by Bloc ({timeRange[0]}-{timeRange[1]})
+            Deployment by Bloc ({timeRange[0]}–{timeRange[1]})
           </h2>
-
           <div className="space-y-4">
             {Object.entries(blocTotals)
               .sort(([,a], [,b]) => b - a)
@@ -308,8 +306,8 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
                       <span className="text-[#616161]">{count} cables ({pct}%)</span>
                     </div>
                     <div className="h-7 bg-[#E0E0E0] rounded overflow-hidden">
-                      <div 
-                        className="h-full bg-[#2196F3] rounded flex items-center pl-3 transition-all duration-300"
+                      <div
+                        className="h-full bg-gradient-to-r from-[#0D47A1] to-[#0097A7] rounded flex items-center pl-3 transition-all duration-300"
                         style={{ width: `${pct}%` }}
                       >
                         {parseFloat(pct) > 5 && (
@@ -324,25 +322,20 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
         </div>
       </section>
 
-      {/* Status Breakdown */}
+      {/* Status Breakdown — inline stat row */}
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
           <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">Status Breakdown</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Object.entries(data.status_breakdown).map(([status, count]) => (
-              <div 
-                key={status} 
-                className={`p-8 rounded-lg border-2 text-center ${
-                  status === 'In service' 
-                    ? 'bg-[#E8F5E9] border-[#4CAF50]' 
-                    : 'bg-[#FFF3E0] border-[#FF9800]'
-                }`}
-              >
-                <div className="font-serif text-5xl font-bold text-[#212121]">{count}</div>
-                <div className="text-base text-[#616161] mt-2 font-semibold">{status}</div>
-              </div>
-            ))}
+          <div className={`grid divide-x divide-[#E0E0E0]`} style={{ gridTemplateColumns: `repeat(${Object.keys(data.status_breakdown).length}, 1fr)` }}>
+            {Object.entries(data.status_breakdown)
+              .sort(([,a], [,b]) => b - a)
+              .map(([status, count], i) => (
+                <div key={status} className="px-6 first:pl-0 last:pr-0">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-1">{status}</div>
+                  <div className="font-serif text-3xl font-bold text-[#212121]">{count}</div>
+                  <div className="text-xs text-[#9E9E9E] mt-1">{((count / Object.values(data.status_breakdown).reduce((a,b) => a+b, 0)) * 100).toFixed(1)}% of total</div>
+                </div>
+              ))}
           </div>
         </div>
       </section>
