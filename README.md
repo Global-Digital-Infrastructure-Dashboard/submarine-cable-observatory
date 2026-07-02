@@ -97,9 +97,8 @@ Contributions are welcome, including data corrections. See [`CONTRIBUTING.md`](C
 Developed at Northeastern University.
 
 - **[Prof. Xiaoxiao Shen]** — Principal Investigator
-- **[Prof. Tsai — full name]** — [role]
+- **[Prof. Tsai]** 
 - **[Anthony Chan]** — Research Assistant
-- _[Optionally credit prior contributors, e.g. Sowrathi Somasundaram]_
 
 ## Contact / beta access
 
@@ -107,4 +106,4 @@ Interested in using the platform or joining as a beta user? _[Add a sign-up form
 
 ## License
 
-_This project is intended as open-source infrastructure. Choose and add a license — MIT is a common, permissive option that fits an open, public-facing platform. Add a matching `LICENSE` file to the repo._
+This project is intended as open-source infrastructure.
