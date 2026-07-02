@@ -8,9 +8,9 @@
 
 ---
 
-<img width="1406" height="591" alt="Screenshot 2026-07-02 at 1 55 39 PM" src="https://github.com/user-attachments/assets/2f7cc6ce-3f11-47cb-9934-bf9d2ca6c9e0" />
+<img width="998" height="635" alt="Screenshot 2026-07-02 at 1 57 48 PM" src="https://github.com/user-attachments/assets/a284eed6-604f-4684-bd89-d57424adb0ca" />
 
-## Overview
+---
 
 The Digital Infrastructure Observatory is a public research platform that tracks the physical and regulatory backbone of the global internet. It pairs a continuously updated dataset with an interactive dashboard so that researchers, policymakers, journalists, and the public can explore who owns, builds, and governs critical digital infrastructure.
 
