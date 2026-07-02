@@ -90,7 +90,7 @@ Contributions are welcome, including data corrections. See [`CONTRIBUTING.md`](C
 
 ## Team
 
-Developed at Northeastern University.
+Developed at Northeastern University:
 
 - Prof. Xiaoxiao Shen, Principal Investigator
 - Prof. Kellee Tsai, Faculty Lead
