@@ -1,4 +1,4 @@
-# Digital Infrastructure Observatory
+<img width="846" height="499" alt="Screenshot 2026-07-02 at 1 29 30 PM" src="https://github.com/user-attachments/assets/f21e8085-0b67-483f-9ed2-80fd7e9e2ba2" />
 
 **An open research platform mapping the political economy of global digital infrastructure — starting with the world's submarine cable network.**
 
@@ -13,8 +13,6 @@ The Digital Infrastructure Observatory is a public research platform that tracks
 Phase 1 focuses on **submarine communications cables** — the network of undersea cables that carries the overwhelming majority of international internet traffic — together with the **policies and regulations** that shape it. The same analytical framework is designed to extend to 5G networks and data centers in later phases.
 
 The project is developed at Northeastern University as part of ongoing research on technology, security, and society. It is built to be transparent and reproducible: the data pipeline, the review process, and the dashboard are all open.
-
-<img width="1700" height="499" alt="Screenshot 2026-07-02 at 1 28 49 PM" src="https://github.com/user-attachments/assets/b86f8e6b-1a0a-4471-afa3-5352cd2bf2b1" />" />
 
 ## What it tracks
 
