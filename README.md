@@ -20,6 +20,12 @@ The project is developed at Northeastern University as part of ongoing research 
 
 ## What it tracks
 
+---
+
+<img width="1201" height="814" alt="Screenshot 2026-07-02 at 1 59 57 PM" src="https://github.com/user-attachments/assets/b0e1607f-7ff1-4e18-b256-7c29846b347b" />
+
+---
+
 - **Submarine cables** — nearly 700 cables with ownership, suppliers, landing countries and stations, length, operational status, and supplier/owner "bloc" classifications.
 - **Policy & regulation** — a timeline of regulatory events from 1884 to the present, spanning the US, EU, and other jurisdictions, each linked to how it affects cable infrastructure.
 - **Geopolitical structure** — sovereignty and dependency measures derived from ownership and landing-point data.
