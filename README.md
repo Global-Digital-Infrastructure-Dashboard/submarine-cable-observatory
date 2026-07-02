@@ -2,12 +2,7 @@
 
 **An open research platform mapping the political economy of global digital infrastructure — starting with the world's submarine cable network.**
 
-<!-- Optional badges once the repo is public, e.g. license and live-status:
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Status](https://img.shields.io/badge/status-active-brightgreen)
--->
-
-🔗 **Live dashboard:** [add dashboard URL]
+🔗 **Live dashboard:** https://research-platform-sand.vercel.app/
 
 ---
 
@@ -22,11 +17,6 @@ The project is developed at Northeastern University as part of ongoing research 
 ## Screenshots
 
 > _Add 2–3 dashboard screenshots here — for example the cable overview/map, the sovereignty & dependency view, and the policy timeline._
-
-<!--
-![Dashboard overview](docs/screenshots/overview.png)
-![Policy & regulation timeline](docs/screenshots/policy-timeline.png)
--->
 
 ## What it tracks
 
