@@ -84,9 +84,10 @@ Contributions are welcome, including data corrections. See [`CONTRIBUTING.md`](C
 
 Developed at Northeastern University.
 
-- **[Prof. Xiaoxiao Shen]** — Principal Investigator
-- **[Prof. Tsai]** 
-- **[Anthony Chan]** — Research Assistant
+- **[Prof. Xiaoxiao Shen, Principal Investigator]** 
+- **[Prof. Kellee Tsai, Faculty Lead]** 
+- **[Anthony Chan, Research Assistant (current)]**
+- **[Sowrathi Somasundaram, Research Assistant (former)]** 
 
 ## Contact / beta access
 
