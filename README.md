@@ -16,7 +16,7 @@ The project is developed at Northeastern University as part of ongoing research 
 
 ## Screenshots
 
-> _Add 2–3 dashboard screenshots here — for example the cable overview/map, the sovereignty & dependency view, and the policy timeline._
+<img width="1710" height="833" alt="Screenshot 2026-07-02 at 1 28 01 PM" src="https://github.com/user-attachments/assets/6eb24056-e89b-4459-b227-6ba25ef7353a" />
 
 ## What it tracks
 
