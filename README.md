@@ -1,4 +1,4 @@
-<img width="846" height="499" alt="Screenshot 2026-07-02 at 1 29 30 PM" src="https://github.com/user-attachments/assets/f21e8085-0b67-483f-9ed2-80fd7e9e2ba2" />
+<img width="845" height="484" alt="Screenshot 2026-07-02 at 1 30 15 PM" src="https://github.com/user-attachments/assets/2eea30d7-b448-4d61-9ded-c580ef43d164" />
 
 **An open research platform mapping the political economy of global digital infrastructure — starting with the world's submarine cable network.**
 
