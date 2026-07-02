@@ -14,9 +14,7 @@ Phase 1 focuses on **submarine communications cables** — the network of unders
 
 The project is developed at Northeastern University as part of ongoing research on technology, security, and society. It is built to be transparent and reproducible: the data pipeline, the review process, and the dashboard are all open.
 
-## Screenshots
-
-<img width="1710" height="833" alt="Screenshot 2026-07-02 at 1 28 01 PM" src="https://github.com/user-attachments/assets/6eb24056-e89b-4459-b227-6ba25ef7353a" />
+<img width="1700" height="499" alt="Screenshot 2026-07-02 at 1 28 49 PM" src="https://github.com/user-attachments/assets/b86f8e6b-1a0a-4471-afa3-5352cd2bf2b1" />" />
 
 ## What it tracks
 
