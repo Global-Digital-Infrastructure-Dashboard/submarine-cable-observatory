@@ -2,7 +2,7 @@
 
 ---
 
-**An open research platform mapping the political economy of global digital infrastructure — starting with the world's submarine cable network.**
+**An open source research platform mapping the political economy of global digital infrastructure — starting with the world's submarine cable network.**
 
 🔗 **Live dashboard:** https://research-platform-sand.vercel.app/
 
