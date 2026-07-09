@@ -1,0 +1,58 @@
+<svg viewBox="0 0 1080 200" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#0D47A1"/>
+    </marker>
+  </defs>
+
+  <!-- Stage 1: Web sources -->
+  <g>
+    <rect x="20" y="30" width="176" height="130" rx="12" fill="#F4F8FE" stroke="#0D47A1" stroke-width="1.5"/>
+    <circle cx="108" cy="68" r="17" fill="#0D47A1"/>
+    <text x="108" y="74" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">1</text>
+    <text x="108" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#212121">Web sources</text>
+    <text x="108" y="134" text-anchor="middle" font-size="11" fill="#616161">Perplexity search</text>
+  </g>
+
+  <!-- Stage 2: AI extraction -->
+  <g>
+    <rect x="236" y="30" width="176" height="130" rx="12" fill="#F4F8FE" stroke="#0D47A1" stroke-width="1.5"/>
+    <circle cx="324" cy="68" r="17" fill="#0D47A1"/>
+    <text x="324" y="74" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">2</text>
+    <text x="324" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#212121">AI extraction</text>
+    <text x="324" y="134" text-anchor="middle" font-size="11" fill="#616161">Claude</text>
+  </g>
+
+  <!-- Stage 3: Validation -->
+  <g>
+    <rect x="452" y="30" width="176" height="130" rx="12" fill="#F4F8FE" stroke="#0D47A1" stroke-width="1.5"/>
+    <circle cx="540" cy="68" r="17" fill="#0D47A1"/>
+    <text x="540" y="74" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">3</text>
+    <text x="540" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#212121">Validation</text>
+    <text x="540" y="134" text-anchor="middle" font-size="11" fill="#616161">Automated + human review</text>
+  </g>
+
+  <!-- Stage 4: Database -->
+  <g>
+    <rect x="668" y="30" width="176" height="130" rx="12" fill="#F4F8FE" stroke="#0D47A1" stroke-width="1.5"/>
+    <circle cx="756" cy="68" r="17" fill="#0D47A1"/>
+    <text x="756" y="74" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">4</text>
+    <text x="756" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#212121">Database</text>
+    <text x="756" y="134" text-anchor="middle" font-size="11" fill="#616161">Supabase</text>
+  </g>
+
+  <!-- Stage 5: Dashboard -->
+  <g>
+    <rect x="884" y="30" width="176" height="130" rx="12" fill="#0D47A1" stroke="#0D47A1" stroke-width="1.5"/>
+    <circle cx="972" cy="68" r="17" fill="#ffffff"/>
+    <text x="972" y="74" text-anchor="middle" font-size="15" font-weight="700" fill="#0D47A1">5</text>
+    <text x="972" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">Dashboard</text>
+    <text x="972" y="134" text-anchor="middle" font-size="11" fill="#DCE7F7">Public web app</text>
+  </g>
+
+  <!-- Arrows -->
+  <line x1="200" y1="95" x2="230" y2="95" stroke="#0D47A1" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="416" y1="95" x2="446" y2="95" stroke="#0D47A1" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="632" y1="95" x2="662" y2="95" stroke="#0D47A1" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="848" y1="95" x2="878" y2="95" stroke="#0D47A1" stroke-width="2" marker-end="url(#arrow)"/>
+</svg>
