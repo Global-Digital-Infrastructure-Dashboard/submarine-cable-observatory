@@ -84,9 +84,10 @@ function AppLayout() {
             <div>
               <h3 className="font-serif text-base font-semibold mb-4 text-white">About This Project</h3>
               <p className="text-sm leading-relaxed">
-                A political economy research platform analyzing global digital infrastructure patterns,
-                geopolitical dependencies, and market structures. Developed as part of Professor Tsai's and Professor Shen's
-                research on technology and society at Northeastern University.
+                A research platform mapping who owns, builds, and supplies the physical infrastructure
+                behind AI and the internet, starting with the world's submarine cables. Built by
+                Professor Tsai and Professor Shen as part of their work on technology and politics at
+                Northeastern University.
               </p>
             </div>
           </div>
