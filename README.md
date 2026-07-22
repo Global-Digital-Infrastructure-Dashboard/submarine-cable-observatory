@@ -68,7 +68,7 @@ The dashboard is a standard Vite + React application.
 
 ```bash
 # clone the repo
-git clone [repo URL]
+git clone https://github.com/sowrathi-somasundaram/submarine-cable-observatory.git
 cd submarine-cable-observatory
 
 # install dependencies
