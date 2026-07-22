@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 const BETA_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfKs-Woma7qoMD5hFfk6ZhdWdFokj8UIBOWfYFQwtt0KnRuLw/viewform?usp=dialog'
 
 // Body text stays readable; the page itself spans the full app container.
-const PROSE = 'max-w-3xl'
+const PROSE = 'max-w-4xl'
 const CARD = 'bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-6'
 
 const whyItMatters = [
@@ -211,7 +211,7 @@ function About() {
         <h2 className="font-serif text-3xl font-semibold text-[#212121] mb-6">
           Frequently asked questions
         </h2>
-        <div className={`${PROSE} space-y-3`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           {faqs.map((f) => (
             <details key={f.q} className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-5 group">
               <summary className="font-serif text-base font-semibold text-[#212121] cursor-pointer list-none flex justify-between items-center">
@@ -227,9 +227,9 @@ function About() {
       </section>
 
       {/* Contact / beta access */}
-      <section className={`${PROSE} mb-8 bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8`}>
+      <section className="mb-8 bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
         <h2 className="font-serif text-3xl font-semibold text-[#212121] mb-3">Get involved</h2>
-        <p className="text-[#616161] leading-relaxed mb-6">
+        <p className={`${PROSE} text-[#616161] leading-relaxed mb-6`}>
           The dashboard is free to explore for anyone. Request beta access below if you want to
           download the underlying dataset (CSV) or register as a contributor, to submit data
           corrections, flag missing information, or suggest new indicators to track.

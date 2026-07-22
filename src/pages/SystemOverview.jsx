@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import CableExplorer from '../components/CableExplorer'
 
 function SystemOverview() {
   const [data, setData] = useState(null)
@@ -295,53 +296,11 @@ const ownerHHI = Math.round(
         </div>
       </section>
 
-      {/* Recent Cables */}
+      {/* Explore the cables (interactive) */}
       <section className="mb-10">
-        <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
-          <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-2">Recent Cables</h2>
-          <p className="text-sm text-[#616161] mb-6">
-            Most recent submarine cable deployments (showing ownership for better data coverage)
-          </p>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b-2 border-[#E0E0E0]">
-                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Cable Name</th>
-                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Year</th>
-                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Supplier</th>
-                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Owner Bloc</th>
-                  <th className="px-4 py-3.5 text-left text-xs uppercase text-[#616161] font-semibold tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data
-                  .slice()
-                  .sort((a, b) => (parseFloat(b.rfs_year) || 0) - (parseFloat(a.rfs_year) || 0))
-                  .slice(0, 10)
-                  .map((cable, idx) => (
-                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3.5 text-sm font-medium text-[#212121]">{cable.cable_name}</td>
-                      <td className="px-4 py-3.5 text-sm text-[#616161]">{cable.rfs_year || 'N/A'}</td>
-                      <td className="px-4 py-3.5 text-sm text-[#616161]">{cable.suppliers || '—'}</td>
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-block px-3 py-1.5 text-xs font-semibold rounded ${
-                          cable.owner_bloc?.toLowerCase() === 'chinese' ? 'bg-red-100 text-red-800' :
-                          cable.owner_bloc?.toLowerCase() === 'western' ? 'bg-blue-100 text-blue-800' :
-                          cable.owner_bloc?.toLowerCase() === 'mixed'   ? 'bg-purple-100 text-purple-800' :
-                          cable.owner_bloc?.toLowerCase() === 'other'   ? 'bg-gray-100 text-gray-700' :
-                          'bg-gray-50 text-gray-500'
-                        }`}>
-                          {cable.owner_bloc || 'Unknown'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-sm text-[#616161]">{cable.status}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <CableExplorer cables={data} />
       </section>
+
     </div>
   )
 }
