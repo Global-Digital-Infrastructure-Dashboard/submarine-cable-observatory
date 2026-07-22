@@ -87,7 +87,7 @@ const faqs = [
 
 function About() {
   return (
-    <div className="w-full">
+    <div className="w-full max-w-6xl mx-auto">
       {/* About */}
       <section className="mb-14">
         <h2 className="font-serif text-3xl font-semibold text-[#212121] mb-4">
