@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 const BETA_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfKs-Woma7qoMD5hFfk6ZhdWdFokj8UIBOWfYFQwtt0KnRuLw/viewform?usp=dialog'
 
 // Body text stays readable; the page itself spans the full app container.
-const PROSE = 'max-w-6xl'
+const PROSE = 'w-full'
 const CARD = 'bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-6'
 
 const whyItMatters = [
@@ -87,7 +87,7 @@ const faqs = [
 
 function About() {
   return (
-    <div className="w-full">
+    <div className="w-full max-w-6xl mx-auto">
       {/* About */}
       <section className="mb-14">
         <h2 className="font-serif text-3xl font-semibold text-[#212121] mb-4">
