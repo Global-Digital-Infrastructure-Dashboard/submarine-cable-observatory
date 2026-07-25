@@ -5,6 +5,7 @@ import CableExplorer from '../components/CableExplorer'
 function SystemOverview() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [explorerFilter, setExplorerFilter] = useState(null)
 
   useEffect(() => {
     async function loadCables() {
@@ -81,7 +82,6 @@ function SystemOverview() {
       ownerNameCounts[owner] = (ownerNameCounts[owner] || 0) + 1
     })
   })
-  const totalOwnerEntries = Object.values(ownerNameCounts).reduce((a, b) => a + b, 0)
   // Owner HHI at bloc level — more meaningful for geopolitical analysis
 const ownerHHI = Math.round(
   Object.values(ownerBlocCounts).reduce((sum, count) => {
@@ -97,12 +97,33 @@ const ownerHHI = Math.round(
     'Competitive (<1500)'
 
   // ── Render bar ────────────────────────────────────────────────────────────
-  const renderBar = (bloc, count, total) => {
+  const renderBar = (bloc, count, total, dimension) => {
     const pct = parseFloat(((count / total) * 100).toFixed(1))
     const label = `${pct.toFixed(1)}%`
     const isNarrow = pct < 12
     return (
-      <div key={bloc} className="flex items-center gap-4">
+      <div
+        key={bloc}
+        role="button"
+        tabIndex={0}
+        title={`Show the ${count} cables with a ${bloc} ${dimension}`}
+        onClick={() => {
+          setExplorerFilter(
+            dimension === 'supplier' ? { supplierBloc: bloc } : { ownerBloc: bloc }
+          )
+          document.getElementById('cable-explorer')?.scrollIntoView({ behavior: 'smooth' })
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setExplorerFilter(
+              dimension === 'supplier' ? { supplierBloc: bloc } : { ownerBloc: bloc }
+            )
+            document.getElementById('cable-explorer')?.scrollIntoView({ behavior: 'smooth' })
+          }
+        }}
+        className="flex items-center gap-4 cursor-pointer rounded px-2 -mx-2 py-1 hover:bg-[#F4F8FE] transition-colors"
+      >
         <div className="min-w-[100px] text-sm font-medium text-[#212121]">{bloc}</div>
         <div className="flex-1 bg-[#E0E0E0] rounded h-9 relative">
           <div
@@ -213,7 +234,7 @@ const ownerHHI = Math.round(
           <div className="space-y-4 mb-8">
             {Object.entries(blocCounts)
               .sort(([,a], [,b]) => b - a)
-              .map(([bloc, count]) => renderBar(bloc, count, data.length))}
+              .map(([bloc, count]) => renderBar(bloc, count, data.length, 'supplier'))}
           </div>
           <div className="border-t border-[#E0E0E0] pt-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-3">How blocs are defined</p>
@@ -247,7 +268,7 @@ const ownerHHI = Math.round(
           <div className="space-y-4 mb-8">
             {Object.entries(ownerBlocCounts)
               .sort(([,a], [,b]) => b - a)
-              .map(([bloc, count]) => renderBar(bloc, count, data.length))}
+              .map(([bloc, count]) => renderBar(bloc, count, data.length, 'owner'))}
           </div>
           <div className="border-t border-[#E0E0E0] pt-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-3">How blocs are defined</p>
@@ -297,8 +318,8 @@ const ownerHHI = Math.round(
       </section>
 
       {/* Explore the cables (interactive) */}
-      <section className="mb-10">
-        <CableExplorer cables={data} />
+      <section className="mb-10" id="cable-explorer">
+        <CableExplorer cables={data} externalFilter={explorerFilter} />
       </section>
 
     </div>

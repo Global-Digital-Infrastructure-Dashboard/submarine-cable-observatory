@@ -6,6 +6,7 @@ function PolicyRegulation({ infrastructureType = 'cables' }) {
   const [loading, setLoading] = useState(true)
   const [filterJurisdiction, setFilterJurisdiction] = useState('all')
   const [timeFilter, setTimeFilter] = useState('all')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     async function loadPolicyData() {
@@ -55,6 +56,14 @@ function PolicyRegulation({ infrastructureType = 'cables' }) {
     events = events.filter(e => e.jurisdiction === filterJurisdiction)
   }
 
+  const q = search.trim().toLowerCase()
+  if (q) {
+    events = events.filter(e =>
+      [e.policy_name, e.key_change, e.impact_on_cables, e.jurisdiction, e.affected_regions]
+        .some(f => String(f ?? '').toLowerCase().includes(q))
+    )
+  }
+
   if (timeFilter === 'recent') {
     events = events.filter(e => e.year >= 2024)
   } else if (timeFilter === 'historical') {
@@ -62,6 +71,16 @@ function PolicyRegulation({ infrastructureType = 'cables' }) {
   }
 
   const recentEvents = data.policy_events.filter(e => e.year >= 2024).length
+
+  // Built from the data, so every jurisdiction present is reachable.
+  const jurisdictionCounts = data.policy_events.reduce((acc, e) => {
+    const j = e.jurisdiction || 'Unspecified'
+    acc[j] = (acc[j] || 0) + 1
+    return acc
+  }, {})
+  const jurisdictions = ['all', ...Object.keys(jurisdictionCounts).sort(
+    (a, b) => jurisdictionCounts[b] - jurisdictionCounts[a]
+  )]
 
   return (
     <div>
@@ -101,6 +120,19 @@ function PolicyRegulation({ infrastructureType = 'cables' }) {
       <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-6 mb-10">
         <div className="mb-6">
           <label className="text-xs font-semibold text-[#616161] uppercase block mb-3">
+            Search:
+          </label>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search policy name, change, or region"
+            className="w-full max-w-xl border border-[#E0E0E0] rounded-md px-3 py-2.5 text-sm text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A]/30"
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="text-xs font-semibold text-[#616161] uppercase block mb-3">
             Time Period:
           </label>
           <div className="flex gap-3 flex-wrap">
@@ -129,7 +161,7 @@ function PolicyRegulation({ infrastructureType = 'cables' }) {
             Jurisdiction:
           </label>
           <div className="flex gap-3 flex-wrap">
-            {['all', 'US', 'EU', 'Australia', 'India', 'International'].map(j => (
+            {jurisdictions.map(j => (
               <button
                 key={j}
                 onClick={() => setFilterJurisdiction(j)}
@@ -139,15 +171,24 @@ function PolicyRegulation({ infrastructureType = 'cables' }) {
                     : 'bg-white text-[#616161] border border-[#E0E0E0] hover:border-[#6A1B9A] hover:text-[#6A1B9A]'
                 }`}
               >
-                {j}
+                {j === 'all' ? 'All' : j}
+                <span className="ml-1.5 opacity-60 font-normal">
+                  {j === 'all' ? data.total_events : jurisdictionCounts[j]}
+                </span>
               </button>
             ))}
           </div>
         </div>
 
-        {(filterJurisdiction !== 'all' || timeFilter !== 'all') && (
+        {(filterJurisdiction !== 'all' || timeFilter !== 'all' || search.trim() !== '') && (
           <div className="mt-4 p-3 bg-[#F0F7FF] rounded text-sm text-[#0D47A1]">
             Showing {events.length} of {data.total_events} events
+            <button
+              onClick={() => { setFilterJurisdiction('all'); setTimeFilter('all'); setSearch('') }}
+              className="ml-3 underline font-semibold hover:no-underline"
+            >
+              Clear all
+            </button>
           </div>
         )}
       </div>

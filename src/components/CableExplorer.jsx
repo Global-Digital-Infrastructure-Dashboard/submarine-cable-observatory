@@ -48,7 +48,7 @@ function Th({ label, sortable, sortKey, sortDir, k, onSort }) {
   )
 }
 
-function CableExplorer({ cables }) {
+function CableExplorer({ cables, externalFilter }) {
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('all')
   const [supplierBloc, setSupplierBloc] = useState('all')
@@ -57,6 +57,20 @@ function CableExplorer({ cables }) {
   const [sortDir, setSortDir] = useState('asc')
   const [expanded, setExpanded] = useState(null)
   const [visible, setVisible] = useState(PAGE_SIZE)
+
+  // A bloc bar elsewhere on the page can drive these filters. Adjusting state
+  // during render (rather than in an effect) is React's recommended pattern here.
+  const [prevExternal, setPrevExternal] = useState(externalFilter)
+  if (externalFilter !== prevExternal) {
+    setPrevExternal(externalFilter)
+    if (externalFilter) {
+      setSupplierBloc(externalFilter.supplierBloc ?? 'all')
+      setOwnerBloc(externalFilter.ownerBloc ?? 'all')
+      setQuery('')
+      setStatus('all')
+      setVisible(PAGE_SIZE)
+    }
+  }
 
   // Build filter dropdown options from the data itself, so they never go stale.
   const options = useMemo(() => {
