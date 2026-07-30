@@ -1,4 +1,4 @@
-# Digital Infrastructure Observatory
+# Global Digital Infrastructure Political Economy Observatory
 
 **An open-source research platform mapping the political economy of global digital infrastructure, starting with the world's submarine cable network.**
 
@@ -8,11 +8,17 @@
 
 ## Overview
 
-The Digital Infrastructure Observatory is a public research platform that tracks the physical and regulatory backbone of the global internet. It pairs a continuously updated dataset with an interactive dashboard so that researchers, policymakers, journalists, and the public can explore who owns, builds, and governs critical digital infrastructure.
+The Global Digital Infrastructure Political Economy Observatory is a public research platform that tracks the physical and regulatory backbone of the global internet. It pairs a continuously updated dataset with an interactive dashboard so that researchers, policymakers, journalists, and the public can explore who owns, builds, and governs critical digital infrastructure.
 
 Phase 1 focuses on **submarine communications cables** (the network of undersea cables that carries the overwhelming majority of international internet traffic), together with the **policies and regulations** that shape it. The same analytical framework is designed to extend to 5G networks and data centers in later phases.
 
 The project is developed at Northeastern University as part of ongoing research on technology, security, and society. It is built to be transparent and reproducible: the data pipeline, the review process, and the dashboard are all open.
+
+## Motivation
+
+Almost all international internet traffic travels through submarine cables, and the data centers that AI depends on sit on the same physical foundation. Ownership and supply of that infrastructure are concentrated among a small number of firms and states, which has made it a question of national security and economic competitiveness, not only connectivity.
+
+Existing public sources show where cables are and who operates them. Very few show the ownership and supply structure behind them, and fewer still track how quickly the surrounding regulation is changing. This project exists to close that gap: to make the political and economic structure of critical digital infrastructure visible, current, and open for others to use and build on.
 
 ## What it tracks
 
@@ -68,7 +74,7 @@ The dashboard is a standard Vite + React application.
 
 ```bash
 # clone the repo
-git clone https://github.com/sowrathi-somasundaram/submarine-cable-observatory.git
+git clone [INSTITUTIONAL GITHUB URL, PLACEHOLDER, PENDING TRANSFER].git
 cd submarine-cable-observatory
 
 # install dependencies
@@ -90,6 +96,17 @@ A short summary is below; see [`roadmap.md`](roadmap.md) for the full version.
 - **Next:** public website, contributor documentation, and data-coverage reporting.
 - **Later (Phase 2+):** extend the framework to 5G and data center infrastructure.
 
+## Documentation
+
+Fuller documentation lives alongside the code in this repository.
+
+- [Data Dictionary](DATA_DICTIONARY.md) defines every variable in the dataset and every dashboard indicator.
+- [Workflow Documentation](WORKFLOW_DOCUMENTATION.md) describes how a record moves from discovery to the dashboard, and the quality-control steps along the way.
+- [Governance Framework](GOVERNANCE_FRAMEWORK.md) explains how the project is maintained and how data quality is kept over time.
+- [Contributing guide](CONTRIBUTING.md) lays out the ways people outside the team can take part.
+- [Roadmap](roadmap.md) describes where the project is today and where it is going.
+- [Deliverables Index](DELIVERABLES_INDEX.md) lists every project deliverable and where to find it.
+
 ## Contributing
 
 Contributions are welcome, including data corrections. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to get involved, report an issue, or suggest a change.
@@ -98,15 +115,16 @@ Contributions are welcome, including data corrections. See [`CONTRIBUTING.md`](C
 
 Developed at Northeastern University.
 
+- **Prof. Kellee Tsai:** Principal Investigator; Dean of the College of Social Sciences and Humanities and Distinguished Professor of Political Science, Northeastern University
 - **Prof. Xiaoxiao Shen:** Co-Principal Investigator; Assistant Research Professor of Political Science, Northeastern University
-- **Prof. Kellee Tsai:** Co-Principal Investigator; Dean of the College of Social Sciences and Humanities and Distinguished Professor of Political Science, Northeastern University
 - **Anthony Chan:** Research Assistant (current)
-- **Sowrathi Somasundaram:** Research Assistant (former)
 
 ## Contact / beta access
 
 Interested in using the platform or joining as a beta user? Sign up here: https://docs.google.com/forms/d/e/1FAIpQLSfKs-Woma7qoMD5hFfk6ZhdWdFokj8UIBOWfYFQwtt0KnRuLw/viewform
 
+To share feedback or report a problem, use the [feedback form](https://docs.google.com/forms/d/e/1FAIpQLSe4hQcIMxplSJR44xBjhGSWRCcukj8hlWhWNH8WxJS8C5xj9g/viewform) or open a GitHub issue.
+
 ## License
 
-This project is released under the [MIT License](LICENSE), a permissive open-source license.
+This project is open source. The code is released under the [MIT License](LICENSE), and the dataset is released separately under a Creative Commons Attribution 4.0 International (CC BY 4.0) license.

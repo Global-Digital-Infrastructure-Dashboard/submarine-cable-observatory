@@ -1,7 +1,7 @@
 # Workflow Documentation
 
 **Version:** v1
-**Scope:** How information moves through the Digital Infrastructure Observatory, from discovering a new infrastructure asset to displaying it on the public dashboard.
+**Scope:** How information moves through the Global Digital Infrastructure Political Economy Observatory, from discovering a new infrastructure asset to displaying it on the public dashboard.
 
 ## Overview
 
@@ -15,7 +15,7 @@ The pipeline runs on a weekly schedule and is orchestrated in Make.com across fo
 
 A scheduled query runs against the Perplexity API to search public sources for recent submarine cable announcements and regulatory developments. Typical sources include industry cable maps and trade press, regulatory filings and government notices, company and consortium announcements, and international body publications.
 
-The query is scoped with a recency filter so that results reflect genuinely new developments rather than re-surfacing established records. The policy query is additionally tuned to counteract a strong bias toward United States and FCC sources, and explicitly names non-US regulators so that other jurisdictions are represented.
+The query is scoped with a recency filter so that results reflect genuinely new developments rather than re-surfacing established records. The policy query is additionally tuned to counteract a strong bias toward United States and FCC sources, and explicitly names regulators outside the United States so that additional jurisdictions are covered.
 
 **Output:** raw text and source URLs describing candidate records.
 

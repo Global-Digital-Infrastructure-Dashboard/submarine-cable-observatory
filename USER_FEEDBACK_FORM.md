@@ -1,11 +1,15 @@
 # User Feedback Form
 
 **Version:** v1
-**Purpose:** Collect structured feedback from beta users on usability, data gaps, bugs, and suggestions. Build as a Google Form and link it from the project website and the repository.
+**Purpose:** Collect structured feedback from beta users on usability, data gaps, bugs, and suggestions.
 
-**Form title:** Digital Infrastructure Observatory — User Feedback
+**Live form:** https://docs.google.com/forms/d/e/1FAIpQLSe4hQcIMxplSJR44xBjhGSWRCcukj8hlWhWNH8WxJS8C5xj9g/viewform
 
-**Description:** Thank you for trying the Digital Infrastructure Observatory. This short form helps us understand what is working, what is missing, and what to improve. Every question is optional except the first.
+The form is live and linked from the project website and the README. The questions and setup notes below document its contents.
+
+**Form title:** Global Digital Infrastructure Political Economy Observatory: User Feedback
+
+**Description:** Thank you for trying the Global Digital Infrastructure Political Economy Observatory. This short form helps us understand what is working, what is missing, and what to improve. Every question is optional except the first.
 
 ## Questions
 

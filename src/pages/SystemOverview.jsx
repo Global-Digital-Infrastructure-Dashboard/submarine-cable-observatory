@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import CableExplorer from '../components/CableExplorer'
 
@@ -6,6 +7,32 @@ function SystemOverview() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [explorerFilter, setExplorerFilter] = useState(null)
+  const [searchParams] = useSearchParams()
+
+  // Deep link support: /overview?supplier=Chinese or ?owner=Western.
+  // Deriving the filter during render (rather than in an effect) is the
+  // pattern React recommends for reacting to a changing input.
+  const paramFilter = searchParams.get('supplier')
+    ? { supplierBloc: searchParams.get('supplier') }
+    : searchParams.get('owner')
+      ? { ownerBloc: searchParams.get('owner') }
+      : null
+  const paramKey = searchParams.toString()
+  const [prevParamKey, setPrevParamKey] = useState(null)
+  if (paramFilter && paramKey !== prevParamKey) {
+    setPrevParamKey(paramKey)
+    setExplorerFilter(paramFilter)
+  }
+
+  // Scrolling to the explorer is a genuine DOM side effect, so it stays in an effect.
+  useEffect(() => {
+    const hasParam = searchParams.get('supplier') || searchParams.get('owner')
+    if (!hasParam) return
+    const t = setTimeout(() => {
+      document.getElementById('cable-explorer')?.scrollIntoView({ behavior: 'smooth' })
+    }, 400)
+    return () => clearTimeout(t)
+  }, [searchParams])
 
   useEffect(() => {
     async function loadCables() {

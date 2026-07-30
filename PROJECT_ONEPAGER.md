@@ -1,4 +1,4 @@
-# Digital Infrastructure Observatory
+# Global Digital Infrastructure Political Economy Observatory
 
 **A public research platform mapping who owns, builds, and supplies the physical infrastructure that AI and the global internet run on.**
 
@@ -22,7 +22,7 @@ An openly available dataset and an interactive dashboard covering:
 
 The dataset is maintained by an AI-assisted pipeline with a human review step:
 
-**Web sources → AI extraction → validation → researcher review → database → dashboard**
+**Web sources, AI extraction, validation, researcher review, database, dashboard.**
 
 Automated discovery and extraction run weekly. Every record is reviewed and approved by a researcher before it is published, and each one retains the source it came from. A multi-model cross-check, in which two independent models extract the same record and disagreements are flagged for human attention, is being added as a further safeguard.
 
@@ -32,18 +32,20 @@ Researchers studying infrastructure, political economy, and security. Policymake
 
 ## Open by design
 
-The project is open source under the MIT License. The code, the variable definitions, the workflow, and the governance process are all publicly documented, so that the platform can be understood, verified, and extended by people outside the research group. Contributions are welcome, including data corrections from people with direct knowledge of particular systems.
+The project is open source. The code is released under the MIT License, and the dataset is released separately under a Creative Commons Attribution 4.0 International (CC BY 4.0) license. The code, the variable definitions, the workflow, and the governance process are all publicly documented, so that the platform can be understood, verified, and extended by people outside the research group. Contributions are welcome, including data corrections from people with direct knowledge of particular systems.
 
 ## What is next
 
-The same framework is being extended to the data centers that power AI and to 5G networks. Near-term work focuses on deeper interactivity in the dashboard, broader non-Western source coverage, and expanded contributor tooling.
+The same framework is being extended to the data centers that power AI and to 5G networks. Near-term work focuses on deeper interactivity in the dashboard, broader coverage of foreign and non-English-language sources, and expanded contributor tooling.
 
 ## Get involved
 
 Explore the dashboard, request beta access for the underlying dataset, or contribute on GitHub. Contact the project team through the website.
 
 **Team**
-Prof. Kellee Tsai, Co-PI · Dean, College of Social Sciences and Humanities; Distinguished Professor of Political Science, Northeastern University
+
+Prof. Kellee Tsai, PI · Dean, College of Social Sciences and Humanities; Distinguished Professor of Political Science, Northeastern University
+
 Prof. Xiaoxiao Shen, Co-PI · Assistant Research Professor of Political Science, Northeastern University
+
 Anthony Chan, Research Assistant
-Sowrathi Somasundaram, Research Assistant (former)

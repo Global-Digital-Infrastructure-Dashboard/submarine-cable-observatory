@@ -3,7 +3,7 @@
 **Version:** v1
 **Purpose:** Every PESOSE deliverable, what it is, and where to find it.
 
-**Repository:** https://github.com/sowrathi-somasundaram/submarine-cable-observatory
+**Repository:** [GITHUB URL, PLACEHOLDER, PENDING TRANSFER TO INSTITUTIONAL ACCOUNT AND PUBLIC RELEASE]
 **Live site:** https://research-platform-sand.vercel.app/
 
 Everything below is public. No login is required for any deliverable.
@@ -13,7 +13,7 @@ Everything below is public. No login is required for any deliverable.
 | Deliverable | Where |
 |---|---|
 | README | `README.md` in the repository root |
-| Contributing guide | `CONTRIBUTING.md` |
+| Contributing guide | `CONTRIBUTING.md` (includes all six ways to contribute in full detail) |
 | Roadmap | `roadmap.md` |
 | License (MIT) | `LICENSE` |
 
@@ -56,22 +56,16 @@ Covers all seven pipeline stages from source discovery to dashboard display, wit
 |---|---|
 | Governance Framework v1 | `GOVERNANCE_FRAMEWORK.md` in the repository, plus a Word copy sent by email |
 
-## 7. Contributor Guide
-
-| Deliverable | Where |
-|---|---|
-| Contributor Guide v1 | `CONTRIBUTOR_GUIDE.md` in the repository, plus a Word copy sent by email |
-
-## 8. Community engagement materials
+## 7. Community engagement materials
 
 | Deliverable | Where |
 |---|---|
 | Beta user tracking template | Sent by email as an Excel file. Not committed to the repository, because it holds contact details |
-| User feedback form | Specification at `USER_FEEDBACK_FORM.md`; to be built as a Google Form |
+| User feedback form | Live [Google Form](https://docs.google.com/forms/d/e/1FAIpQLSe4hQcIMxplSJR44xBjhGSWRCcukj8hlWhWNH8WxJS8C5xj9g/viewform); specification and question set at `USER_FEEDBACK_FORM.md` |
 | Project one-pager | `PROJECT_ONEPAGER.md` in the repository, plus a Word copy sent by email |
-| Beta sign-up form | Google Form, already shared with your Northeastern and Gmail addresses |
+| Beta sign-up form | Google Form, already shared with the PI and Co-PI's Northeastern and personal email addresses |
 
-## 9. Supporting material
+## 8. Supporting material
 
 | Item | Where |
 |---|---|

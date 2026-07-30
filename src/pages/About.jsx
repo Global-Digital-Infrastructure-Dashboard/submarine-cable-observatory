@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom'
 
 // Google Form for beta sign-up
 const BETA_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfKs-Woma7qoMD5hFfk6ZhdWdFokj8UIBOWfYFQwtt0KnRuLw/viewform?usp=dialog'
+// Google Form for user feedback
+const FEEDBACK_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe4hQcIMxplSJR44xBjhGSWRCcukj8hlWhWNH8WxJS8C5xj9g/viewform'
 
 // Body text stays readable; the page itself spans the full app container.
-const PROSE = 'w-full'
+const PROSE = 'max-w-6xl'
 const CARD = 'bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-6'
 
 const whyItMatters = [
@@ -21,7 +23,7 @@ const whyItMatters = [
     body: "A fast-moving body of regulation is reshaping who can build and operate cables. The platform's monitoring pipeline tracks these changes as they happen.",
   },
   {
-    title: 'AI and national security',
+    title: 'AI & National Security',
     body: 'The infrastructure AI depends on, the cables and data centers it runs on, is increasingly a matter of national security and economic competitiveness, not just connectivity. Understanding who owns and supplies it is a first step toward assessing that exposure.',
   },
 ]
@@ -48,14 +50,13 @@ const whatWeTrack = [
 const team = [
   {
     name: 'Prof. Kellee Tsai',
-    role: 'Co-PI · Dean, College of Social Sciences and Humanities; Distinguished Professor of Political Science, Northeastern University',
+    role: 'PI · Dean, College of Social Sciences and Humanities; Distinguished Professor of Political Science, Northeastern University',
   },
   {
     name: 'Prof. Xiaoxiao Shen',
     role: 'Co-PI · Assistant Research Professor of Political Science, Northeastern University',
   },
   { name: 'Anthony Chan', role: 'Research Assistant (current)' },
-  { name: 'Sowrathi Somasundaram', role: 'Research Assistant (former)' },
 ]
 
 const faqs = [
@@ -87,7 +88,7 @@ const faqs = [
 
 function About() {
   return (
-    <div className="w-full max-w-6xl mx-auto">
+    <div className="w-full">
       {/* About */}
       <section className="mb-14">
         <h2 className="font-serif text-3xl font-semibold text-[#212121] mb-4">
@@ -155,36 +156,11 @@ function About() {
         </div>
       </section>
 
-      {/* A look at the dashboard */}
+      {/* Explore the dashboard (call to action) */}
       <section className="mb-14">
-        <h2 className="font-serif text-3xl font-semibold text-[#212121] mb-6">
-          A look at the dashboard
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <img
-            src="/screenshots/map.png"
-            alt="World map of global submarine cable landing points"
-            className="w-full rounded-lg border border-[#E0E0E0] shadow-sm"
-          />
-          <img
-            src="/screenshots/supplier-bloc.png"
-            alt="Market share by supplier bloc"
-            className="w-full rounded-lg border border-[#E0E0E0] shadow-sm"
-          />
-          <img
-            src="/screenshots/sovereignty.png"
-            alt="Sovereignty versus infrastructure density"
-            className="w-full rounded-lg border border-[#E0E0E0] shadow-sm"
-          />
-          <img
-            src="/screenshots/timeline.png"
-            alt="Regulatory timeline of submarine cable policy events"
-            className="w-full rounded-lg border border-[#E0E0E0] shadow-sm"
-          />
-        </div>
         <Link
           to="/overview"
-          className="inline-block mt-6 px-6 py-3 bg-[#0D47A1] text-white text-sm font-semibold rounded-md hover:bg-[#0B3D8C] transition-colors"
+          className="inline-block px-6 py-3 bg-[#0D47A1] text-white text-sm font-semibold rounded-md hover:bg-[#0B3D8C] transition-colors"
         >
           Explore the dashboard →
         </Link>
@@ -242,6 +218,18 @@ function About() {
         >
           Request beta access
         </a>
+        <p className="text-[#616161] text-sm mt-6">
+          Already using the platform?{' '}
+          <a
+            href={FEEDBACK_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#0D47A1] font-semibold hover:underline"
+          >
+            Share your feedback
+          </a>
+          .
+        </p>
       </section>
     </div>
   )

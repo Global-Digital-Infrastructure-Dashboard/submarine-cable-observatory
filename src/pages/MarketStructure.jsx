@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 function MarketStructure({ infrastructureType = 'cables' }) {
+  const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState('supplier-competition')
@@ -101,12 +103,25 @@ function MarketStructure({ infrastructureType = 'cables' }) {
     { id: 'supplier-owner-divergence', label: 'C. Supplier-Owner Divergence' }
   ]
 
-  const renderBar = (bloc, count, total) => {
+  const renderBar = (bloc, count, total, dimension = 'supplier') => {
     const pct = parseFloat(((count / total) * 100).toFixed(1))
     const label = `${pct.toFixed(1)}%`
     const isNarrow = pct < 12
     return (
-      <div key={bloc} className="flex items-center gap-4">
+      <div
+        key={bloc}
+        role="button"
+        tabIndex={0}
+        title={`Show the ${count} cables with a ${bloc} ${dimension}`}
+        onClick={() => navigate(`/overview?${dimension}=${encodeURIComponent(bloc)}`)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            navigate(`/overview?${dimension}=${encodeURIComponent(bloc)}`)
+          }
+        }}
+        className="flex items-center gap-4 cursor-pointer rounded px-2 -mx-2 py-1 hover:bg-[#F4F8FE] transition-colors"
+      >
         <div className="min-w-[100px] text-sm font-medium text-[#212121]">{bloc}</div>
         <div className="flex-1 bg-[#E0E0E0] rounded h-9 relative">
           <div
@@ -190,7 +205,7 @@ function MarketStructure({ infrastructureType = 'cables' }) {
             <div className="space-y-4 mb-8">
               {Object.entries(data.supplier_competition.market_share)
                 .sort(([,a], [,b]) => b - a)
-                .map(([bloc, count]) => renderBar(bloc, count, data.totalCables))}
+                .map(([bloc, count]) => renderBar(bloc, count, data.totalCables, 'supplier'))}
             </div>
             <div className="border-t border-[#E0E0E0] pt-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-3">How blocs are defined</p>
@@ -282,7 +297,7 @@ function MarketStructure({ infrastructureType = 'cables' }) {
             <div className="space-y-4 mb-8">
               {Object.entries(data.ownership_structure.market_share)
                 .sort(([,a], [,b]) => b - a)
-                .map(([bloc, count]) => renderBar(bloc, count, data.totalCables))}
+                .map(([bloc, count]) => renderBar(bloc, count, data.totalCables, 'owner'))}
             </div>
             <div className="border-t border-[#E0E0E0] pt-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-3">How blocs are defined</p>

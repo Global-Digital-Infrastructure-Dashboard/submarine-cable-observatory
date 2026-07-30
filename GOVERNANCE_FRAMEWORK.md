@@ -1,7 +1,7 @@
 # Governance Framework
 
 **Version:** v1
-**Purpose:** How the Digital Infrastructure Observatory is maintained, how the data is kept reliable, and how decisions about the dataset are made as the project grows.
+**Purpose:** How the Global Digital Infrastructure Political Economy Observatory is maintained, how the data is kept reliable, and how decisions about the dataset are made as the project grows.
 
 ## Principles
 
@@ -25,7 +25,7 @@ The project is built on three commitments.
 
 The dataset is maintained by the project team at Northeastern University. Records enter the dataset only through the reviewed pipeline described in the Workflow Documentation. Direct edits to the production database are reserved for corrections that cannot be routed through the pipeline, and any such edit is recorded in the affected record's notes field.
 
-Write access to the database is limited to the project team. The public dashboard reads the data through a public key with read-only permissions.
+Write access to the database is limited to the project team. The public dashboard reads the data through a public key with row-level security enabled, granting read-only access.
 
 ## Suggesting a correction
 
@@ -53,7 +53,7 @@ Changes to what a variable means, how a category is assigned, or how an indicato
 
 Such changes require approval from the Principal Investigators. When one is made, the Data Dictionary is updated and its version number incremented, the change and its rationale are recorded, and any affected indicator is recomputed across the dataset so that old and new definitions are not mixed.
 
-The bloc classification scheme is the most consequential example. It determines the market share, concentration, and sovereignty figures, and any change to it would alter the headline findings of the platform.
+The bloc classification scheme is a particularly consequential example. It determines the market share, concentration, and sovereignty figures, and any change to it would alter the headline findings of the platform.
 
 ## Maintaining data quality over time
 
@@ -71,8 +71,8 @@ Several mechanisms operate continuously.
 
 ## Sustainability and continuity
 
-The project is designed to outlast any individual contributor. Documentation is maintained in the public repository rather than held informally, so that an incoming team member can understand the system from the repository alone. Project infrastructure is being consolidated under institutional rather than personal accounts, following a handover in which key services were tied to a departing researcher's individual accounts. That experience directly informs this commitment.
+The project is designed to outlast any individual contributor. Documentation is maintained in the public repository rather than held informally, so that an incoming team member can understand the system from the repository alone. As standard practice, project infrastructure is held under institutional rather than personal accounts, so that access and continuity do not depend on any one person.
 
 ## Licensing
 
-The software is released under the MIT License. Documentation and data are published so that researchers, journalists, and policymakers can use and build on them, with attribution to the project requested.
+The software is released under the MIT License, and contributions are accepted under the same license. The dataset is released separately under a Creative Commons Attribution 4.0 International (CC BY 4.0) license. Documentation is published alongside the code and dataset so that researchers, journalists, and policymakers can use and build on them, with attribution to the project requested.

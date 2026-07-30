@@ -118,8 +118,8 @@ The **Independence** component is bloc-neutral: it measures domestic control of 
 - **Blank vs. zero.** Blank text cells mean "not published / unknown". The Chinese flags use 0 for "no" rather than leaving the cell blank.
 - **Numbers stored as text.** `rfs_year` and `length_km` are stored as text so that partial, approximate, or unknown values can be recorded.
 
-**Items to confirm with Sowrathi (who designed the indicators)**
+**Open items for internal review**
 
-- **Indicator definitions.** The Sovereignty Index, HHI, and Independence definitions were reconstructed by reading the analysis scripts. Confirmation of the exact weights and intent would make them authoritative.
+- **Indicator definitions.** The Sovereignty Index, HHI, and Independence definitions were reconstructed by reading the analysis scripts. The research team plans to confirm the exact weights and intent to make them authoritative.
 - **Two bloc groupings.** The stored `supplier_bloc` / `owner_bloc` columns use Western / Chinese / Mixed / Other / Unknown (assigned during ingestion), while the sovereignty analysis recomputes a finer grouping (US, Europe, Japan, China, India, Mixed, Other) from the country fields. These should be confirmed as intentional or aligned.
 - **Chinese flags.** Confirm whether `chinese_supplier` / `chinese_owner` are set by the same logic as the bloc classification or by a separate rule.
