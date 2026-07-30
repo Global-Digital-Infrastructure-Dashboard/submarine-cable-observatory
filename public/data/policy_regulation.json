@@ -1,0 +1,321 @@
+{
+  "events": [
+    {
+      "cable_name": "2Africa",
+      "year": 2024.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Mixed"
+    },
+    {
+      "cable_name": "ACS Alaska-Oregon Network (AKORN)",
+      "year": 2009.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.",
+      "supplier_bloc": "Other",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Aden-Djibouti",
+      "year": 1994.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.; US: FCC Submarine Cable Landing License mandatory (25-year term); 2025 FCC rules require SLTE owner/operator licensing, cybersecurity/physical security standards, and presumption of denial for foreign adversary (China/Russia/etc.) ownership/control/equipment. Team Telecom national security review; no Chinese components allowed on US-landing systems.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Mixed"
+    },
+    {
+      "cable_name": "Africa-1",
+      "year": 2026.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Airraq",
+      "year": 2025.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.",
+      "supplier_bloc": "China",
+      "owner_bloc": "China"
+    },
+    {
+      "cable_name": "Alaska United East (AU-East)",
+      "year": 1999.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.; US: FCC Submarine Cable Landing License mandatory (25-year term); 2025 FCC rules require SLTE owner/operator licensing, cybersecurity/physical security standards, and presumption of denial for foreign adversary (China/Russia/etc.) ownership/control/equipment. Team Telecom national security review; no Chinese components allowed on US-landing systems.",
+      "supplier_bloc": "Other",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Alaska United Southeast (AU-SE)",
+      "year": 2008.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.; US: FCC Submarine Cable Landing License mandatory (25-year term); 2025 FCC rules require SLTE owner/operator licensing, cybersecurity/physical security standards, and presumption of denial for foreign adversary (China/Russia/etc.) ownership/control/equipment. Team Telecom national security review; no Chinese components allowed on US-landing systems.",
+      "supplier_bloc": "Other",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Alaska United Turnagain Arm (AUTA)",
+      "year": 2012.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.; US: FCC Submarine Cable Landing License mandatory (25-year term); 2025 FCC rules require SLTE owner/operator licensing, cybersecurity/physical security standards, and presumption of denial for foreign adversary (China/Russia/etc.) ownership/control/equipment. Team Telecom national security review; no Chinese components allowed on US-landing systems.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Alaska United West (AU-West)",
+      "year": 2004.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.; US: FCC Submarine Cable Landing License mandatory (25-year term); 2025 FCC rules require SLTE owner/operator licensing, cybersecurity/physical security standards, and presumption of denial for foreign adversary (China/Russia/etc.) ownership/control/equipment. Team Telecom national security review; no Chinese components allowed on US-landing systems.",
+      "supplier_bloc": "Japan",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "ALBA-1",
+      "year": 2012.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.; US: FCC Submarine Cable Landing License mandatory (25-year term); 2025 FCC rules require SLTE owner/operator licensing, cybersecurity/physical security standards, and presumption of denial for foreign adversary (China/Russia/etc.) ownership/control/equipment. Team Telecom national security review; no Chinese components allowed on US-landing systems.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Aletar",
+      "year": 1997.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Almera-Melilla (ALME)",
+      "year": 1990.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Europe"
+    },
+    {
+      "cable_name": "Alpal-2",
+      "year": 2002.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Unknown"
+    },
+    {
+      "cable_name": "AmeriCan-1",
+      "year": 1999.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Americas-I North",
+      "year": 1994.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.; US: FCC Submarine Cable Landing License mandatory (25-year term); 2025 FCC rules require SLTE owner/operator licensing, cybersecurity/physical security standards, and presumption of denial for foreign adversary (China/Russia/etc.) ownership/control/equipment. Team Telecom national security review; no Chinese components allowed on US-landing systems.",
+      "supplier_bloc": "Other",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Americas-II",
+      "year": 2000.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.; US: FCC Submarine Cable Landing License mandatory (25-year term); 2025 FCC rules require SLTE owner/operator licensing, cybersecurity/physical security standards, and presumption of denial for foreign adversary (China/Russia/etc.) ownership/control/equipment. Team Telecom national security review; no Chinese components allowed on US-landing systems.",
+      "supplier_bloc": "Other",
+      "owner_bloc": "Mixed"
+    },
+    {
+      "cable_name": "APOCS 1",
+      "year": 1991.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.; US: FCC Submarine Cable Landing License mandatory (25-year term); 2025 FCC rules require SLTE owner/operator licensing, cybersecurity/physical security standards, and presumption of denial for foreign adversary (China/Russia/etc.) ownership/control/equipment. Team Telecom national security review; no Chinese components allowed on US-landing systems.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Apollo",
+      "year": 2003.0,
+      "note": "Landing permits, environmental/national security reviews required per domestic law in each landing country. Protected under UNCLOS Art. 113\u2013115 (penalize willful/negligent damage on high seas) + 1884 Paris Convention. Repair delays common due to permitting.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Europe"
+    },
+    {
+      "cable_name": "Apollo East and West",
+      "year": 2025.0,
+      "note": "Apollo East and West are fiber optic cables in parallel (but not attached) to power cables. Each leg is 335 km in length, for a total of 670 km. The cables extend terrestrially to Athens and Pachi in Greece.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "CHI",
+      "year": 2001.0,
+      "note": "CHI is the only remaining operational segment of the Japan-U.S. (JUS) Cable Network that was retired in July 2023.",
+      "supplier_bloc": "Mixed",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "COBRAcable",
+      "year": 2019.0,
+      "note": "The COBRAcable is a power cable that also contains a fiber-optic cable with 48 fiber pairs.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Europe"
+    },
+    {
+      "cable_name": "EMC West-1",
+      "year": 2027.0,
+      "note": "Integrated dual terrestrial links are planned to connect the EMC West-1 landing station in Israel to Haql",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "EMC West-2",
+      "year": 2027.0,
+      "note": "Integrated dual terrestrial links are planned to connect the EMC West-2 landing station in Israel to Haql",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "FLAG Atlantic-1",
+      "year": 2001.0,
+      "note": "FLAG owns 3 fiber pairs which it refers to as FLAG North Asia Loop. Of the three remaining fiber pairs comprising the REACH North Asia Loop, Telstra owns one fiber pair, PCCW owns one fiber pair, with the final fiber pair is jointly owned by Telstra and PCCW",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Unknown"
+    },
+    {
+      "cable_name": "Gulf Bridge International Cable",
+      "year": 2012.0,
+      "note": "GBI owns the entire system. Telecom Egypt owns one of the fiber pairs from the branching unit near Oman to Mumbai which it acquired from the MENA Cable Company. GBI owns one fiber pair on the MENA cable, which links Oman to Italy.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Unknown"
+    },
+    {
+      "cable_name": "Havfrue",
+      "year": 2020.0,
+      "note": "Aqua Comms ((http://www.aquacomms.com) acts as the overall system administrator for the Havfrue cable, and has dubbed the portion of the cable where it has ownership (Denmark, Ireland, and U.S. segments) as AEC-2. Bulk Infrastructure (http://www.bulk.no) is the Norwegian landing party for Havfrue.",
+      "supplier_bloc": "Other",
+      "owner_bloc": "Europe"
+    },
+    {
+      "cable_name": "India Asia Xpress (IAX)",
+      "year": 2024.0,
+      "note": "The cable has other owners besides Reliance Jio and China Mobile who have yet to be disclosed.",
+      "supplier_bloc": "Other",
+      "owner_bloc": "Mixed"
+    },
+    {
+      "cable_name": "Malta-Italy Interconnector",
+      "year": 2015.0,
+      "note": "The Malta-Italy Interconnector is a power cable, which has optical fiber attached to it.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Minoas East and West",
+      "year": 2021.0,
+      "note": "Minoas East and West are fiber optic cables attached to power cables. Minoas East was RFS in December, 2021. Minoas West was RFS in May, 2021. Each leg is 135 km in length, for a total of 270 km of fiber optic cable.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "NordBalt",
+      "year": 2016.0,
+      "note": "Lietuvos Energija and Svenska Kraftnt operate the NordBalt cable, a high-voltage power cable that also has a fiber-optic cable alongside it.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Europe"
+    },
+    {
+      "cable_name": "Norte Conectado (Infovia 00)",
+      "year": 2022.0,
+      "note": "Norte Conectado is a Brazilian initiative to lay submarine fiber under the Amazon river and its tributaries.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Europe"
+    },
+    {
+      "cable_name": "Norte Conectado (Infovia 01)",
+      "year": 2023.0,
+      "note": "Norte Conectado is a Brazilian initiative to lay submarine fiber under the Amazon river and its tributaries.",
+      "supplier_bloc": "Mixed",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Norte Conectado (Infovia 02)",
+      "year": 2025.0,
+      "note": "Norte Conectado is a Brazilian initiative to lay submarine fiber under the Amazon river and its tributaries. EAF is a non-governmental, non-profit organization formed by the operators Claro, Tim and Vivo.",
+      "supplier_bloc": "China",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Norte Conectado (Infovia 03)",
+      "year": 2024.0,
+      "note": "Norte Conectado is a Brazilian initiative to lay submarine fiber under the Amazon river and its tributaries. EAF is a non-governmental, non-profit organization formed by the operators Claro, Tim and Vivo.",
+      "supplier_bloc": "China",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Norte Conectado (Infovia 04)",
+      "year": 2025.0,
+      "note": "Norte Conectado is a Brazilian initiative to lay submarine fiber under the Amazon river and its tributaries. EAF is a non-governmental, non-profit organization formed by the operators Claro, Tim and Vivo.",
+      "supplier_bloc": "China",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Okinawa Remote Islands",
+      "year": 2017.0,
+      "note": "This cable was constructed as part of the Okinawa Remote Islands Information and Communication Infrastructure Development Promotion Project.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Unknown"
+    },
+    {
+      "cable_name": "PEACE Cable",
+      "year": 2022.0,
+      "note": "Cyta owns the branch to Cyprus which they market as Arsinoe. GO owns the branch to Malta which they market as LaValette. Ooredoo Tunisia owns the Tunisian branch which they market as IFRIQYA. Zain owns the branch to Jeddah which they market as J2M (Jeddah to Marseille). du owns a branch to the UAE that will be completed in 2026.",
+      "supplier_bloc": "China",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "PGASCOM",
+      "year": 2010.0,
+      "note": "The PGASCOM cable is comprised of fiber that is attached to a gas pipeline.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Projeto Amaznia Conectada (PAC 01)",
+      "year": 2017.0,
+      "note": "PAC 01 was laid in the Amazon riverbed in a pilot initiative coordinated by the Brazilian Ministry of Defense.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Romulo",
+      "year": 2011.0,
+      "note": "Romulo is a power cable, which has optical fiber attached to it.",
+      "supplier_bloc": "Unknown",
+      "owner_bloc": "Europe"
+    },
+    {
+      "cable_name": "SEACOM",
+      "year": 2009.0,
+      "note": "SEACOM owns the entire East African portion of the system and two fiber pairs between Egypt and India. Tata Communications owns two fiber pairs from Egypt to India and the branch to Jeddah, which the company refers to as TGN-Eurasia. Both SEACOM and Tata Communications own fiber pairs on TE North for connectivity across Egypt to Europe.",
+      "supplier_bloc": "Other",
+      "owner_bloc": "India"
+    },
+    {
+      "cable_name": "SEA-ME-WE 6",
+      "year": 2026.0,
+      "note": "SeaMeWe-6's branch into the Gulf extends to Bahrain. The landings in Bahrain, Oman, Qatar, and the United Arab Emirates along with additional fiber pairs on the trunk from Bahrain to Oman are fully owned by Batelco, which the company refers to as Al Khaleej. Airtel has privately owned pairs extending from Singapore to Chennai and Mumbai.",
+      "supplier_bloc": "Other",
+      "owner_bloc": "Mixed"
+    },
+    {
+      "cable_name": "South American Crossing (SAC)",
+      "year": 2000.0,
+      "note": "Cirion owns three fiber pairs on the systems, while Sparkle owns one fiber. Only Cirion has capacity on the branch to Colombia.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Other"
+    },
+    {
+      "cable_name": "Unity",
+      "year": 2010.0,
+      "note": "Unity is jointly owned by a consortium of six companies. Telstra owns two fiber pairs that the company refers to as EAC-Pacific. The remaining three fiber pairs are jointly owned by the other consortium members.",
+      "supplier_bloc": "Japan",
+      "owner_bloc": "Mixed"
+    },
+    {
+      "cable_name": "WACS",
+      "year": 2012.0,
+      "note": "The cable provides connectivity from Portugal to the United Kingdom via dedicated fiber pairs on an existing cable.",
+      "supplier_bloc": "Europe",
+      "owner_bloc": "Mixed"
+    }
+  ],
+  "total_events": 45,
+  "cables_with_notes": 45
+}
