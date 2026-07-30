@@ -6,7 +6,7 @@ const BETA_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfKs-Woma7qoMD5h
 const FEEDBACK_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe4hQcIMxplSJR44xBjhGSWRCcukj8hlWhWNH8WxJS8C5xj9g/viewform'
 
 // Body text stays readable; the page itself spans the full app container.
-const PROSE = 'max-w-6xl'
+const PROSE = 'w-full'
 const CARD = 'bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-6'
 
 const whyItMatters = [
