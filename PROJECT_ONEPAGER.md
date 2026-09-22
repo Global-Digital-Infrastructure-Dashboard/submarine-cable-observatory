@@ -47,5 +47,3 @@ Explore the dashboard, request beta access for the underlying dataset, or contri
 Prof. Kellee Tsai, PI · Dean, College of Social Sciences and Humanities; Distinguished Professor of Political Science, Northeastern University
 
 Prof. Xiaoxiao Shen, Co-PI · Assistant Research Professor of Political Science, Northeastern University
-
-Anthony Chan, Research Assistant
