@@ -117,7 +117,6 @@ Developed at Northeastern University.
 
 - **Prof. Kellee Tsai:** Principal Investigator; Dean of the College of Social Sciences and Humanities and Distinguished Professor of Political Science, Northeastern University
 - **Prof. Xiaoxiao Shen:** Co-Principal Investigator; Assistant Research Professor of Political Science, Northeastern University
-- **Anthony Chan:** Research Assistant (current)
 
 ## Contact / beta access
 
