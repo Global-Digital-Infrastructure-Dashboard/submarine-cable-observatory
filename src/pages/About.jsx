@@ -56,7 +56,6 @@ const team = [
     name: 'Prof. Xiaoxiao Shen',
     role: 'Co-PI · Assistant Research Professor of Political Science, Northeastern University',
   },
-  { name: 'Anthony Chan', role: 'Research Assistant' },
 ]
 
 const faqs = [
