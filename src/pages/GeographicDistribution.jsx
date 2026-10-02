@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import WorldCableMap from '../components/WorldCableMap'
 
 function GeographicDistribution({ infrastructureType = 'cables' }) {
   const [countryData, setCountryData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const mapRef = useRef(null)
-  const mapInstanceRef = useRef(null)
 
   useEffect(() => {
     async function loadData() {
@@ -30,130 +29,6 @@ function GeographicDistribution({ infrastructureType = 'cables' }) {
     
     loadData()
   }, [infrastructureType])
-
-  useEffect(() => {
-    if (!countryData || !mapRef.current || mapInstanceRef.current) return
-
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-    document.head.appendChild(link)
-
-    const script = document.createElement('script')
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-    script.onload = () => {
-      const L = window.L
-
-      const map = L.map(mapRef.current, {
-        center: [20, 0],
-        zoom: 2,
-        minZoom: 2,
-        maxZoom: 5,
-        scrollWheelZoom: true,
-        zoomControl: true
-      })
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 19
-      }).addTo(map)
-
-      const countryCoordinates = {
-        'United States': [37.0902, -95.7129],
-        'United Kingdom': [55.3781, -3.4360],
-        'Japan': [36.2048, 138.2529],
-        'Singapore': [1.3521, 103.8198],
-        'France': [46.2276, 2.2137],
-        'India': [20.5937, 78.9629],
-        'China': [35.8617, 104.1954],
-        'Australia': [-25.2744, 133.7751],
-        'Brazil': [-14.2350, -51.9253],
-        'South Africa': [-30.5595, 22.9375],
-        'Hong Kong': [22.3193, 114.1694],
-        'Taiwan': [23.6978, 120.9605],
-        'Philippines': [12.8797, 121.7740],
-        'Indonesia': [-0.7893, 113.9213],
-        'Malaysia': [4.2105, 101.9758],
-        'Thailand': [15.8700, 100.9925],
-        'South Korea': [35.9078, 127.7669],
-        'Germany': [51.1657, 10.4515],
-        'Spain': [40.4637, -3.7492],
-        'Italy': [41.8719, 12.5674],
-        'Denmark': [56.2639, 9.5018],
-        'Sweden': [60.1282, 18.6435],
-        'Norway': [60.4720, 8.4689],
-        'Netherlands': [52.1326, 5.2913],
-        'Ireland': [53.4129, -8.2439],
-        'Canada': [56.1304, -106.3468],
-        'Mexico': [23.6345, -102.5528],
-        'Egypt': [26.8206, 30.8025],
-        'UAE': [23.4241, 53.8478],
-        'Saudi Arabia': [23.8859, 45.0792],
-        'Portugal': [39.3999, -8.2245],
-        'Greece': [39.0742, 21.8243],
-        'Turkey': [38.9637, 35.2433],
-        'Israel': [31.0461, 34.8516],
-        'New Zealand': [-40.9006, 174.8860],
-        'Argentina': [-38.4161, -63.6167],
-        'Chile': [-35.6751, -71.5430],
-        'Colombia': [4.5709, -74.2973],
-        'Venezuela': [6.4238, -66.5897],
-        'Peru': [-9.1900, -75.0152],
-        'Vietnam': [14.0583, 108.2772],
-        'Pakistan': [30.3753, 69.3451],
-        'Bangladesh': [23.6850, 90.3563],
-        'Sri Lanka': [7.8731, 80.7718],
-        'Myanmar': [21.9162, 95.9560],
-        'Kenya': [-0.0236, 37.9062],
-        'Nigeria': [9.0820, 8.6753],
-        'Morocco': [31.7917, -7.0926],
-        'Finland': [61.9241, 25.7482],
-        'Poland': [51.9194, 19.1451],
-        'Oman': [21.4735, 55.9754]
-      }
-
-      countryData.countries.forEach(country => {
-        const coords = countryCoordinates[country.name]
-        if (!coords) return
-
-        const size = country.cables > 50 ? 12 :
-                    country.cables > 20 ? 9 :
-                    country.cables > 10 ? 7 : 5
-
-        const color = country.cables > 50 ? '#00E5FF' :
-                     country.cables > 20 ? '#00BCD4' :
-                     '#4FC3F7'
-
-        const circle = L.circleMarker(coords, {
-          radius: size,
-          fillColor: color,
-          color: 'white',
-          weight: 2,
-          opacity: 0.9,
-          fillOpacity: 0.8
-        }).addTo(map)
-
-        circle.bindPopup(`
-          <div style="font-family: Inter, sans-serif;">
-            <strong style="font-size: 0.95rem; color: #0D47A1;">${country.name}</strong><br/>
-            <span style="font-size: 0.875rem; color: #616161;">${country.cables} submarine cables</span>
-          </div>
-        `)
-      })
-
-      mapInstanceRef.current = map
-    }
-
-    document.head.appendChild(script)
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove()
-        mapInstanceRef.current = null
-      }
-    }
-  }, [countryData])
 
   if (loading) {
     return (
@@ -194,10 +69,9 @@ function GeographicDistribution({ infrastructureType = 'cables' }) {
             Interactive map with actual geographic locations. Click markers for details.
           </p>
 
-          <div 
-            ref={mapRef} 
-            className="h-[600px] w-full rounded-lg mt-6 border border-[#E0E0E0]"
-          />
+          <div className="mt-6">
+            <WorldCableMap countries={countryData.countries} />
+          </div>
 
           <div className="mt-6 flex justify-center gap-10 text-sm text-[#616161]">
             <div className="flex items-center gap-2">
@@ -220,7 +94,7 @@ function GeographicDistribution({ infrastructureType = 'cables' }) {
 
           <div className="mt-6 p-5 bg-[#E3F2FD] rounded-md">
             <p className="text-sm text-[#0D47A1] m-0 leading-relaxed">
-              <strong>Interactive Features:</strong> Zoom and pan to explore. Click cyan dots to see country names and cable counts. 
+              <strong>Interactive Features:</strong> Scroll or use the +/− buttons to zoom, drag to pan. Click cyan dots to see country names and cable counts. Highlighted countries have at least one cable landing. 
               Larger, brighter dots indicate major cable hubs. For detailed cable routes and exact paths, visit{' '}
               <a href="https://www.submarinecablemap.com/" target="_blank" rel="noopener noreferrer" className="text-[#0D47A1] font-semibold underline">
                 TeleGeography's Submarine Cable Map
@@ -273,7 +147,6 @@ function GeographicDistribution({ infrastructureType = 'cables' }) {
             const top = countryData.countries
             const top3 = top.slice(0, 3)
 
-            const usRegion = ['United States', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Argentina', 'Peru', 'Venezuela']
             const europeRegion = ['United Kingdom', 'France', 'Germany', 'Spain', 'Italy', 'Portugal', 'Netherlands', 'Denmark', 'Sweden', 'Norway', 'Finland', 'Ireland', 'Poland', 'Greece']
             const apacRegion = ['Japan', 'Singapore', 'China', 'Hong Kong', 'Taiwan', 'South Korea', 'Australia', 'Indonesia', 'Philippines', 'Malaysia', 'Thailand', 'Vietnam', 'India', 'New Zealand']
 
@@ -285,7 +158,7 @@ function GeographicDistribution({ infrastructureType = 'cables' }) {
                 <div className="p-6 bg-[#F0F4FA] rounded-lg border border-[#E8EDF5] border-l-4 border-l-[#0D47A1]">
                   <h4 className="font-serif text-base font-semibold mb-3 text-[#212121]">Major Hubs</h4>
                   <p className="text-sm leading-relaxed text-[#616161] m-0">
-                    {top3.map((c, i) => `${c.name} (${c.cables})`).join(', ')} serve as the top cable landing hubs globally, connecting major trade routes and population centers.
+                    {top3.map(c => `${c.name} (${c.cables})`).join(', ')} serve as the top cable landing hubs globally, connecting major trade routes and population centers.
                   </p>
                 </div>
 

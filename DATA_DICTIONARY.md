@@ -145,6 +145,19 @@ Two cables are flagged as having a Chinese owner, but their `owner_country` fiel
 - **Relation to the variable definition:** Section 1 describes `chinese_owner` as derived from `owner_country`. These two records show the flag can also reflect shareholdings not listed in `owner_country`.
 - **Open question:** whether `owner_country` should list China for these cables, or whether the difference between the two fields is intended.
 
+**Combined landing-country label "Netherlands (Curacao/Bonaire)"**
+
+One cable lists a combined label in `landing_countries` instead of a single country or territory:
+
+| Cable | RFS year | `landing_countries` | `landing_stations` |
+|---|---|---|---|
+| EC Link | 2008 | Netherlands (Curacao/Bonaire); Trinidad and Tobago | Chaguaramas, Trinidad; Willemstad, Curaçao |
+
+- **Description:** the label names two separate islands, Curaçao and Bonaire, under "Netherlands". Elsewhere the dataset records them as separate landing countries ("Curaçao" in 8 cables, "Bonaire" in 5). The only landing station listed for this cable in that area is Willemstad, Curaçao.
+- **Effect on indicators:** the label is counted as its own country, with 1 cable, in `countries_map` and `sovereignty_countries`. EC Link is therefore not counted under Curaçao or Bonaire.
+- **Map placement:** the geographic distribution map has no country shape for this label. It places the marker at Curaçao through an explicit coordinate in `src/data/countryGeo.js`, so the country stays visible on the map. This is a display choice only. The source record is unchanged and the issue is not resolved.
+- **Open question:** whether `landing_countries` for EC Link should read "Curaçao", to match its listed landing station.
+
 
 ## Version history
 
