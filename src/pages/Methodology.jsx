@@ -38,19 +38,39 @@ function Methodology() {
             <tbody>
               {[
                 {
-                  bloc: 'Western',
-                  supplier: 'Primary supplier is headquartered in the US, EU, Japan, or Australia (e.g. SubCom, ASN, NEC, Alcatel)',
-                  owner: 'Majority ownership by entities based in the US, EU, Japan, or Australia'
-                },
-                {
-                  bloc: 'Chinese',
+                  bloc: 'China',
                   supplier: 'Primary supplier is a Chinese state-affiliated or Chinese-owned manufacturer (e.g. HMN Technologies, HTFG)',
                   owner: 'Majority ownership by Chinese state or private entities (e.g. China Mobile, China Telecom, Huawei Marine)'
                 },
                 {
+                  bloc: 'US',
+                  supplier: 'Primary supplier is headquartered in the United States (e.g. SubCom)',
+                  owner: 'Majority ownership by United States-based entities'
+                },
+                {
+                  bloc: 'Europe',
+                  supplier: 'Primary supplier is headquartered in Europe (e.g. Alcatel Submarine Networks, based in France)',
+                  owner: 'Majority ownership by European entities (e.g. Orange, Vodafone)'
+                },
+                {
+                  bloc: 'Japan',
+                  supplier: 'Primary supplier is headquartered in Japan (e.g. NEC)',
+                  owner: 'Majority ownership by Japan-based entities'
+                },
+                {
+                  bloc: 'India',
+                  supplier: 'Primary supplier is headquartered in India',
+                  owner: 'Majority ownership by India-based entities'
+                },
+                {
+                  bloc: 'Mixed',
+                  supplier: 'Suppliers span more than one of the above country blocs',
+                  owner: 'Ownership spans more than one of the above country blocs'
+                },
+                {
                   bloc: 'Other',
-                  supplier: 'Primary supplier headquartered outside Western or Chinese blocs (e.g. regional telecoms, Global South manufacturers)',
-                  owner: 'Majority ownership by entities in the Global South, regional telecoms, or non-aligned countries'
+                  supplier: 'Primary supplier headquartered outside the blocs above (e.g. regional telecoms, Global South manufacturers)',
+                  owner: 'Majority ownership by entities outside the blocs above'
                 },
                 {
                   bloc: 'Unknown',
@@ -58,7 +78,7 @@ function Methodology() {
                   owner: 'Ownership not publicly disclosed or unverifiable'
                 },
               ].map((row, i) => (
-                <tr key={row.bloc} className={i < 3 ? 'border-b border-[#F0F0F0]' : ''}>
+                <tr key={row.bloc} className={i < 7 ? 'border-b border-[#F0F0F0]' : ''}>
                   <td className="py-3 px-4 font-semibold text-[#212121]">{row.bloc}</td>
                   <td className="py-3 px-4 text-[#616161]">{row.supplier}</td>
                   <td className="py-3 px-4 text-[#616161]">{row.owner}</td>
@@ -169,8 +189,8 @@ function Methodology() {
             <tbody>
               {[
                 { var: 'rfs_year', type: 'Integer', def: 'Ready-for-service year — the year the cable became or is expected to become operational. Future years (2026–2030) reflect planned or under-construction cables.' },
-                { var: 'supplier_bloc', type: 'Categorical', def: 'Geopolitical bloc of the primary cable manufacturer. Values: Western, Chinese, Other, Unknown.' },
-                { var: 'owner_bloc', type: 'Categorical', def: 'Geopolitical bloc of the majority cable owner(s). Values: Western, Chinese, Other, Unknown.' },
+                { var: 'supplier_bloc', type: 'Categorical', def: 'Geopolitical bloc of the primary cable manufacturer. Values: China, US, Europe, Japan, India, Mixed, Other, Unknown.' },
+                { var: 'owner_bloc', type: 'Categorical', def: 'Geopolitical bloc of the majority cable owner(s). Values: China, US, Europe, Japan, India, Mixed, Other, Unknown.' },
                 { var: 'chinese_supplier', type: 'Binary (0/1)', def: 'Flag indicating any Chinese-affiliated involvement in cable supply, regardless of primary supplier bloc.' },
                 { var: 'chinese_owner', type: 'Binary (0/1)', def: 'Flag indicating any Chinese-affiliated involvement in cable ownership.' },
                 { var: 'status', type: 'Categorical', def: 'Operational status. Values: In service, Planned, Under construction, Partially retired, In service (partial).' },

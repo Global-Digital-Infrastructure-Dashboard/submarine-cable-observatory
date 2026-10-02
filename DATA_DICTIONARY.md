@@ -2,7 +2,7 @@
 
 This document defines every variable in the submarine cable dataset and every indicator shown on the dashboard, so that the data is understandable to someone outside the research group.
 
-**Version:** v1
+**Version:** v2 (2026-10-01). See the Version history at the end.
 **Dataset:** `submarinecables` table (~695 records)
 **Scope:** This version covers the submarine cable dataset and the dashboard indicators. The separate policy and regulation dataset is not yet documented here.
 
@@ -39,7 +39,7 @@ This document defines every variable in the submarine cable dataset and every in
 | `suppliers` | text | Company or companies that manufactured and laid the cable. | Semicolon-separated list. Example: "ASN", "SubCom", "NEC". |
 | `suppliers_country` | text | Home country of the supplier(s). | Semicolon-separated list. Example: "France", "United States", "China". |
 | `chinese_supplier` | text | Flag indicating whether any supplier is Chinese. | Binary flag stored as text: "0" (no) or "1" (yes). Derived from `suppliers_country`. |
-| `supplier_bloc` | text | Geopolitical bloc of the cable's supplier(s). | Categorical: Western, Chinese, Mixed, Other, Unknown. Assigned during AI enrichment from `suppliers_country`. See Section 2 for the full rule. |
+| `supplier_bloc` | text | Geopolitical bloc of the cable's supplier(s). | Categorical: China, US, Europe, Japan, India, Mixed, Other, Unknown. Assigned during processing from `suppliers_country`. See Section 2 for the full rule. |
 
 ### Ownership side (who owns the cable)
 
@@ -48,7 +48,7 @@ This document defines every variable in the submarine cable dataset and every in
 | `owners` | text | Entities that own capacity in the cable. | Semicolon-separated list. Example: "Meta; Orange; Vodafone; China Mobile International". |
 | `owner_country` | text | Home country of the owner(s). | Semicolon-separated list. Example: "China; US; South Africa; UK". |
 | `chinese_owner` | bigint | Flag indicating whether any owner is Chinese. | Binary flag stored as integer: 0 (no) or 1 (yes). Derived from `owner_country`. |
-| `owner_bloc` | text | Geopolitical bloc of the cable's owner(s). | Categorical: Western, Chinese, Mixed, Other, Unknown. Same rule as `supplier_bloc`. |
+| `owner_bloc` | text | Geopolitical bloc of the cable's owner(s). | Categorical: China, US, Europe, Japan, India, Mixed, Other, Unknown. Same rule as `supplier_bloc`, applied to `owner_country`. |
 
 ### Regulation and provenance
 
@@ -69,15 +69,17 @@ These are computed from the dataset rather than stored as raw columns.
 
 Assigns a supplier or owner to a geopolitical bloc based on their country.
 
-- **Rule:** keyword match on the country string.
-  - China: `china`, `chinese`, `prc`, `hong kong`
-  - US: `united states`, `usa`, `american`
-  - Europe: `france`, `uk`, `germany`, `italy`, `spain`, `netherlands`, and other European countries
-  - Japan: `japan`, `nec`
-  - India: `india`
-- **Combining:** zero matches gives "Other"; one match gives that bloc; two or more gives "Mixed"; a blank country gives "Unknown".
-- **On the dashboard,** US, Europe, and Japan are grouped together as "Western".
-- **Possible values:** Western, Chinese, Mixed, Other, Unknown.
+- **Rule:** the country field is split on semicolons, and each country name is matched exactly (not as a substring) against the bloc lists:
+  - China: China, Hong Kong
+  - US: US, USA, United States
+  - Europe: the 27 EU member states, plus Iceland, Liechtenstein, Norway, Switzerland, and the UK
+  - Japan: Japan
+  - India: India
+- **Combining:** if no country is known (blank or "Unknown"), the result is "Unknown". If exactly one of the five blocs above is present, the result is that bloc. If two or more are present, the result is "Mixed". If only countries outside these blocs are present, the result is "Other". Countries outside the five blocs do not make a cable "Mixed".
+- **Territories** (e.g. Guam, American Samoa, Bermuda, French Polynesia) are not mapped to their administering country and are classed as "Other".
+- **Implementation:** `classify_bloc()` in `pipeline_common.py`, shared by all processing scripts.
+- **Backward compatibility:** `temporal_dynamics` still reports `western_count` / `owner_western_count`, defined as US + Europe + Japan.
+- **Possible values:** China, US, Europe, Japan, India, Mixed, Other, Unknown.
 
 ### chinese_supplier / chinese_owner
 
@@ -85,7 +87,7 @@ Whether a Chinese entity is present on the supply or ownership side. Binary: 0/1
 
 ### Market share by bloc
 
-Share of cables attributed to each supplier or owner bloc. Calculated as the count of cables in a bloc divided by total cables, shown as a percentage and a raw count. Example: "Western 68.9% (479 cables)".
+Share of cables attributed to each supplier or owner bloc. Calculated as the count of cables in a bloc divided by total cables, shown as a percentage and a raw count. Example: "Europe 51.0% (354 cables)".
 
 ### HHI (concentration)
 
@@ -121,5 +123,33 @@ The **Independence** component is bloc-neutral: it measures domestic control of 
 **Open items for internal review**
 
 - **Indicator definitions.** The Sovereignty Index, HHI, and Independence definitions were reconstructed by reading the analysis scripts. The research team plans to confirm the exact weights and intent to make them authoritative.
-- **Two bloc groupings.** The stored `supplier_bloc` / `owner_bloc` columns use Western / Chinese / Mixed / Other / Unknown (assigned during ingestion), while the sovereignty analysis recomputes a finer grouping (US, Europe, Japan, China, India, Mixed, Other) from the country fields. These should be confirmed as intentional or aligned.
+- **Two bloc groupings (resolved, v2).** The stored `supplier_bloc` / `owner_bloc` columns previously used Western / Chinese / Mixed / Other / Unknown, while the sovereignty analysis recomputed a finer grouping. They are now aligned: the stored columns use the granular scheme (China, US, Europe, Japan, India, Mixed, Other, Unknown), produced by the same `classify_bloc()` the sovereignty analysis uses.
 - **Chinese flags.** Confirm whether `chinese_supplier` / `chinese_owner` are set by the same logic as the bloc classification or by a separate rule.
+
+
+## 4. Known data quality notes
+
+Observations recorded for the research team. These are descriptive notes on the source data; the processing pipeline does not alter or correct these records.
+
+**`chinese_owner` = 1 while `owner_country` lists only the Philippines**
+
+Two cables are flagged as having a Chinese owner, but their `owner_country` field lists only the Philippines:
+
+| Cable | RFS year | `owners` | `owner_country` | `chinese_owner` | `owner_bloc` |
+|---|---|---|---|---|---|
+| Sorsogon-Samar Submarine Fiber Optical Interconnection Project (SSSFOIP) | 2019 | National Grid Corporation of the Philippines (NGCP) | Philippines | 1 | Other |
+| Submarine Cable in the Philippines (SCiP) | 2022 | DITO | Philippines | 1 | Other |
+
+- **Likely explanation:** both owners have large Chinese state shareholders. State Grid Corporation of China is publicly reported to hold about 40% of NGCP, and China Telecom about 40% of DITO Telecommunity. The flag appears to capture this minority stake, while `owner_country` records only the majority owner's country. This has not yet been checked against each cable's cited sources.
+- **Effect on indicators:** both cables count toward `owner_chinese_any_count` in `temporal_dynamics`, which is driven by the `chinese_owner` flag. Neither counts toward `owner_chinese_count` or the China owner bloc, which are derived from `owner_country`. Each adds one to the gap between the two counts in its RFS year (2019 and 2022).
+- **Relation to the variable definition:** Section 1 describes `chinese_owner` as derived from `owner_country`. These two records show the flag can also reflect shareholdings not listed in `owner_country`.
+- **Open question:** whether `owner_country` should list China for these cables, or whether the difference between the two fields is intended.
+
+
+## Version history
+
+| Version | Date | Change |
+|---|---|---|
+| v1 | — | Initial version. |
+| v2 | 2026-10-01 | **Bloc classification scheme changed** from Western / Chinese / Mixed / Other / Unknown to China / US / Europe / Japan / India / Mixed / Other / Unknown, and from keyword substring matching to exact matching on each country name. *Rationale:* the stored bloc columns now match the sovereignty analysis's grouping, and the substring rule misclassified records (e.g. a bare "US" fell through to "Other"; "American Samoa" matched "american"). All four affected tables were recomputed from `global_submarine_dataset_2026.xlsx` with the new rule and are live as of 2026-10-01: `submarinecables`, `temporal_dynamics`, `countries_map`, and `sovereignty_countries`. Country names are also normalized (e.g. "US" → "United States"), and domestic-ownership matching uses exact country names instead of substrings. Added `owner_chinese_any_count` to `temporal_dynamics`, and a "Known data quality notes" section. **Approval status:** the Governance Framework requires Principal Investigator approval for changes to the bloc classification scheme. As of 2026-10-01, PI sign-off on this change has not formally been given; it is being handled separately. |
+| v2 | 2026-10-01 | **Headline finding changed — PI review required.** The System Overview's growth in Chinese supplier participation was a hardcoded "20x". It is now computed from the data as Chinese supplier share (`chinese_supplier` flag) of cables with RFS before 2013 vs. 2013 onward: 2.1% (7 of 333) → 14.1% (51 of 361), a **6.7×** increase. The old 20x figure could not be reproduced from the dataset. **Approval status:** PI sign-off on this change to a published finding has not formally been given as of 2026-10-01; it is being handled separately. |

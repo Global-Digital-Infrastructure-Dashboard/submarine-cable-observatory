@@ -1,10 +1,38 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
+const BLOCS = ['China', 'US', 'Europe', 'Japan', 'India', 'Mixed', 'Other', 'Unknown']
+
+// temporal_dynamics column holding each bloc's count, per perspective
+const BLOC_COLUMNS = {
+  supplier: {
+    China: 'china_count', US: 'us_count', Europe: 'europe_count', Japan: 'japan_count',
+    India: 'india_count', Mixed: 'mixed_count', Other: 'other_count', Unknown: 'unknown_count',
+  },
+  owner: {
+    China: 'owner_chinese_count', US: 'owner_us_count', Europe: 'owner_europe_count', Japan: 'owner_japan_count',
+    India: 'owner_india_count', Mixed: 'owner_mixed_count', Other: 'owner_other_count', Unknown: 'owner_unknown_count',
+  },
+}
+
+const PERSPECTIVE_LABELS = { supplier: 'Suppliers', owner: 'Owners' }
+
+function blocCounts(row, perspective) {
+  return Object.fromEntries(BLOCS.map(bloc => [bloc, row[BLOC_COLUMNS[perspective][bloc]] || 0]))
+}
+
+function sumBlocs(rows) {
+  return rows.reduce((acc, r) => {
+    BLOCS.forEach(bloc => { acc[bloc] = (acc[bloc] || 0) + (r[bloc] || 0) })
+    return acc
+  }, {})
+}
+
 function TemporalDynamics({ infrastructureType = 'cables' }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState([1989, 2028])
+  const [perspective, setPerspective] = useState('supplier')
 
   useEffect(() => {
     async function loadData() {
@@ -38,39 +66,25 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
         : {}
 
       const cables_per_year = temporal.map(t => ({
-        year:    t.year,
-        total:   t.total_cables,
-        Chinese: t.china_count,
-        Western: t.western_count,
-        Other:   t.other_count,
-        Unknown: t.unknown_count,
+        year:     t.year,
+        total:    t.total_cables,
+        supplier: blocCounts(t, 'supplier'),
+        owner:    blocCounts(t, 'owner'),
       }))
 
-      const pre2013  = temporal.filter(t => t.year < 2013)
-      const post2013 = temporal.filter(t => t.year >= 2013)
+      const summarize = rows => ({
+        total: rows.reduce((sum, r) => sum + r.total, 0),
+        avg_per_year: rows.length > 0 ? rows.reduce((sum, r) => sum + r.total, 0) / rows.length : 0,
+        supplier: sumBlocs(rows.map(r => r.supplier)),
+        owner:    sumBlocs(rows.map(r => r.owner)),
+      })
 
       setData({
         cables_per_year,
         year_range: { min: temporal[0].year, max: temporal[temporal.length - 1].year },
         comparison_2013: {
-          pre_2013: {
-            total: pre2013.reduce((sum, t) => sum + t.total_cables, 0),
-            avg_per_year: pre2013.reduce((sum, t) => sum + t.total_cables, 0) / pre2013.length,
-            blocs: {
-              Chinese: pre2013.reduce((sum, t) => sum + t.china_count,   0),
-              Western: pre2013.reduce((sum, t) => sum + t.western_count, 0),
-              Other:   pre2013.reduce((sum, t) => sum + t.other_count,   0),
-            }
-          },
-          post_2013: {
-            total: post2013.reduce((sum, t) => sum + t.total_cables, 0),
-            avg_per_year: post2013.reduce((sum, t) => sum + t.total_cables, 0) / post2013.length,
-            blocs: {
-              Chinese: post2013.reduce((sum, t) => sum + t.china_count,   0),
-              Western: post2013.reduce((sum, t) => sum + t.western_count, 0),
-              Other:   post2013.reduce((sum, t) => sum + t.other_count,   0),
-            }
-          }
+          pre_2013:  summarize(cables_per_year.filter(t => t.year < 2013)),
+          post_2013: summarize(cables_per_year.filter(t => t.year >= 2013)),
         },
         status_breakdown: statusBreakdown
       })
@@ -101,24 +115,15 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
   )
 
   const totalInRange = filteredData.reduce((sum, d) => sum + d.total, 0)
-  const blocTotals = filteredData.reduce((acc, d) => {
-    Object.keys(d).forEach(key => {
-      if (key !== 'year' && key !== 'total' && key !== 'Unknown') {
-        acc[key] = (acc[key] || 0) + (d[key] || 0)
-      }
-    })
-    return acc
-  }, {})
+  const blocTotals = sumBlocs(filteredData.map(d => d[perspective]))
+  const perspectiveLabel = PERSPECTIVE_LABELS[perspective]
+  const [leadingBloc, leadingCount] = Object.entries(blocTotals).sort(([,a], [,b]) => b - a)[0] || ['—', 0]
 
   // Chinese market entry % pre vs post
-  const preTotal = data.comparison_2013.pre_2013.total
-  const postTotal = data.comparison_2013.post_2013.total
-  const preChinaPct = preTotal > 0
-    ? ((data.comparison_2013.pre_2013.blocs.Chinese / preTotal) * 100).toFixed(1)
-    : '0.0'
-  const postChinaPct = postTotal > 0
-    ? ((data.comparison_2013.post_2013.blocs.Chinese / postTotal) * 100).toFixed(1)
-    : '0.0'
+  const pre = data.comparison_2013.pre_2013
+  const post = data.comparison_2013.post_2013
+  const preChinaPct = pre.total > 0 ? ((pre[perspective].China / pre.total) * 100).toFixed(1) : '0.0'
+  const postChinaPct = post.total > 0 ? ((post[perspective].China / post.total) * 100).toFixed(1) : '0.0'
 
   return (
     <div>
@@ -170,6 +175,23 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
           </button>
         </div>
 
+        <div className="mt-6">
+          <label className="text-xs text-[#616161] block mb-2">Perspective</label>
+          <div className="inline-flex rounded border border-[#E0E0E0] overflow-hidden">
+            {Object.entries(PERSPECTIVE_LABELS).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setPerspective(key)}
+                className={`px-5 py-2 text-sm font-medium cursor-pointer transition-colors ${
+                  perspective === key ? 'bg-[#0D47A1] text-white' : 'bg-white text-[#616161] hover:bg-[#F0F4FA]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-4 p-3 bg-[#F0F4FA] rounded text-sm text-[#0D47A1]">
           <strong>Filtered range:</strong> {totalInRange} cables deployed between {timeRange[0]}–{timeRange[1]}
         </div>
@@ -184,17 +206,17 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
             <div className="text-sm text-[#616161] font-medium uppercase tracking-wide">Total Cables</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
-            <div className="font-serif text-4xl font-bold text-[#0A2F6B] mb-2">{blocTotals['Chinese'] || 0}</div>
-            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Chinese Suppliers</div>
+            <div className="font-serif text-4xl font-bold text-[#0A2F6B] mb-2">{blocTotals.China}</div>
+            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Chinese {perspectiveLabel}</div>
             <div className="text-xs text-[#9E9E9E]">
-              {totalInRange > 0 ? (((blocTotals['Chinese'] || 0) / totalInRange) * 100).toFixed(1) : 0}%
+              {totalInRange > 0 ? ((blocTotals.China / totalInRange) * 100).toFixed(1) : 0}%
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
-            <div className="font-serif text-4xl font-bold text-[#0A2F6B] mb-2">{blocTotals['Western'] || 0}</div>
-            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Western Suppliers</div>
+            <div className="font-serif text-4xl font-bold text-[#0A2F6B] mb-2">{leadingBloc}</div>
+            <div className="text-sm text-[#616161] font-medium uppercase tracking-wide mb-2">Leading Bloc ({perspectiveLabel})</div>
             <div className="text-xs text-[#9E9E9E]">
-              {totalInRange > 0 ? (((blocTotals['Western'] || 0) / totalInRange) * 100).toFixed(1) : 0}%
+              {leadingCount} cables · {totalInRange > 0 ? ((leadingCount / totalInRange) * 100).toFixed(1) : 0}%
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] border-l-4 border-l-[#0D47A1] p-7 hover:-translate-y-0.5 hover:shadow-md transition-all">
@@ -209,7 +231,7 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
       {/* Pre/Post 2013 Comparison */}
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
-          <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">Pre-2013 vs Post-2013</h2>
+          <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">Pre-2013 vs Post-2013 ({perspectiveLabel})</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="p-6 bg-[#F0F4FA] rounded-lg border border-[#E8EDF5] border-l-4 border-l-[#0D47A1]">
@@ -219,11 +241,12 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
                 <div className="text-sm text-[#616161] mt-1">~{data.comparison_2013.pre_2013.avg_per_year.toFixed(1)}/year</div>
               </div>
               <div className="space-y-3">
-                {Object.entries(data.comparison_2013.pre_2013.blocs)
+                {Object.entries(data.comparison_2013.pre_2013[perspective])
                   .sort(([,a], [,b]) => b - a)
-                  .slice(0, 4)
                   .map(([bloc, count]) => {
-                    const pct = ((count / data.comparison_2013.pre_2013.total) * 100).toFixed(1)
+                    const pct = data.comparison_2013.pre_2013.total > 0
+                      ? ((count / data.comparison_2013.pre_2013.total) * 100).toFixed(1)
+                      : '0.0'
                     return (
                       <div key={bloc}>
                         <div className="text-sm mb-1.5 flex justify-between font-medium">
@@ -245,11 +268,12 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
                 <div className="text-sm text-[#616161] mt-1">~{data.comparison_2013.post_2013.avg_per_year.toFixed(1)}/year</div>
               </div>
               <div className="space-y-3">
-                {Object.entries(data.comparison_2013.post_2013.blocs)
+                {Object.entries(data.comparison_2013.post_2013[perspective])
                   .sort(([,a], [,b]) => b - a)
-                  .slice(0, 4)
                   .map(([bloc, count]) => {
-                    const pct = ((count / data.comparison_2013.post_2013.total) * 100).toFixed(1)
+                    const pct = data.comparison_2013.post_2013.total > 0
+                      ? ((count / data.comparison_2013.post_2013.total) * 100).toFixed(1)
+                      : '0.0'
                     return (
                       <div key={bloc}>
                         <div className="text-sm mb-1.5 flex justify-between font-medium">
@@ -270,7 +294,7 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
             <div className="px-6 first:pl-0">
               <div className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-1">Chinese Market Entry</div>
               <div className="font-serif text-2xl font-bold text-[#212121]">{preChinaPct}% → {postChinaPct}%</div>
-              <div className="text-xs text-[#9E9E9E] mt-1">supplier share pre vs post 2013</div>
+              <div className="text-xs text-[#9E9E9E] mt-1">{perspective} share pre vs post 2013</div>
             </div>
             <div className="px-6">
               <div className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-1">Deployment Rate</div>
@@ -280,7 +304,7 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
             <div className="px-6">
               <div className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-1">Growth Factor</div>
               <div className="font-serif text-2xl font-bold text-[#212121]">
-                {preChinaPct > 0 ? (postChinaPct / preChinaPct).toFixed(1) : '20'}×
+                {preChinaPct > 0 ? (postChinaPct / preChinaPct).toFixed(1) : '—'}×
               </div>
               <div className="text-xs text-[#9E9E9E] mt-1">increase in Chinese participation</div>
             </div>
@@ -292,7 +316,7 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
       <section className="mb-10">
         <div className="bg-white rounded-lg shadow-sm border border-[#E0E0E0] p-8">
           <h2 className="font-serif text-2xl font-semibold text-[#212121] mb-6">
-            Deployment by Bloc ({timeRange[0]}–{timeRange[1]})
+            Deployment by Bloc — {perspectiveLabel} ({timeRange[0]}–{timeRange[1]})
           </h2>
           <div className="space-y-4">
             {Object.entries(blocTotals)
@@ -329,7 +353,7 @@ function TemporalDynamics({ infrastructureType = 'cables' }) {
           <div className={`grid divide-x divide-[#E0E0E0]`} style={{ gridTemplateColumns: `repeat(${Object.keys(data.status_breakdown).length}, 1fr)` }}>
             {Object.entries(data.status_breakdown)
               .sort(([,a], [,b]) => b - a)
-              .map(([status, count], i) => (
+              .map(([status, count]) => (
                 <div key={status} className="px-6 first:pl-0 last:pr-0">
                   <div className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-1">{status}</div>
                   <div className="font-serif text-3xl font-bold text-[#212121]">{count}</div>

@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+// "Western" = US + Europe + Japan, matching western_count in temporal_dynamics
+const WESTERN_BLOCS = ['US', 'Europe', 'Japan']
+const isWestern = bloc => WESTERN_BLOCS.includes(bloc)
+
 function MarketStructure({ infrastructureType = 'cables' }) {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
@@ -43,7 +47,7 @@ function MarketStructure({ infrastructureType = 'cables' }) {
         }
       })
 
-      // Fixed: use actual bloc values 'Chinese' and 'Western'
+      // Granular blocs: China vs. Western (US + Europe + Japan). Mixed/Other/Unknown are excluded.
       let chineseSupplierWesternOwner = 0
       let westernSupplierChineseOwner = 0
       let fullyChineseControlled = 0
@@ -52,10 +56,10 @@ function MarketStructure({ infrastructureType = 'cables' }) {
       cables.forEach(cable => {
         const supplier = cable.supplier_bloc
         const owner = cable.owner_bloc
-        if (supplier === 'Chinese' && owner === 'Western') chineseSupplierWesternOwner++
-        if (supplier === 'Western' && owner === 'Chinese') westernSupplierChineseOwner++
-        if (supplier === 'Chinese' && owner === 'Chinese') fullyChineseControlled++
-        if (supplier === 'Western' && owner === 'Western') fullyWesternControlled++
+        if (supplier === 'China' && isWestern(owner)) chineseSupplierWesternOwner++
+        if (isWestern(supplier) && owner === 'China') westernSupplierChineseOwner++
+        if (supplier === 'China' && owner === 'China') fullyChineseControlled++
+        if (isWestern(supplier) && isWestern(owner)) fullyWesternControlled++
       })
 
       setData({
@@ -150,17 +154,23 @@ function MarketStructure({ infrastructureType = 'cables' }) {
   }
 
   const supplierLegend = [
-    { bloc: 'Western', desc: 'Cables built by US, European, or Japanese manufacturers' },
-    { bloc: 'Chinese', desc: 'Cables built by Chinese-owned or state-affiliated manufacturers' },
-    { bloc: 'Mixed',   desc: 'Cables with both Chinese and Western manufacturers' },
+    { bloc: 'China',   desc: 'Cables built by Chinese-owned or state-affiliated manufacturers' },
+    { bloc: 'US',      desc: 'Cables built by United States-based manufacturers' },
+    { bloc: 'Europe',  desc: 'Cables built by European manufacturers (e.g. Alcatel Submarine Networks)' },
+    { bloc: 'Japan',   desc: 'Cables built by Japan-based manufacturers (e.g. NEC)' },
+    { bloc: 'India',   desc: 'Cables built by India-based manufacturers' },
+    { bloc: 'Mixed',   desc: 'Cables with manufacturers spanning more than one bloc' },
     { bloc: 'Other',   desc: 'Cables built by manufacturers outside these blocs' },
     { bloc: 'Unknown', desc: 'Supplier information not publicly available' },
   ]
 
   const ownerLegend = [
-    { bloc: 'Western', desc: 'Cables owned by entities based in the US, Europe, Japan, or Australia' },
-    { bloc: 'Chinese', desc: 'Cables owned by Chinese state or private entities' },
-    { bloc: 'Mixed',   desc: 'Cables with ownership shared across Chinese and Western entities' },
+    { bloc: 'China',   desc: 'Cables owned by Chinese state or private entities' },
+    { bloc: 'US',      desc: 'Cables owned by United States-based entities' },
+    { bloc: 'Europe',  desc: 'Cables owned by European entities' },
+    { bloc: 'Japan',   desc: 'Cables owned by Japan-based entities' },
+    { bloc: 'India',   desc: 'Cables owned by India-based entities' },
+    { bloc: 'Mixed',   desc: 'Cables with ownership shared across more than one bloc' },
     { bloc: 'Other',   desc: 'Cables owned by entities in the Global South or regional telecoms' },
     { bloc: 'Unknown', desc: 'Ownership information not publicly available' },
   ]
@@ -360,7 +370,7 @@ function MarketStructure({ infrastructureType = 'cables' }) {
                   Chinese Supplier + Western Owner
                 </div>
                 <div className="text-xs text-[#616161] leading-relaxed">
-                  Western entities own cables built by Chinese suppliers
+                  US, European, or Japanese entities own cables built by Chinese suppliers
                 </div>
               </div>
 
@@ -372,7 +382,7 @@ function MarketStructure({ infrastructureType = 'cables' }) {
                   Western Supplier + Chinese Owner
                 </div>
                 <div className="text-xs text-[#616161] leading-relaxed">
-                  Chinese entities own cables built by Western suppliers
+                  Chinese entities own cables built by US, European, or Japanese suppliers
                 </div>
               </div>
 
@@ -396,7 +406,7 @@ function MarketStructure({ infrastructureType = 'cables' }) {
                   Fully Western-Controlled
                 </div>
                 <div className="text-xs text-[#616161] leading-relaxed">
-                  Both supplier and owner are Western entities
+                  Both supplier and owner are US, European, or Japanese entities
                 </div>
               </div>
             </div>

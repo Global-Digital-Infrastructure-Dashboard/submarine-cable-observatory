@@ -12,11 +12,14 @@ const num = (v) => {
 const PAGE_SIZE = 25
 
 const BLOC_STYLES = {
-  Western: 'bg-[#E8F0FB] text-[#0D47A1]',
-  Chinese: 'bg-[#FDECEC] text-[#B3261E]',
-  Mixed: 'bg-[#F3EAFB] text-[#6A3AB2]',
-  Other: 'bg-[#EAF6EE] text-[#1E6B3A]',
-  Unknown: 'bg-[#F0F0F0] text-[#757575]',
+  China: 'bg-[#FFCDD2] text-[#B71C1C]',
+  US: 'bg-[#BBDEFB] text-[#0D47A1]',
+  Europe: 'bg-[#E1BEE7] text-[#4A148C]',
+  Japan: 'bg-[#B2DFDB] text-[#004D40]',
+  India: 'bg-[#FFE0B2] text-[#E65100]',
+  Mixed: 'bg-[#D1C4E9] text-[#311B92]',
+  Other: 'bg-[#EEEEEE] text-[#616161]',
+  Unknown: 'bg-[#F5F5F5] text-[#9E9E9E]',
 }
 
 function Pill({ value }) {

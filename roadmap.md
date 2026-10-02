@@ -25,6 +25,7 @@ The platform currently tracks the global submarine cable network and the policie
 - **Contributor documentation** and a clear process for community data corrections.
 - **Data-coverage and data-quality reporting** so users can see how complete and current the dataset is.
 - **Completing the GitHub repository transfer** to a public, institutional account, the remaining step before the codebase itself is opened up.
+- **Legacy deep links:** System Overview links that use the old bloc names (`?supplier=Chinese`, `?owner=Western`) now filter to no results under the v2 bloc scheme; map them to the new values or retire them before the repo goes public.
 
 ## Later: additional infrastructure domains (Phase 2+)
 

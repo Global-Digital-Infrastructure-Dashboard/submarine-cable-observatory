@@ -9,7 +9,7 @@ function SystemOverview() {
   const [explorerFilter, setExplorerFilter] = useState(null)
   const [searchParams] = useSearchParams()
 
-  // Deep link support: /overview?supplier=Chinese or ?owner=Western.
+  // Deep link support: /overview?supplier=China or ?owner=US (any bloc value).
   // Deriving the filter during render (rather than in an effect) is the
   // pattern React recommends for reacting to a changing input.
   const paramFilter = searchParams.get('supplier')
@@ -81,8 +81,16 @@ function SystemOverview() {
   }, {})
 
   const activeCables = data.filter(c => c.status === 'In service').length
-  const chineseCables = data.filter(c => c.chinese_supplier === 1 || c.chinese_supplier === '1').length
-  const westernCount = blocCounts['Western'] || 0
+  const isChineseSupplier = c => c.chinese_supplier === 1 || c.chinese_supplier === '1'
+  const chineseCables = data.filter(isChineseSupplier).length
+
+  // Chinese supplier share of cables with RFS before 2013 vs. 2013 onward (same flag as chineseCables)
+  const chineseShare = cables => cables.length ? (cables.filter(isChineseSupplier).length / cables.length) * 100 : 0
+  const preChinesePct = chineseShare(data.filter(c => parseInt(c.rfs_year, 10) < 2013))
+  const postChinesePct = chineseShare(data.filter(c => parseInt(c.rfs_year, 10) >= 2013))
+  const chineseGrowth = preChinesePct > 0 ? `${(postChinesePct / preChinesePct).toFixed(1)}×` : '—'
+  // "Western" = US + Europe + Japan, matching western_count in temporal_dynamics
+  const westernCount = (blocCounts['US'] || 0) + (blocCounts['Europe'] || 0) + (blocCounts['Japan'] || 0)
   const unknownOwnerPct = (((ownerBlocCounts['Unknown'] || 0) / data.length) * 100).toFixed(1)
 
   // ── Supplier HHI — split on semicolons to count individual suppliers ───────
@@ -232,13 +240,13 @@ const ownerHHI = Math.round(
           <div className="p-6 bg-white rounded-lg border border-[#E0E0E0] border-l-4 border-l-[#212121] shadow-sm">
             <h3 className="text-base font-semibold mb-3 text-[#212121]">Chinese Participation</h3>
             <p className="text-sm leading-relaxed text-[#616161] m-0">
-              Chinese suppliers involved in {chineseCables} cables ({((chineseCables / data.length) * 100).toFixed(1)}%), representing a 20x increase from pre-2013 levels.
+              Chinese suppliers involved in {chineseCables} cables ({((chineseCables / data.length) * 100).toFixed(1)}%). Their share of cables rose from {preChinesePct.toFixed(1)}% before 2013 to {postChinesePct.toFixed(1)}% since, a {chineseGrowth} increase.
             </p>
           </div>
           <div className="p-6 bg-white rounded-lg border border-[#E0E0E0] border-l-4 border-l-[#212121] shadow-sm">
             <h3 className="text-base font-semibold mb-3 text-[#212121]">Western Dominance</h3>
             <p className="text-sm leading-relaxed text-[#616161] m-0">
-              Western suppliers build {((westernCount / data.length) * 100).toFixed(1)}% of cables ({westernCount} total), led by SubCom, ASN, and NEC.
+              US, European, and Japanese suppliers build {((westernCount / data.length) * 100).toFixed(1)}% of cables ({westernCount} total: Europe {blocCounts['Europe'] || 0}, US {blocCounts['US'] || 0}, Japan {blocCounts['Japan'] || 0}), led by ASN, SubCom, and NEC.
             </p>
           </div>
           <div className="p-6 bg-white rounded-lg border border-[#E0E0E0] border-l-4 border-l-[#212121] shadow-sm">
@@ -267,9 +275,12 @@ const ownerHHI = Math.round(
             <p className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-3">How blocs are defined</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2">
               {[
-                { bloc: 'Western', desc: 'Cables built by US, European, or Japanese manufacturers' },
-                { bloc: 'Chinese', desc: 'Cables built by Chinese-owned or state-affiliated manufacturers' },
-                { bloc: 'Mixed',   desc: 'Cables with both Chinese and Western manufacturers' },
+                { bloc: 'China',   desc: 'Cables built by Chinese-owned or state-affiliated manufacturers' },
+                { bloc: 'US',      desc: 'Cables built by United States-based manufacturers' },
+                { bloc: 'Europe',  desc: 'Cables built by European manufacturers (e.g. Alcatel Submarine Networks)' },
+                { bloc: 'Japan',   desc: 'Cables built by Japan-based manufacturers (e.g. NEC)' },
+                { bloc: 'India',   desc: 'Cables built by India-based manufacturers' },
+                { bloc: 'Mixed',   desc: 'Cables with manufacturers spanning more than one bloc' },
                 { bloc: 'Other',   desc: 'Cables built by manufacturers outside these blocs' },
                 { bloc: 'Unknown', desc: 'Supplier information not publicly available' },
               ].map(({ bloc, desc }) => (
@@ -301,9 +312,12 @@ const ownerHHI = Math.round(
             <p className="text-xs font-semibold uppercase tracking-wider text-[#9E9E9E] mb-3">How blocs are defined</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2">
               {[
-                { bloc: 'Western', desc: 'Cables owned by entities based in the US, Europe, Japan, or Australia' },
-                { bloc: 'Chinese', desc: 'Cables owned by Chinese state or private entities' },
-                { bloc: 'Mixed',   desc: 'Cables with ownership shared across Chinese and Western entities' },
+                { bloc: 'China',   desc: 'Cables owned by Chinese state or private entities' },
+                { bloc: 'US',      desc: 'Cables owned by United States-based entities' },
+                { bloc: 'Europe',  desc: 'Cables owned by European entities' },
+                { bloc: 'Japan',   desc: 'Cables owned by Japan-based entities' },
+                { bloc: 'India',   desc: 'Cables owned by India-based entities' },
+                { bloc: 'Mixed',   desc: 'Cables with ownership shared across more than one bloc' },
                 { bloc: 'Other',   desc: 'Cables owned by entities in the Global South or regional telecoms' },
                 { bloc: 'Unknown', desc: 'Ownership information not publicly available' },
               ].map(({ bloc, desc }) => (
@@ -337,8 +351,8 @@ const ownerHHI = Math.round(
             </div>
             <div className="text-center p-6">
               <h3 className="text-sm text-[#616161] uppercase font-semibold tracking-wide mb-2">Growth Rate</h3>
-              <div className="font-serif text-5xl font-bold text-[#C62828] my-4">20x</div>
-              <p className="text-sm text-[#616161]">Chinese supplier participation (Pre/Post 2013)</p>
+              <div className="font-serif text-5xl font-bold text-[#C62828] my-4">{chineseGrowth}</div>
+              <p className="text-sm text-[#616161]">Chinese supplier share of cables, pre- vs. post-2013</p>
             </div>
           </div>
         </div>
