@@ -1,20 +1,18 @@
 """
 Extract country list with cable counts for map visualization
+
+Usage:
+  python extract_countries_for_map.py          # preview old vs new countries_map (writes nothing)
+  python extract_countries_for_map.py --push   # sync Supabase countries_map + write local JSON
 """
 
-import pandas as pd
 import json
 from pathlib import Path
 
-df = pd.read_excel('data/global_submarine_dataset_V1_2026.xlsx')
+from pipeline_common import (load_dataset, should_push, get_supabase, get_read_client,
+                             fetch_all, sync_rows, print_key_diff)
 
-def parse_list_field(field_str):
-    if pd.isna(field_str):
-        return []
-    import re
-    return [item.strip() for item in re.split(r'[,;]', str(field_str)) if item.strip()]
-
-df['landing_countries_list'] = df['landing_countries'].apply(parse_list_field)
+df = load_dataset()
 
 # Count cables per country
 country_cables = {}
@@ -35,13 +33,35 @@ output = {
     'total_cables': len(df)
 }
 
-output_path = Path('../dashboard/public/data')
-output_path.mkdir(parents=True, exist_ok=True)
-
-with open(output_path / 'countries_for_map.json', 'w') as f:
-    json.dump(output, f, indent=2)
-
 print(f"✓ Extracted {len(sorted_countries)} countries")
 print(f"\nTop 10 countries by cable count:")
 for country, count in sorted_countries[:10]:
     print(f"  {country}: {count} cables")
+
+# ============================================================================
+# SUPABASE
+# ============================================================================
+
+if should_push():
+    sync_rows(get_supabase(), 'countries_map', output['countries'], key='name')
+
+    output_path = Path('public/data')
+    output_path.mkdir(parents=True, exist_ok=True)
+    with open(output_path / 'countries_for_map.json', 'w') as f:
+        json.dump(output, f, indent=2)
+    print("✓ Exported public/data/countries_for_map.json")
+else:
+    old = {r['name']: r['cables'] for r in fetch_all(get_read_client(), 'countries_map', 'id,name,cables')}
+    new = dict(sorted_countries)
+
+    print("\n" + "="*80)
+    print("PREVIEW: countries_map (old = live Supabase, new = this run)")
+    print("="*80)
+    print(f"Total cable landings: {sum(old.values())} old → {sum(new.values())} new")
+    print_key_diff('Countries', old, new)
+
+    changed = sorted(set(old) & set(new), key=lambda k: -abs(new[k] - old[k]))
+    print("\nLargest count changes (kept countries):")
+    for name in changed[:15]:
+        print(f"  {name:28}{old[name]:>5} → {new[name]:<5}")
+    print("\n(preview only — nothing written. Pass --push to sync Supabase countries_map)")

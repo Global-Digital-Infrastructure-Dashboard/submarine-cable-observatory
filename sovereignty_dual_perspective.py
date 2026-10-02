@@ -1,6 +1,10 @@
 """
 Enhanced Sovereignty Analysis - Supplier vs Owner Perspectives
 BLOC-NEUTRAL METHODOLOGY: Independence now measures domestic vs foreign control
+
+Usage:
+  python sovereignty_dual_perspective.py          # preview old vs new sovereignty_countries (writes nothing)
+  python sovereignty_dual_perspective.py --push   # sync Supabase sovereignty_countries + write local JSON
 """
 
 import pandas as pd
@@ -8,48 +12,15 @@ import numpy as np
 import json
 from pathlib import Path
 
+from pipeline_common import (load_dataset, is_domestic, should_push, get_supabase, get_read_client,
+                             fetch_all, sync_rows, print_key_diff)
+
 print("="*80)
 print("SOVEREIGNTY ANALYSIS: SUPPLIER VS OWNER PERSPECTIVES")
 print("="*80)
 
-# Load processed data
-df = pd.read_excel('data/global_submarine_dataset V1_2026.xlsx')
-
-# Apply bloc classification
-def classify_bloc(country_str):
-    if pd.isna(country_str) or country_str == '':
-        return 'Unknown'
-    country_str = str(country_str).lower()
-    
-    china_keywords = ['china', 'chinese', 'prc', 'hong kong']
-    us_keywords = ['united states', 'usa', 'us ', 'american']
-    europe_keywords = ['france', 'uk', 'united kingdom', 'britain', 'germany', 'italy', 
-                       'spain', 'netherlands', 'belgium', 'sweden', 'finland',
-                       'denmark', 'norway', 'ireland', 'portugal', 'austria', 'alcatel']
-    japan_keywords = ['japan', 'japanese', 'nec']
-    india_keywords = ['india', 'indian']
-    
-    blocs_present = []
-    if any(keyword in country_str for keyword in china_keywords):
-        blocs_present.append('China')
-    if any(keyword in country_str for keyword in us_keywords):
-        blocs_present.append('US')
-    if any(keyword in country_str for keyword in europe_keywords):
-        blocs_present.append('Europe')
-    if any(keyword in country_str for keyword in japan_keywords):
-        blocs_present.append('Japan')
-    if any(keyword in country_str for keyword in india_keywords):
-        blocs_present.append('India')
-    
-    if len(blocs_present) == 0:
-        return 'Other'
-    elif len(blocs_present) == 1:
-        return blocs_present[0]
-    else:
-        return 'Mixed'
-
-df['supplier_bloc'] = df['suppliers_country'].apply(classify_bloc)
-df['owner_bloc'] = df['owner_country'].apply(classify_bloc)
+# Load dataset with bloc classification applied
+df = load_dataset()
 
 print("\nBloc Classification Complete")
 
@@ -59,14 +30,6 @@ def calculate_hhi(series):
     counts = series.value_counts(normalize=True)
     hhi = (counts ** 2).sum() * 10000
     return round(hhi, 2)
-
-def parse_list_field(field_str):
-    if pd.isna(field_str):
-        return []
-    import re
-    return [item.strip() for item in re.split(r'[,;]', str(field_str)) if item.strip()]
-
-df['landing_countries_list'] = df['landing_countries'].apply(parse_list_field)
 
 # Create country-level dataset
 country_cables = []
@@ -111,11 +74,7 @@ def calculate_sovereignty_index(country_data, bloc_column, country_column, count
     diversification = entropy / max_entropy if max_entropy > 0 else 0
     
     # 2. Independence (30%) - BLOC-NEUTRAL: % domestic suppliers/owners
-    domestic_count = 0
-    for _, cable in country_data.iterrows():
-        country_str = str(cable.get(country_column, ''))
-        if country_name.lower() in country_str.lower():
-            domestic_count += 1
+    domestic_count = sum(is_domestic(country_name, c) for c in country_data[country_column])
     
     independence = domestic_count / total_cables if total_cables > 0 else 0
     
@@ -175,10 +134,11 @@ for country in country_df['country'].unique():
     # Count by bloc (for additional analysis)
     chinese_supplier_count = country_data['chinese_supplier'].sum()
     chinese_owner_count = country_data['chinese_owner'].sum()
-    us_supplier_count = len(country_data[country_data['supplier_bloc'] == 'US'])
-    us_owner_count = len(country_data[country_data['owner_bloc'] == 'US'])
-    eu_supplier_count = len(country_data[country_data['supplier_bloc'] == 'Europe'])
-    eu_owner_count = len(country_data[country_data['owner_bloc'] == 'Europe'])
+    supplier_counts = country_data['supplier_bloc'].value_counts()
+    owner_counts = country_data['owner_bloc'].value_counts()
+
+    def pct(counts, bloc):
+        return round((counts.get(bloc, 0) / total_cables) * 100, 1)
     
     country_metrics.append({
         'country': country,
@@ -192,8 +152,12 @@ for country in country_df['country'].unique():
         'supplier_distinct_blocs': supplier_metrics['distinct_blocs'],
         'pct_domestic_supplier': supplier_metrics['domestic_percentage'],
         'pct_chinese_supplier': round((chinese_supplier_count / total_cables) * 100, 1),
-        'pct_us_supplier': round((us_supplier_count / total_cables) * 100, 1),
-        'pct_eu_supplier': round((eu_supplier_count / total_cables) * 100, 1),
+        'pct_us_supplier': pct(supplier_counts, 'US'),
+        'pct_eu_supplier': pct(supplier_counts, 'Europe'),
+        'pct_japan_supplier': pct(supplier_counts, 'Japan'),
+        'pct_india_supplier': pct(supplier_counts, 'India'),
+        'pct_mixed_supplier': pct(supplier_counts, 'Mixed'),
+        'pct_other_supplier': pct(supplier_counts, 'Other'),
         
         # Owner perspective
         'owner_sovereignty_index': owner_metrics['sovereignty_index'],
@@ -203,8 +167,12 @@ for country in country_df['country'].unique():
         'owner_distinct_blocs': owner_metrics['distinct_blocs'],
         'pct_domestic_owner': owner_metrics['domestic_percentage'],
         'pct_chinese_owner': round((chinese_owner_count / total_cables) * 100, 1),
-        'pct_us_owner': round((us_owner_count / total_cables) * 100, 1),
-        'pct_eu_owner': round((eu_owner_count / total_cables) * 100, 1),
+        'pct_us_owner': pct(owner_counts, 'US'),
+        'pct_eu_owner': pct(owner_counts, 'Europe'),
+        'pct_japan_owner': pct(owner_counts, 'Japan'),
+        'pct_india_owner': pct(owner_counts, 'India'),
+        'pct_mixed_owner': pct(owner_counts, 'Mixed'),
+        'pct_other_owner': pct(owner_counts, 'Other'),
         
         # Dominance flags
         'single_supplier_dominance': supplier_metrics['no_dominance'] == 0,
@@ -237,14 +205,6 @@ sovereignty_data = {
     'methodology_note': 'Independence component measures domestic vs foreign control (bloc-neutral), not specifically Chinese independence. Updated 2026-03-28.'
 }
 
-# Export
-output_path = Path('../dashboard/public/data')
-output_path.mkdir(parents=True, exist_ok=True)
-
-with open(output_path / 'sovereignty_dependency.json', 'w') as f:
-    json.dump(sovereignty_data, f, indent=2, default=str)
-
-print(f"✓ Exported sovereignty_dependency.json")
 
 # Show China's data specifically
 china_data = next((c for c in country_metrics if c['country'] == 'China'), None)
@@ -271,5 +231,62 @@ print(f"  Avg Independence (domestic control): {sovereignty_data['global_stats']
 print(f"\nOwner Perspective:")
 print(f"  Avg Sovereignty: {sovereignty_data['global_stats']['owner_perspective']['avg_sovereignty_index']}")
 print(f"  Avg Independence (domestic control): {sovereignty_data['global_stats']['owner_perspective']['avg_independence']}")
+
+# ============================================================================
+# SUPABASE
+# ============================================================================
+
+# Columns that exist on the sovereignty_countries table
+SOVEREIGNTY_COLUMNS = [
+    'country', 'total_cables',
+    'supplier_sovereignty_index', 'owner_sovereignty_index',
+    'supplier_diversification', 'owner_diversification',
+    'pct_domestic_supplier', 'pct_domestic_owner',
+    'pct_chinese_supplier', 'pct_chinese_owner',
+    'pct_us_supplier', 'pct_us_owner',
+    'pct_eu_supplier', 'pct_eu_owner',
+    'pct_japan_supplier', 'pct_japan_owner',
+    'pct_india_supplier', 'pct_india_owner',
+    'pct_mixed_supplier', 'pct_mixed_owner',
+    'pct_other_supplier', 'pct_other_owner',
+]
+
+rows = [{col: c[col] for col in SOVEREIGNTY_COLUMNS} for c in country_metrics_sorted]
+
+if should_push():
+    sync_rows(get_supabase(), 'sovereignty_countries', rows, key='country')
+
+    output_path = Path('public/data')
+    output_path.mkdir(parents=True, exist_ok=True)
+    with open(output_path / 'sovereignty_dependency.json', 'w') as f:
+        json.dump(sovereignty_data, f, indent=2, default=str)
+    print("✓ Exported public/data/sovereignty_dependency.json")
+else:
+    old = {r['country']: r for r in fetch_all(get_read_client(), 'sovereignty_countries')}
+    new = {r['country']: r for r in rows}
+
+    print("\n" + "="*80)
+    print("PREVIEW: sovereignty_countries (old = live Supabase, new = this run)")
+    print("="*80)
+    print_key_diff('Countries', old, new)
+
+    print(f"\nAverage across countries:")
+    print(f"  {'column':24}{'old':>8}{'new':>8}")
+    for col in SOVEREIGNTY_COLUMNS[2:]:
+        o = np.mean([r[col] or 0 for r in old.values()]) if old else 0
+        n = np.mean([r[col] for r in new.values()])
+        print(f"  {col:24}{o:>8.2f}{n:>8.2f}")
+
+    print(f"\nKey countries (old → new):")
+    print(f"  {'country':22}{'cables':>12}{'domestic owner %':>20}{'owner sovereignty':>20}")
+    for name in ['United States', 'United Kingdom', 'China', 'Japan', 'India', 'France', 'Singapore', 'Nigeria', 'Niger']:
+        o, n = old.get(name), new.get(name)
+        if not (o or n):
+            continue
+        f = lambda r, k: '—' if r is None else r[k]
+        print(f"  {name:22}{f(o,'total_cables'):>5} → {f(n,'total_cables'):<5}"
+              f"{f(o,'pct_domestic_owner'):>9} → {f(n,'pct_domestic_owner'):<9}"
+              f"{f(o,'owner_sovereignty_index'):>9} → {f(n,'owner_sovereignty_index'):<9}")
+    print("\n(preview only — nothing written. Pass --push to sync Supabase sovereignty_countries)")
 
 print("\n✓ Complete!")

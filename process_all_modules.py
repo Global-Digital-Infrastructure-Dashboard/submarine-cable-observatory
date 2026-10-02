@@ -1,6 +1,10 @@
 """
 Comprehensive Data Processing for All Dashboard Modules
 BLOC-NEUTRAL METHODOLOGY: Independence = domestic control, not anti-Chinese
+
+Usage:
+  python process_all_modules.py          # preview old vs new temporal_dynamics (writes nothing)
+  python process_all_modules.py --push   # replace Supabase temporal_dynamics rows + write local JSON
 """
 
 import pandas as pd
@@ -8,58 +12,17 @@ import numpy as np
 import json
 from pathlib import Path
 from collections import defaultdict
-import re
+
+from pipeline_common import (load_dataset, split_list_field, is_domestic, should_push, get_supabase,
+                             get_read_client, fetch_all, replace_rows, print_count_diff)
 
 print("="*80)
 print("COMPREHENSIVE DATA PROCESSING - BLOC-NEUTRAL METHODOLOGY")
 print("="*80)
 
-# Load the dataset
-df = pd.read_excel('data/global_submarine_dataset V1_2026.xlsx')
+# Load the dataset (bloc classification applied in pipeline_common.classify_bloc)
+df = load_dataset()
 print(f"\nLoaded {len(df)} cables")
-
-# ============================================================================
-# BLOC CLASSIFICATION
-# ============================================================================
-
-def classify_bloc(country_str):
-    """Classify countries into geopolitical blocs"""
-    if pd.isna(country_str) or country_str == '':
-        return 'Unknown'
-    
-    country_str = str(country_str).lower()
-    
-    china_keywords = ['china', 'chinese', 'prc', 'hong kong']
-    us_keywords = ['united states', 'usa', 'us ', 'american']
-    europe_keywords = ['france', 'uk', 'united kingdom', 'britain', 'germany', 'italy', 
-                       'spain', 'netherlands', 'belgium', 'sweden', 'finland',
-                       'denmark', 'norway', 'ireland', 'portugal', 'austria', 'alcatel']
-    japan_keywords = ['japan', 'japanese', 'nec']
-    india_keywords = ['india', 'indian']
-    
-    blocs_present = []
-    
-    if any(keyword in country_str for keyword in china_keywords):
-        blocs_present.append('China')
-    if any(keyword in country_str for keyword in us_keywords):
-        blocs_present.append('US')
-    if any(keyword in country_str for keyword in europe_keywords):
-        blocs_present.append('Europe')
-    if any(keyword in country_str for keyword in japan_keywords):
-        blocs_present.append('Japan')
-    if any(keyword in country_str for keyword in india_keywords):
-        blocs_present.append('India')
-    
-    if len(blocs_present) == 0:
-        return 'Other'
-    elif len(blocs_present) == 1:
-        return blocs_present[0]
-    else:
-        return 'Mixed'
-
-df['supplier_bloc'] = df['suppliers_country'].apply(classify_bloc)
-df['owner_bloc'] = df['owner_country'].apply(classify_bloc)
-
 print("Bloc Classification Complete")
 
 # ============================================================================
@@ -74,14 +37,7 @@ def calculate_hhi(series):
     hhi = (counts ** 2).sum() * 10000
     return round(hhi, 2)
 
-def parse_list_field(field_str):
-    """Parse comma/semicolon separated fields"""
-    if pd.isna(field_str):
-        return []
-    return [item.strip() for item in re.split(r'[,;]', str(field_str)) if item.strip()]
-
-df['regions_list'] = df['regions'].apply(parse_list_field)
-df['landing_countries_list'] = df['landing_countries'].apply(parse_list_field)
+df['regions_list'] = df['regions'].apply(split_list_field)
 
 # ============================================================================
 # MODULE 1: MAIN CABLES DATA
@@ -135,11 +91,7 @@ for country in country_df['country'].unique():
     supplier_diversification = supplier_entropy / max_entropy if max_entropy > 0 else 0
     
     # Independence (BLOC-NEUTRAL: domestic suppliers)
-    domestic_supplier_count = 0
-    for _, cable in country_data.iterrows():
-        supplier_country_str = str(cable.get('suppliers_country', ''))
-        if country.lower() in supplier_country_str.lower():
-            domestic_supplier_count += 1
+    domestic_supplier_count = sum(is_domestic(country, c) for c in country_data['suppliers_country'])
     
     supplier_independence = domestic_supplier_count / total_cables if total_cables > 0 else 0
     
@@ -165,11 +117,7 @@ for country in country_df['country'].unique():
     max_entropy = np.log(len(owner_counts)) if len(owner_counts) > 1 else 1
     owner_diversification = owner_entropy / max_entropy if max_entropy > 0 else 0
     
-    domestic_owner_count = 0
-    for _, cable in country_data.iterrows():
-        owner_country_str = str(cable.get('owner_country', ''))
-        if country.lower() in owner_country_str.lower():
-            domestic_owner_count += 1
+    domestic_owner_count = sum(is_domestic(country, c) for c in country_data['owner_country'])
     
     owner_independence = domestic_owner_count / total_cables if total_cables > 0 else 0
     
@@ -259,14 +207,81 @@ if china:
     print(f"  Owner independence component: {china['owner_independence']}")
 
 # ============================================================================
+# MODULE 3: TEMPORAL DYNAMICS
+# ============================================================================
+
+print("\n" + "="*80)
+print("PROCESSING: TEMPORAL DYNAMICS")
+print("="*80)
+
+SUPPLIER_COLUMNS = {
+    'China': 'china_count', 'US': 'us_count', 'Europe': 'europe_count',
+    'Japan': 'japan_count', 'India': 'india_count', 'Mixed': 'mixed_count',
+    'Other': 'other_count', 'Unknown': 'unknown_count',
+}
+OWNER_COLUMNS = {
+    'China': 'owner_chinese_count', 'US': 'owner_us_count', 'Europe': 'owner_europe_count',
+    'Japan': 'owner_japan_count', 'India': 'owner_india_count', 'Mixed': 'owner_mixed_count',
+    'Other': 'owner_other_count', 'Unknown': 'owner_unknown_count',
+}
+
+temporal_rows = []
+cumulative_total = 0
+for year, year_df in df.dropna(subset=['rfs_year']).groupby(df['rfs_year'].astype('Int64')):
+    supplier_counts = year_df['supplier_bloc'].value_counts()
+    owner_counts = year_df['owner_bloc'].value_counts()
+    cumulative_total += len(year_df)
+
+    row = {'year': int(year), 'total_cables': len(year_df), 'cumulative_total': cumulative_total}
+    row.update({col: int(supplier_counts.get(bloc, 0)) for bloc, col in SUPPLIER_COLUMNS.items()})
+    row.update({col: int(owner_counts.get(bloc, 0)) for bloc, col in OWNER_COLUMNS.items()})
+    # Kept for backward compatibility: Western = US + Europe + Japan
+    row['western_count'] = row['us_count'] + row['europe_count'] + row['japan_count']
+    row['owner_western_count'] = row['owner_us_count'] + row['owner_europe_count'] + row['owner_japan_count']
+    # Any Chinese owner stake (chinese_owner flag), including cables classified Mixed
+    row['owner_chinese_any_count'] = int(year_df['chinese_owner'].fillna(0).astype(int).gt(0).sum())
+    temporal_rows.append(row)
+
+temporal_data = {'years': temporal_rows}
+
+print(f"✓ Temporal data ready: {len(temporal_rows)} years "
+      f"({temporal_rows[0]['year']}–{temporal_rows[-1]['year']}), {cumulative_total} cables")
+
+# ============================================================================
 # EXPORT
 # ============================================================================
 
-output_path = Path('../dashboard/public/data')
-output_path.mkdir(parents=True, exist_ok=True)
+TEMPORAL_COUNT_COLUMNS = list(SUPPLIER_COLUMNS.values()) + ['western_count'] + \
+    list(OWNER_COLUMNS.values()) + ['owner_western_count', 'owner_chinese_any_count']
 
-with open(output_path / 'sovereignty_dependency.json', 'w') as f:
-    json.dump(sovereignty_data, f, indent=2, default=str)
+if should_push():
+    replace_rows(get_supabase(), 'temporal_dynamics', temporal_rows)
 
-print(f"\n✓ Exported sovereignty_dependency.json")
+    output_path = Path('public/data')
+    output_path.mkdir(parents=True, exist_ok=True)
+    with open(output_path / 'sovereignty_dependency.json', 'w') as f:
+        json.dump(sovereignty_data, f, indent=2, default=str)
+    with open(output_path / 'temporal_dynamics.json', 'w') as f:
+        json.dump(temporal_data, f, indent=2, default=str)
+    print("✓ Exported public/data/sovereignty_dependency.json, temporal_dynamics.json")
+else:
+    old = fetch_all(get_read_client(), 'temporal_dynamics')
+
+    print("\n" + "="*80)
+    print("PREVIEW: temporal_dynamics (old = live Supabase, new = this run)")
+    print("="*80)
+    print(f"Rows: {len(old)} old → {len(temporal_rows)} new; "
+          f"years {min(r['year'] for r in old)}–{max(r['year'] for r in old)} old → "
+          f"{temporal_rows[0]['year']}–{temporal_rows[-1]['year']} new")
+    print_count_diff('Cables summed over all years, per column:',
+                     {'total_cables': sum(r['total_cables'] for r in old),
+                      **{c: sum(r.get(c) or 0 for r in old) for c in TEMPORAL_COUNT_COLUMNS}},
+                     {'total_cables': sum(r['total_cables'] for r in temporal_rows),
+                      **{c: sum(r[c] for r in temporal_rows) for c in TEMPORAL_COUNT_COLUMNS}})
+
+    missing = sorted(set(temporal_rows[0]) - set(old[0])) if old else []
+    if missing:
+        print(f"\n⚠ Columns not on the live table yet (the push will fail until they're added): {missing}")
+    print("\n(preview only — nothing written. Pass --push to replace Supabase temporal_dynamics)")
+
 print("✓ Complete!")
