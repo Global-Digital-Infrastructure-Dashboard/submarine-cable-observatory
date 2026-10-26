@@ -128,15 +128,19 @@ def should_push():
     return '--push' in sys.argv
 
 
-def _service_role_key():
+def env_key(var):
     """From the environment, else from the gitignored .env file. Never hardcoded."""
-    key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+    key = os.environ.get(var)
     if not key and os.path.exists('.env'):
         for line in open('.env'):
             name, _, value = line.strip().partition('=')
-            if name.strip() == 'SUPABASE_SERVICE_ROLE_KEY':
+            if name.strip() == var:
                 key = value.strip().strip('"\'')
     return key
+
+
+def _service_role_key():
+    return env_key('SUPABASE_SERVICE_ROLE_KEY')
 
 
 def get_supabase():
@@ -149,15 +153,24 @@ def get_supabase():
     return create_client(os.environ.get('SUPABASE_URL', SUPABASE_URL), key)
 
 
+def _anon_key():
+    """The public anon key the frontend already ships."""
+    frontend = open('src/lib/supabase.js').read()
+    return re.search(r"supabaseKey\s*=\s*'([^']+)'", frontend).group(1)
+
+
 def get_read_client():
-    """Client for previews: service key if set, else the public anon key the frontend already ships."""
+    """Client for previews: service key if set, else the anon key."""
     from supabase import create_client
 
-    key = _service_role_key()
-    if not key:
-        frontend = open('src/lib/supabase.js').read()
-        key = re.search(r"supabaseKey\s*=\s*'([^']+)'", frontend).group(1)
-    return create_client(os.environ.get('SUPABASE_URL', SUPABASE_URL), key)
+    return create_client(os.environ.get('SUPABASE_URL', SUPABASE_URL), _service_role_key() or _anon_key())
+
+
+def get_anon_client():
+    """Anon-key client for read-only lookups that must never hold write credentials."""
+    from supabase import create_client
+
+    return create_client(os.environ.get('SUPABASE_URL', SUPABASE_URL), _anon_key())
 
 
 def fetch_all(client, table, columns='*', page_size=1000):
