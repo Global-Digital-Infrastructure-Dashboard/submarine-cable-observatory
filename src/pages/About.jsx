@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 
 // Google Form for beta sign-up
 const BETA_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfKs-Woma7qoMD5hFfk6ZhdWdFokj8UIBOWfYFQwtt0KnRuLw/viewform?usp=dialog'
@@ -28,10 +30,10 @@ const whyItMatters = [
   },
 ]
 
-const whatWeTrack = [
+const whatWeTrack = (cableCount) => [
   {
     title: 'Submarine cables',
-    body: 'Nearly 700 cables with ownership, suppliers, landing countries and stations, length, operational status, and supplier and owner bloc classifications.',
+    body: `${cableCount ? cableCount.toLocaleString() : 'Hundreds of'} cables with ownership, suppliers, landing countries and stations, length, operational status, and supplier and owner bloc classifications.`,
   },
   {
     title: 'Policy and regulation',
@@ -86,6 +88,18 @@ const faqs = [
 ]
 
 function About() {
+  const [cableCount, setCableCount] = useState(null)
+
+  useEffect(() => {
+    async function fetchCount() {
+      const { count, error } = await supabase
+        .from('submarinecables')
+        .select('*', { count: 'exact', head: true })
+      if (!error) setCableCount(count)
+    }
+    fetchCount()
+  }, [])
+
   return (
     <div className="w-full">
       {/* About */}
@@ -129,7 +143,7 @@ function About() {
       <section className="mb-14">
         <h2 className="font-serif text-3xl font-semibold text-[#212121] mb-6">What we track</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {whatWeTrack.map((c) => (
+          {whatWeTrack(cableCount).map((c) => (
             <div key={c.title} className={CARD}>
               <h3 className="font-serif text-lg font-semibold text-[#212121] mb-1">{c.title}</h3>
               <p className="text-[#616161] leading-relaxed">{c.body}</p>

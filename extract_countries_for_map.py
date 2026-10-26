@@ -3,11 +3,9 @@ Extract country list with cable counts for map visualization
 
 Usage:
   python extract_countries_for_map.py          # preview old vs new countries_map (writes nothing)
-  python extract_countries_for_map.py --push   # sync Supabase countries_map + write local JSON
+  python extract_countries_for_map.py --push   # sync Supabase countries_map
 """
 
-import json
-from pathlib import Path
 
 from pipeline_common import (load_dataset, should_push, get_supabase, get_read_client,
                              fetch_all, sync_rows, print_key_diff)
@@ -44,12 +42,6 @@ for country, count in sorted_countries[:10]:
 
 if should_push():
     sync_rows(get_supabase(), 'countries_map', output['countries'], key='name')
-
-    output_path = Path('public/data')
-    output_path.mkdir(parents=True, exist_ok=True)
-    with open(output_path / 'countries_for_map.json', 'w') as f:
-        json.dump(output, f, indent=2)
-    print("✓ Exported public/data/countries_for_map.json")
 else:
     old = {r['name']: r['cables'] for r in fetch_all(get_read_client(), 'countries_map', 'id,name,cables')}
     new = dict(sorted_countries)

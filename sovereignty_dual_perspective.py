@@ -9,8 +9,6 @@ Usage:
 
 import pandas as pd
 import numpy as np
-import json
-from pathlib import Path
 
 from pipeline_common import (load_dataset, is_domestic, should_push, get_supabase, get_read_client,
                              fetch_all, sync_rows, print_key_diff)
@@ -255,12 +253,6 @@ rows = [{col: c[col] for col in SOVEREIGNTY_COLUMNS} for c in country_metrics_so
 
 if should_push():
     sync_rows(get_supabase(), 'sovereignty_countries', rows, key='country')
-
-    output_path = Path('public/data')
-    output_path.mkdir(parents=True, exist_ok=True)
-    with open(output_path / 'sovereignty_dependency.json', 'w') as f:
-        json.dump(sovereignty_data, f, indent=2, default=str)
-    print("✓ Exported public/data/sovereignty_dependency.json")
 else:
     old = {r['country']: r for r in fetch_all(get_read_client(), 'sovereignty_countries')}
     new = {r['country']: r for r in rows}

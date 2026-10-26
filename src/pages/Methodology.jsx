@@ -1,4 +1,31 @@
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
+
 function Methodology() {
+  const [stats, setStats] = useState(null)
+
+  useEffect(() => {
+    async function fetchStats() {
+      const { data, error } = await supabase
+        .from('submarinecables')
+        .select('rfs_year, supplier_bloc')
+      if (error) {
+        console.error('Supabase error:', error)
+        return
+      }
+      const years = data.map(c => parseInt(c.rfs_year, 10)).filter(y => !isNaN(y))
+      const unknownSuppliers = data.filter(c => !c.supplier_bloc || c.supplier_bloc === 'Unknown').length
+      setStats({
+        total: data.length,
+        minYear: Math.min(...years),
+        maxYear: Math.max(...years),
+        unknownSuppliers,
+        unknownSupplierPct: ((unknownSuppliers / data.length) * 100).toFixed(1),
+      })
+    }
+    fetchStats()
+  }, [])
+
   return (
     <div>
       <div className="mb-10">
@@ -16,7 +43,7 @@ function Methodology() {
             This observatory tracks the political economy of global submarine cable infrastructure — who builds it, who owns it, and what that means for national sovereignty and geopolitical risk. Phase 1 covers submarine cables. Future phases will add 5G, cloud, and AI infrastructure datasets using the same analytical framework.
           </p>
           <p className="text-sm leading-relaxed text-[#616161]">
-            The dataset covers <strong className="text-[#212121]">694 cables</strong>(as of May 5, 2026, updates weekly) with ready-for-service (RFS) years from 1989 to 2030, drawn from TeleGeography, FCC filings, and primary source verification. Each cable is coded for supplier bloc, owner bloc, geographic reach, and regulatory status.
+            The dataset covers <strong className="text-[#212121]">{stats ? stats.total.toLocaleString() : '…'} cables</strong> (updates weekly) with ready-for-service (RFS) years from {stats ? `${stats.minYear} to ${stats.maxYear}` : '…'}, drawn from TeleGeography, FCC filings, and primary source verification. Each cable is coded for supplier bloc, owner bloc, geographic reach, and regulatory status.
           </p>
         </div>
       </section>
@@ -276,7 +303,7 @@ function Methodology() {
           <div className="space-y-3 text-sm text-[#616161]">
             {[
               'Ownership data is more fragmented than supplier data — consortiums of 10–20 entities are common, and individual owner nationality is sometimes ambiguous. Owner bloc reflects majority or dominant owner where determinable.',
-              '20 cables (2.9%) have unknown suppliers. These are typically older cables or cables built by undisclosed manufacturers. They are excluded from HHI and bloc share calculations.',
+              `${stats ? `${stats.unknownSuppliers} cables (${stats.unknownSupplierPct}%)` : 'Some cables'} have unknown suppliers. These are typically older cables or cables built by undisclosed manufacturers. They are excluded from HHI and bloc share calculations.`,
               'RFS years for planned cables (2026–2030) are based on announced schedules and subject to change. Delays of 1–3 years are common in the industry.',
               'The sovereignty index is country-level and does not capture sub-national variation or the specific strategic significance of individual cable routes.',
               'Chinese supplier classification uses a broad definition that includes state-affiliated entities. The line between state and private in Chinese telecoms is contested and the dataset reflects best-available public information.',

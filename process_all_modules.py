@@ -9,8 +9,6 @@ Usage:
 
 import pandas as pd
 import numpy as np
-import json
-from pathlib import Path
 from collections import defaultdict
 
 from pipeline_common import (load_dataset, split_list_field, is_domestic, should_push, get_supabase,
@@ -242,8 +240,6 @@ for year, year_df in df.dropna(subset=['rfs_year']).groupby(df['rfs_year'].astyp
     row['owner_chinese_any_count'] = int(year_df['chinese_owner'].fillna(0).astype(int).gt(0).sum())
     temporal_rows.append(row)
 
-temporal_data = {'years': temporal_rows}
-
 print(f"✓ Temporal data ready: {len(temporal_rows)} years "
       f"({temporal_rows[0]['year']}–{temporal_rows[-1]['year']}), {cumulative_total} cables")
 
@@ -256,14 +252,6 @@ TEMPORAL_COUNT_COLUMNS = list(SUPPLIER_COLUMNS.values()) + ['western_count'] + \
 
 if should_push():
     replace_rows(get_supabase(), 'temporal_dynamics', temporal_rows)
-
-    output_path = Path('public/data')
-    output_path.mkdir(parents=True, exist_ok=True)
-    with open(output_path / 'sovereignty_dependency.json', 'w') as f:
-        json.dump(sovereignty_data, f, indent=2, default=str)
-    with open(output_path / 'temporal_dynamics.json', 'w') as f:
-        json.dump(temporal_data, f, indent=2, default=str)
-    print("✓ Exported public/data/sovereignty_dependency.json, temporal_dynamics.json")
 else:
     old = fetch_all(get_read_client(), 'temporal_dynamics')
 
