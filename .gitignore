@@ -29,3 +29,8 @@ __pycache__/
 *.py[cod]
 venv/
 *.egg-info/
+
+# Data-center pipeline: large search caches and raw API logs stay local
+data/datacenter_searches*.jsonl
+data/*.raw.jsonl
+data/*.pre-migration.bak

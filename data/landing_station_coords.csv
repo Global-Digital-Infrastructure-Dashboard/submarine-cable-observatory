@@ -1,0 +1,436 @@
+station,lat,lon
+"Abaco, Bahamas",26.0040000,-77.3567072
+"Addenbroke Island, BC, Canada",51.6055166,-127.8462869
+"Agana, Guam",13.4748148,144.7516191
+"Agat, Guam",13.3814585,144.6581548
+"Ahousat, BC, Canada",,
+"Akulivik, QC, Canada",60.8091489,-78.1902198
+"Akutan, AK, United States",54.1344873,-165.7779902
+"Alakanuk, AK, United States",62.6856956,-164.6660030
+"Alert Bay, BC, Canada",50.5839307,-126.9277663
+"Alupang, Guam",13.4961094,144.7745311
+"Amderma, Russia",69.7609506,61.6580524
+"Anadyr, Russia",64.7316875,177.5060925
+"Anchorage, AK, United States",61.2163129,-149.8948520
+"Andros, Bahamas",24.7368711,-78.0235642
+"Angoon, AK, United States",57.5033333,-134.5838880
+"Annie's Bay, Bermuda",32.3593187,-64.6575506
+"Apalachee Beach, FL, United States",26.8892073,-80.1101508
+"Aupaluk, QC, Canada",59.3020798,-69.6040982
+"Baie-Comeau, QC, Canada",49.2118373,-68.1801406
+"Bamfield, BC, Canada",48.8330860,-125.1411440
+"Bandon, OR, United States",43.1195634,-124.4094086
+"Barber Point, HI, United States",21.3224532,-158.0819979
+"Beaver Island, MI, United States",45.6660782,-85.5544216
+"Bella Bella, BC, Canada",52.1625615,-128.1452070
+"Bella Coola, BC, Canada",52.3723035,-126.7556778
+"Bellport, NY, United States",40.7572520,-72.9394713
+"Benton Harbor, MI, United States",42.1167065,-86.4541894
+"Bimini, Bahamas",25.7200650,-79.2744573
+"Black River, Jamaica",18.0241677,-77.8480102
+"Blind Channel, BC, Canada",50.4132025,-125.5033228
+"Bliss Landing, BC, Canada",50.0342090,-124.8170470
+"Boat Bluff, BC, Canada",52.6434419,-128.5241804
+"Boca Raton, FL, United States",26.3586885,-80.0830984
+"Bold Point, BC, Canada",50.1720508,-125.1611304
+"Bonilla Island, BC, Canada",53.4857680,-130.6094473
+"Bowser, BC, Canada",49.4402737,-124.6882261
+"Brookhaven, NY, United States",40.7792653,-72.9153827
+"Bull Bay, Jamaica",17.9444836,-76.6660524
+"Butedale, BC, Canada",53.1599470,-128.6952210
+"Butler Bay, St. Croix, Virgin Islands (U.S.)",17.7476679,-64.8921087
+"Butler Bay, Virgin Islands (U.S.)",17.7476679,-64.8921087
+"Cacique, Dominican Republic",18.2092764,-71.1111014
+"Campbell River, BC, Canada",50.0230710,-125.2441530
+"Cancn, Mexico",,
+"Cancun, Mexico",21.1527467,-86.8425761
+"Cancún, Mexico",21.1527467,-86.8425761
+"Cape Ray, NL, Canada",47.6215461,-59.3091787
+"Cape Roger Curtis, BC, Canada",49.3400882,-123.4331800
+"Cat Island, Bahamas",24.3385000,-75.6149932
+"Cayman Brac, Cayman Islands",19.7198862,-79.7931400
+"Change Islands, NL, Canada",49.6711448,-54.4073104
+"Charlestown, RI, United States",41.3831566,-71.6417290
+"Charlevoix, MI, United States",45.2020750,-84.9676387
+"Chatham Point, BC, Canada",50.3306841,-125.4390191
+"Chenega, AK, United States",60.0727520,-148.0193568
+"Chicago, IL, United States",41.8755616,-87.6244212
+"Chignik Bay, AK, United States",56.3852778,-158.2261111
+"Chignik Lagoon, AK, United States",56.3081525,-158.5035630
+"Chignik Lake, AK, United States",56.2828590,-158.8285737
+"Chisasibi, QC, Canada",53.6520142,-78.3384140
+"Cienfuegos, Cuba",22.1459864,-80.4530775
+"Clinton, WA, United States",47.9756209,-122.3465929
+"Cloverdale, OR, United States",45.2015990,-123.8850910
+"Coal Harbour, BC, Canada",49.2894409,-123.1249202
+"Coffman Cove, AK, United States",56.0139933,-132.8278890
+"Cold Bay, AK, United States",55.2071632,-162.7146533
+"Comox, BC, Canada",49.6727575,-124.9276204
+"Copa Club, Jamaica",17.9430144,-76.6893561
+"Cordova Bay, BC, Canada",48.5252376,-123.3739332
+"Cordova, AK, United States",60.5443385,-145.7595063
+"Cousins Inlet, BC, Canada",52.3140610,-127.7565125
+"Crescent Beach, RI, United States",41.1876286,-71.5668067
+"Crooked Island, Bahamas",22.7486959,-74.2386163
+"Dania Beach, FL, United States",26.0524224,-80.1439290
+"Deception Bay, QC, Canada",62.1469564,-74.6992342
+"Denman Island, BC, Canada",49.5417698,-124.7945018
+"Dikson, Russia",73.5084564,80.5227886
+"Dillingham, AK, United States",59.0398598,-158.4604177
+"Dodge Cove, BC, Canada",54.2873097,-130.3876434
+"Dryad Point, BC, Canada",52.1850639,-128.1115090
+"Duncanby, BC, Canada",51.4053122,-127.6446779
+"Eastbourne, BC, Canada",49.8826194,-119.3757012
+"Echo Bay, BC, Canada",50.7481402,-126.4962681
+"Edith Point, BC, Canada",48.8550568,-123.2463379
+"Eek, AK, United States",60.2112981,-162.0446921
+"Egg Island, BC, Canada",51.2498690,-127.8337275
+"Eight Mile Rock, Bahamas",26.5409492,-78.8063425
+"El Segundo, CA, United States",33.9170280,-118.4156337
+"Eleuthera, Bahamas",25.0884534,-76.1345836
+"Elk Bay, BC, Canada",50.2809558,-125.4354804
+"Emmonak, AK, United States",62.7773284,-164.5296693
+"Esperanza, BC, Canada",49.8710747,-126.7422226
+"Esquimalt, BC, Canada",48.4299950,-123.4135900
+"Eureka, CA, United States",40.8018746,-124.1707558
+"Everett, WA, United States",47.9793437,-122.2127011
+"Exuma, Bahamas",23.9685000,-76.1799049
+"False Pass, AK, United States",54.8552559,-163.4153697
+"Farewell, NL, Canada",49.5561992,-54.4762826
+"Fish Camp, AK, United States",60.6564873,-161.9933928
+"Florence, OR, United States",43.9800086,-124.1013089
+"Forrestville, QC, Canada",,
+"Fort Lauderdale, FL, United States",26.1223084,-80.1433786
+"Fortune, NL, Canada",47.0727353,-55.8276433
+"Freeport, Bahamas",26.5356810,-78.6953623
+"Freeport, TX, United States",28.9496782,-95.3461433
+"French Creek, BC, Canada",49.3458579,-124.3594301
+"Gabriola, BC, Canada",49.1746559,-123.8468816
+"Gambier Harbour, BC, Canada",49.4391576,-123.4321668
+"Gibsons, BC, Canada",49.4006197,-123.5089180
+"Gillies Bay, BC, Canada",49.6775529,-124.4891110
+"Gold River, BC, Canada",49.7807549,-126.0473015
+"Governor's Harbour, Eleuthera, Bahamas",25.1934774,-76.2453360
+"Grand Bahama, Bahamas",26.6613931,-78.2683535
+"Granite Bay, BC, Canada",50.2380853,-125.3118342
+"Greenbank (Hidden Beach), WA, United States",,
+"Grover Beach, CA, United States",35.1209452,-120.6218370
+"Guantanamo Bay, Cuba",19.9185556,-75.1593258
+"Gulliver, MI, United States",45.9933853,-86.0116435
+"Gustavus, AK, United States",58.4124150,-135.7307843
+"Haggard's Cove, BC, Canada",,
+"Haines, AK, United States",59.0831232,-135.3430573
+"Half Moon Bay, Cayman Islands",19.2966561,-81.1530755
+"Halifax County, NS, Canada",44.8543667,-63.1377980
+"Halifax, NS, Canada",44.6486180,-63.5859487
+"Hana, HI, United States",20.7573988,-155.9879846
+"Harbledown Island, BC, Canada",50.5750045,-126.5804652
+"Harbour Pointe, WA, United States",47.8914029,-122.2875904
+"Hartley Bay, BC, Canada",53.4256795,-129.2531254
+"Hat Island, WA, United States",48.0131763,-122.3206201
+"Hawk Inlet, AK, United States",58.1258333,-134.7530556
+"Hawksbill, Grand Bahama Island, Bahamas",,
+"Heriot Bay, BC, Canada",50.1001466,-125.2093466
+"Hermosa Beach, CA, United States",33.8637822,-118.3992143
+"Hillsboro, OR, United States",45.5228939,-122.9898270
+"Hilo, HI, United States",19.7073734,-155.0815800
+"Holberg, BC, Canada",50.6551630,-128.0137809
+"Hollis, AK, United States",55.5141585,-132.7160567
+"Hollywood (Miami), FL, United States",25.7073624,-80.2852138
+"Hollywood, FL, United States",26.0112014,-80.1494901
+"Homer, AK, United States",59.6454064,-151.5445643
+"Honolulu, HI, United States",21.3045470,-157.8556760
+"Hoonah, AK, United States",58.1101858,-135.4444368
+"Hooper Bay, AK, United States",61.5281147,-166.1076524
+"Hornby Island, BC, Canada",49.5207506,-124.6742512
+"Horseshoe Bay, BC, Canada",49.3744409,-123.2739190
+"Hot Springs Cove, BC, Canada",49.3633483,-126.2672125
+"Hyde Creek, BC, Canada",49.2959837,-122.7614159
+"Igiugig, AK, United States",59.3176195,-155.8708646
+"Iliamna, AK, United States",59.8004710,-154.8815249
+"Ilyinskoye, Russia",54.5047551,22.5154359
+"Inagua, Bahamas",21.2325000,-73.3096213
+"Inukjuak, QC, Canada",58.4536824,-78.1124276
+"Isla Verde, PR, United States",18.4437448,-66.0256004
+"Isla Verde, Puerto Rico, United States",18.4437448,-66.0256004
+"Isla de Cozumel, Mexico",25.6625000,-100.1765093
+"Island Park, NY, United States",40.6042705,-73.6554078
+"Isle au Haut, ME, United States",44.0753601,-68.6333583
+"Iturup Island, Russia",44.9906085,147.8382321
+"Ivory Island, BC, Canada",52.2735572,-128.4001163
+"Ivujivik, QC, Canada",62.4110121,-77.6782450
+"Jacksonville, FL, United States",30.3262247,-81.6579179
+"Johnstone Point, AK, United States",60.4836111,-146.6113889
+"Juneau, AK, United States",58.3019613,-134.4196751
+"Kahe Point, HI, United States",21.3549730,-158.1302707
+"Kahului, HI, United States",20.8747708,-156.4529674
+"Kaiete Point, BC, Canada",52.0640645,-127.9509216
+"Kailua-Kona, HI, United States",19.6419410,-155.9969330
+"Kains Island, BC, Canada",50.4426912,-128.0331785
+"Kaliko, Haiti",18.8686493,-72.6145920
+"Kaliningrad, Russia",54.7046485,20.4565666
+"Kangiqsualujjuaq, QC, Canada",58.6933642,-65.9531992
+"Kangiqsujuaq, QC, Canada",61.6020339,-71.9499736
+"Kangirsuk, QC, Canada",60.0178159,-70.0135443
+"Kapolei (Oahu), HI, United States",21.3304116,-158.0751180
+"Kapolei, HI, United States",21.3448280,-158.0633330
+"Kaunakakai, HI, United States",21.0898910,-157.0111876
+"Kawaihae, HI, United States",20.0397244,-155.8291330
+"Keawaula, HI, United States",21.5609414,-158.2494442
+"Kenai, AK, United States",60.5544444,-151.2583330
+"Ketchikan, AK, United States",55.3430696,-131.6466819
+"Kihei, HI, United States",20.7633950,-156.4463997
+"King Cove, AK, United States",55.0596620,-162.3114114
+"Kingcome Inlet, BC, Canada",50.8959081,-126.5758856
+"Kingisepp, Russia",59.3743982,28.5981591
+"Kingston, Jamaica",17.9712148,-76.7928128
+"Kitamaat Village, BC, Canada",53.9748746,-128.6481849
+"Kitimat, BC, Canada",54.0535577,-128.6540519
+"Kitkatla, BC, Canada",53.7952327,-130.4302457
+"Klemtu, BC, Canada",52.5880320,-128.5208130
+"Ko Olina, HI, United States",21.3281625,-158.1219874
+"Kodiak, AK, United States",57.7901661,-152.4067073
+"Kokhanok, AK, United States",59.4118395,-154.7457562
+"Koko Head, HI, United States",21.2730420,-157.6991166
+"Kotzebue, AK, United States",66.8982057,-162.5977621
+"Kunashir Island, Russia",44.0847144,145.8127572
+"Kuujjuaq, QC, Canada",58.1066864,-68.4038778
+"Kuujjuarapik, QC, Canada",55.2821240,-77.7562771
+"Kwakiutl (Cluxewe), BC, Canada",,
+"Kwikwasut'inuxw Haxwais, BC, Canada",,
+"Kyuquot, BC, Canada",50.0304157,-127.3783960
+"L'Anse--Beaufils, QC, Canada",48.4992259,-64.3590231
+"La Paz, Mexico",24.1619948,-110.3158532
+"Lamaline, NL, Canada",46.8682935,-55.8032662
+"Larsen Bay, AK, United States",57.5365585,-153.9816058
+"Las Piedras, Puerto Rico",18.1964523,-65.8621793
+"Lax Kw'alaams, BC, Canada",54.5545800,-130.4306050
+"Lazaro Cardenas, Mexico",17.9594769,-102.1986590
+"Le Bic, QC, Canada",48.3720950,-68.7112149
+"Lena Point, AK, United States",58.3952778,-134.7752778
+"Les les-de-la-Madeleine, QC, Canada",47.3745834,-61.9198432
+"Lihue, HI, United States",21.9715697,-159.3525428
+"Logi, Russia",59.8066180,28.4945320
+"Long Island, Bahamas",23.2682497,-75.0963399
+"Los Angeles, CA, United States",34.0536923,-118.2427676
+"Los Mochis, Mexico",25.7928058,-108.9901880
+"Lund, BC, Canada",49.9815954,-124.7592445
+"Lynn, MA, United States",42.4667630,-70.9494939
+"Macoah, BC, Canada",48.9955382,-125.3750274
+"Magen Bay, VI, United States",18.3547814,-64.9200884
+"Magens Bay, St. Thomas, Virgin Islands (U.S.)",18.3707934,-64.9357045
+"Magens Bay, VI, United States",18.3707934,-64.9357045
+"Makaha, HI, United States",21.4728790,-158.2106780
+"Manasquan, NJ, United States",40.1262260,-74.0493040
+"Manchester, CA, United States",38.9749770,-123.6910326
+"Manele Bay, HI, United States",20.7424316,-156.8852708
+"Mansons Landing, BC, Canada",50.0666670,-124.9833330
+"Manzanillo, Mexico",19.0506256,-104.3159957
+"Marsh Harbour, Abaco, Bahamas",26.5382728,-77.0610382
+"Martin Valley, BC, Canada",55.6410858,-126.1086277
+"Maryland, United States",39.5162401,-76.9382069
+"Maxwelton, WA, United States",47.9373164,-122.4443087
+"Mayaguana, Bahamas",22.5620931,-73.4024744
+"Mazatlan, Mexico",23.2035785,-106.4208391
+"Mazatlán, Mexico",23.2035785,-106.4208391
+"McHugh Point, AK, United States",34.6710009,-77.3506006
+"McInnes Island, BC, Canada",52.2625480,-128.7226728
+"Metlakatla, BC, Canada",54.3374229,-130.4444663
+"Milton, NL, Canada",48.2159674,-53.9621030
+"Miramar, PR, United States",18.4546943,-66.0835106
+"Miramar, Puerto Rico, United States",18.4546943,-66.0835106
+"Mitchell Bay, BC, Canada",50.6289713,-126.8580706
+"Montego Bay, Jamaica",18.4724603,-77.9217357
+"Morant Bay, Jamaica",17.8820832,-76.4115503
+"Morro Bay, CA, United States",35.3658075,-120.8499010
+"Murmansk (Teriberka), Russia",,
+"Myrtle Beach, SC, United States",33.6956461,-78.8900409
+"Nakhodka, Russia",42.8246489,132.8926000
+"Naknek, AK, United States",58.7911390,-156.8947347
+"Naples, FL, United States",26.1421976,-81.7942944
+"Narragansett, RI, United States",41.4325574,-71.4579836
+"Narrow Cape, AK, United States",57.4297936,-152.3328548
+"Nassau, Bahamas",25.0782266,-77.3383438
+"Nassau, New Providence, Bahamas",25.0782266,-77.3383438
+"Nedonna Beach, OR, United States",45.6486444,-123.9386750
+"Negril, Jamaica",18.2779531,-78.3494771
+"Nevelsk, Russia",46.6717928,141.8567244
+"New Brunswick, Canada",46.5002830,-66.7501830
+"New Haven, CT, United States",41.3082138,-72.9250518
+"New Providence, Bahamas",25.0302511,-77.3960341
+"New Victoria, NS, Canada",46.2510200,-60.1355978
+"Newhalen, AK, United States",59.7201343,-154.8978734
+"Nikiski, AK, United States",60.7210580,-151.2462077
+"Nome, AK, United States",64.4975098,-165.4061701
+"Nondalton, AK, United States",59.9729849,-154.8491180
+"Norma Beach (Lynnwood), WA, United States",47.8647018,-122.2841533
+"North Miami Beach, FL, United States",25.9331488,-80.1625463
+"Northport, NY, United States",40.9009595,-73.3431670
+"Nova Scotia, Canada",45.1960403,-63.1653789
+"Novorossiysk, Russia",44.7239578,37.7690711
+"Nuchatlaht, BC, Canada",49.8015378,-126.7433574
+"Oahu, HI, United States",21.4834365,-158.0365105
+"Oak Harbor, WA, United States",48.2931559,-122.6432240
+"Ocean Falls, BC, Canada",52.3528605,-127.6916482
+"Ocho Rios, Jamaica",18.4081045,-77.1011092
+"Okha, Russia",53.5891992,142.9496845
+"Ola, Russia",59.5780981,151.2990699
+"Old Bella Bella, BC, Canada",52.1544948,-128.1215304
+"Oona River, BC, Canada",53.9478750,-130.2586893
+"Open Bay, BC, Canada",50.1337096,-125.2053162
+"Opitsat, BC, Canada",49.1769305,-125.9110692
+"Ouzinkie, AK, United States",57.9234807,-152.5020095
+"Pacific City, OR, United States",45.2020606,-123.9635149
+"Pacific City, United States",45.2020606,-123.9635149
+"Paget, Bermuda",32.2832799,-64.7752045
+"Pago Pago, American Samoa",-14.2754786,-170.7048298
+"Palm Coast, FL, United States",29.5541432,-81.2207673
+"Pascagoula, MS, United States",30.3646795,-88.5585995
+"Pedro Bay, AK, United States",59.7867630,-154.1430408
+"Pelican, AK, United States",57.9572122,-136.2206790
+"Perryville, AK, United States",55.9342930,-159.1430140
+"Petersburg, AK, United States",56.7687945,-132.8801030
+"Petropavlovsk-Kamchatsky, Russia",53.0199838,158.6471356
+"Pevek, Russia",69.7028171,170.2746851
+"Pile Bay, AK, United States",59.7302460,-154.0293945
+"Pine Island, BC, Canada",54.7900525,-123.3336891
+"Piti, Guam",13.4647320,144.6963515
+"Platinum, AK, United States",59.0122782,-161.8181858
+"Playa del Carmen, Mexico",20.6462848,-87.0807866
+"Point Hope, AK, United States",68.3493054,-166.7392068
+"Point Roberts, WA, United States",48.9868642,-123.0560063
+"Pointe-au-Père, QC, Canada",48.5135938,-68.4632969
+"Port Alberni, BC, Canada",49.2343668,-124.8056517
+"Port Alice, BC, Canada",50.4268930,-127.4880980
+"Port Alsworth, AK, United States",60.1733525,-154.3201063
+"Port Hardy, BC, Canada",50.7244402,-127.4976081
+"Port Lions, AK, United States",57.8675558,-152.8831046
+"Port Neville, BC, Canada",50.5224027,-126.0292476
+"Port-au-Prince, Haiti",18.5473270,-72.3395928
+"Portage, AK, United States",61.6696340,-150.0871409
+"Powell River, BC, Canada",49.8356760,-124.5244120
+"Prince Edward Island, Canada",46.3355508,-63.1466676
+"Prince Rupert, BC, Canada",54.3126572,-130.3254900
+"Providenciales, Turks and Caicos Islands",21.8020614,-72.3004456
+"Prudhoe Bay, AK, United States",70.3266770,-148.9432527
+"Puerto Plata, Dominican Republic",19.7976564,-70.6932607
+"Pulteney Point, BC, Canada",50.6302161,-127.1551122
+"Punta Cana, Dominican Republic",18.5565510,-68.3691611
+"Punta Salinas, PR, United States",18.4718670,-66.1859287
+"Puvirnituq, QC, Canada",60.0393864,-77.2709185
+"Qualicum Beach, BC, Canada",49.3479861,-124.4439409
+"Quaqtaq, QC, Canada",61.0407114,-69.6310759
+"Quatsino, BC, Canada",50.5366569,-127.6357383
+"Queens Cove, BC, Canada",49.2030971,-122.9231680
+"Quinhagak, AK, United States",59.7506428,-161.8972349
+"Ragged Island, Bahamas",22.4765594,-75.8020934
+"Refuge Cove, BC, Canada",50.1256117,-124.8389298
+"Ridley Island, BC, Canada",54.2587805,-130.3038663
+"Rosarito, Mexico",32.3651660,-117.0557923
+"Rose Blanche, NL, Canada",47.6127759,-58.6947173
+"Rota, Northern Mariana Islands",14.1553603,145.2114812
+"Rum Cay, Bahamas",23.6738549,-74.8708236
+"Sainte-Anne-des-Monts, QC, Canada",49.1263278,-66.4849502
+"Saipan, Northern Mariana Islands",15.1909825,145.7467430
+"Sakhalin Island, Russia",50.1594760,143.0264412
+"Salluit, QC, Canada",62.1972958,-75.6397109
+"Salmon Beach, BC, Canada",48.9601163,-125.4340545
+"Saltery Bay, BC, Canada",49.7831416,-124.1790874
+"San Blas, FL, United States",29.6793797,-85.2979736
+"San Diego, CA, United States",32.7157062,-117.1638284
+"San Diego, California, United States",32.7157062,-117.1638284
+"San Juan, PR, United States",18.3842390,-66.0534400
+"San Juan, Puerto Rico",18.3842390,-66.0534400
+"San Luis Obispo, CA, United States",35.3540209,-120.3757160
+"San Salvador, Bahamas",24.0320000,-74.4900167
+"Sand Point, AK, United States",55.3405831,-160.4978522
+"Santa Barbara, CA, United States",34.4221319,-119.7026670
+"Santiago, Mexico",25.3743780,-100.2609439
+"Santo Domingo, Dominican Republic",18.4713858,-69.8918436
+"Saratoga Shores, Camano Island, WA, United States",,
+"Sarita, BC, Canada",48.8367335,-124.9794348
+"Sasanlagu, Rota, Northern Mariana Islands",14.1414114,145.1391248
+"Sayward, BC, Canada",50.3780591,-125.9592773
+"Scarlett Point, BC, Canada",50.8600479,-127.6117318
+"Seaford, BC, Canada",50.0870158,-124.9010110
+"Seattle, WA, United States",47.6038321,-122.3300620
+"Sept-Îles, QC, Canada",50.2109579,-66.3790642
+"Seward, AK, United States",60.1013952,-149.4404281
+"Shawl Bay, BC, Canada",50.8539409,-126.5716019
+"Shearwater, BC, Canada",52.1478128,-128.0905920
+"Shikotan Island, Russia",43.7954063,146.7079113
+"Shirley, NY, United States",40.7936005,-72.8713257
+"Shoreham, NY, United States",40.9573208,-72.9076025
+"Siboney (Santiago de Cuba), Cuba",20.0212776,-75.8013192
+"Sitka, AK, United States",57.4086082,-135.4596206
+"Skagway, AK, United States",59.6226362,-135.4094368
+"Smith Island, BC, Canada",54.1539800,-130.2246152
+"Snaw-naw-as, BC, Canada",49.2496212,-124.1224743
+"Snug Cove, BC, Canada",49.3794979,-123.3290401
+"Sochi, Russia",43.5854823,39.7231090
+"Sovetskaya Gavan, Russia",48.9663026,140.2849580
+"Spencer Beach, HI, United States",20.0234374,-155.8218123
+"Squirrel Cove, BC, Canada",50.1181078,-124.9132941
+"St. Croix, Virgin Islands (U.S.)",17.7291240,-64.7589156
+"St. Croix, Virgin Islands, Virgin Islands (U.S.)",17.7291240,-64.7589156
+"St. David, Bermuda",32.3592073,-64.6633843
+"St. Joseph, MI, United States",41.9031963,-85.5356726
+"Stag Harbour, NL, Canada",49.5800731,-54.2828639
+"Stonington, ME, United States",44.1565930,-68.6672970
+"Stories Beach, BC, Canada",49.9206742,-125.1847782
+"Sugar Dock, Saipan, Northern Mariana Islands",15.1514211,145.6995044
+"Surge Narrows, BC, Canada",50.2280664,-125.1535997
+"Sydney Mines, NS, Canada",46.2340189,-60.2239916
+"Tachognya Beach, Tinian, Northern Mariana Islands",,
+"Tahsis, BC, Canada",49.9152219,-126.6634768
+"Taman, Russia",45.2158646,36.7191326
+"Tanguisson Point, Guam",13.5507028,144.8119699
+"Tasiujaq, QC, Canada",58.6978307,-69.9318091
+"Telegraph Cove, BC, Canada",50.5474331,-126.8313940
+"Tijuana, Mexico",32.5364775,-117.0371232
+"Tiksi, Russia",71.6235296,128.8233398
+"Tinian, CNMI, United States",14.9481950,145.6417506
+"Tinian, Northern Mariana Islands",14.9481950,145.6417506
+"Tlell, BC, Canada",53.5835380,-131.9334410
+"Tofino, BC, Canada",49.1528473,-125.9048279
+"Togiak, AK, United States",59.0619444,-160.3763889
+"Tom Island, BC, Canada",53.5433594,-129.6056971
+"Toquaht Bay, BC, Canada",,
+"Toronto, ON, Canada",43.6534817,-79.3839347
+"Tuckerton, NJ, United States",39.6035094,-74.3381182
+"Tulum, Mexico",20.4296470,-87.6529306
+"Tumon Bay, Guam",13.5164652,144.7957361
+"Tumon, Guam",13.4966854,144.7772156
+"Uchucklesaht, BC, Canada",49.0445130,-125.0880649
+"Ucluelet, BC, Canada",48.9426817,-125.5460490
+"Uglegorsk, Russia",49.0792960,142.0633622
+"Ugolnye Kopi, Russia",64.7421025,177.6907249
+"Umiujaq, QC, Canada",56.5530388,-76.5457626
+"Unalaska, AK, United States",53.8735828,-166.5328654
+"Ust-Bolsheretsk, Russia",,
+"Utqiagvik, AK, United States",71.2905366,-156.7884400
+"Valdez, AK, United States",61.1299396,-146.3493630
+"Van Anda, BC, Canada",49.7582030,-124.5574950
+"Vancouver, BC, Canada",49.2608724,-123.1139520
+"Veracruz, Mexico",19.3333330,-96.6666670
+"Vero Beach, FL, United States",27.6387163,-80.3975399
+"Virginia Beach, VA, United States",36.8496579,-75.9760751
+"Vladivostok, Russia",43.1150678,131.8855768
+"Wailuku, HI, United States",20.8905443,-156.5030930
+"Wainwright, AK, United States",70.6369444,-160.0383330
+"Wall Township, NJ, United States",40.1743052,-74.0902219
+"Warrenton, OR, United States",46.1651050,-123.9237560
+"West Palm Beach, FL, United States",26.7153640,-80.0532942
+"Whaletown, BC, Canada",50.1064880,-125.0518800
+"Whittier, AK, United States",60.7730556,-148.6838889
+"Williams Beach, BC, Canada",49.8211053,-125.0509406
+"Williamsport, AK, United States",59.6978248,-153.6706411
+"Wilson, NY, United States",43.3097780,-78.8261500
+"Winema, OR, United States",42.3582099,-121.9576000
+"Winter Harbour, BC, Canada",50.5166670,-128.0333330
+"Wrangell, AK, United States",56.4706022,-132.3829431
+"Wuikinuxv, BC, Canada",51.6801124,-127.2252049
+"Yakutat, AK, United States",59.6391781,-139.3429439
+"Yuquot, BC, Canada",49.5917716,-126.6186510
+"Yuzhno-Sakhalinsk, Russia",46.9574273,142.7274380
+"Zeballos, BC, Canada",49.9824012,-126.8463439
