@@ -33,4 +33,7 @@ venv/
 # Data-center pipeline: large search caches and raw API logs stay local
 data/datacenter_searches*.jsonl
 data/*.raw.jsonl
-data/*.pre-migration.bak
+data/*.bak
+# Third-party seed lists are not republished; data/README.md says where to get them
+data/Data_Centers_Database.xlsx
+data/trackdatacenters_seed.csv

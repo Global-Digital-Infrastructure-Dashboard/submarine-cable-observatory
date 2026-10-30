@@ -6,7 +6,8 @@ Seed: data/Data_Centers_Database.xlsx, sheet DB_Output_V2 (the other sheet has
 unresolved IMPORTRANGE formulas), plus data/trackdatacenters_seed.csv: facilities
 from trackdatacenters.com not already in FracTracker, used only as a seed list
 (name, city, county, state; lat/long are our own Nominatim geocodes, and no other
-field of theirs is copied). Output is a local CSV only - nothing is
+field of theirs is copied). Neither seed file is in git - data/README.md says
+where to get each and how to cite it. Output is a local CSV only - nothing is
 written to Supabase. The submarinecables table is only read (anon key) to
 compute cable_landing_proximity.
 
@@ -29,6 +30,7 @@ import csv
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import threading
@@ -175,6 +177,7 @@ EXTRACTION_SCHEMA = {
         **{f: ({'type': 'string', 'enum': ENUMS[f]} if f in ENUMS else {'type': 'string'})
            for f in ROW_FIELDS},
         'owner_parent_from_public_knowledge': {'type': 'boolean'},
+        'owner_origin_from_public_knowledge': {'type': 'boolean'},
         'foreign_linked_entities': {
             'type': 'array',
             'items': {
@@ -191,15 +194,16 @@ EXTRACTION_SCHEMA = {
         },
         'evidence_results': {'type': 'array', 'items': {'type': 'integer'}},
     },
-    'required': ROW_FIELDS + ['owner_parent_from_public_knowledge', 'foreign_linked_entities', 'evidence_results'],
+    'required': ROW_FIELDS + ['owner_parent_from_public_knowledge', 'owner_origin_from_public_knowledge',
+                              'foreign_linked_entities', 'evidence_results'],
     'additionalProperties': False,
 }
 
 CLAUDE_SYSTEM = f"""You code ownership and jurisdiction fields for US data center facilities \
 in a research dataset on infrastructure sovereignty. You receive a FracTracker Alliance \
 seed record and a Perplexity web-search answer with its search results. Fill every field \
-from that evidence only - never from background knowledge, with the single owner_parent \
-exception below, and never by guessing. Any field the evidence does not support is exactly \
+from that evidence only - never from background knowledge, with the single \
+listed-company exception below, and never by guessing. Any field the evidence does not support is exactly \
 "{NOT_DISCLOSED}".
 
 Fields:
@@ -211,11 +215,17 @@ self-named subsidiary (Google -> Alphabet Inc., Meta -> Meta Platforms, Inc., \
 AWS -> Amazon.com, Inc.), you may fill its widely known listed parent and set \
 owner_parent_from_public_knowledge to true. Never use this exception for private \
 companies, site LLCs or SPVs, joint ventures, funds, state backing, or foreign or \
-offshore holding structures - those stay evidence-only. It covers owner_parent alone; \
-every other field, including owner_origin, still needs evidence. If owner_parent comes \
-from the evidence, owner_parent_from_public_knowledge is false.
+offshore holding structures - those stay evidence-only. It covers owner_parent and \
+owner_origin only; every other field still needs evidence. If owner_parent comes from the \
+evidence, owner_parent_from_public_knowledge is false.
 - operator_nationality: country where the operator is headquartered.
-- owner_origin: country where owner_parent is headquartered.
+- owner_origin: country where owner_parent is headquartered. Exception to evidence-only: \
+when owner_parent (from the evidence or the exception above) is a well-known publicly \
+listed company whose headquarters country is widely known and unambiguous, you may fill \
+that country and set owner_origin_from_public_knowledge to true. Never for private \
+companies, funds, joint ventures, site LLCs, or a parent recently acquired, merged or \
+redomiciled. If owner_origin comes from the evidence, owner_origin_from_public_knowledge \
+is false.
 - legal_domicile: jurisdiction where the owning entity is incorporated, e.g. "Delaware, US".
 - ownership_structure: one code; ownership_structure_raw: the specifics in words, naming \
 JV partners, funds, site LLCs and state investors. Code the structure of the entity that \
@@ -256,6 +266,7 @@ two tiers, choose the higher number.
 - notes: one or two sentences on ambiguities, conflicts between sources, or when the \
 evidence is only about the company and not this facility.
 - owner_parent_from_public_knowledge: see owner_parent.
+- owner_origin_from_public_knowledge: see owner_origin.
 - foreign_linked_entities: every non-US company, fund or government the evidence ties to \
 this facility in any role, whether or not it owns the facility - e.g. a foreign tenant, a \
 sovereign fund in the project, a foreign government funding associated infrastructure. \
@@ -497,9 +508,44 @@ def extract_with_claude(client, model, row, search):
     return parse_response(response), response, usage_cost(model, response.usage.to_dict())
 
 
+# Headquarters country of well-known publicly listed parents, used to fill owner_origin when a
+# row names the parent but its evidence never states where it is headquartered. Listed
+# companies only, matching the owner_parent exception: private firms, funds and joint ventures
+# stay evidence-only. Reviewed 2026-10-30. Left out on purpose: DigitalBridge (SoftBank
+# acquisition) and EdgeConneX (owned by EQT), whose ultimate parent is not the named firm.
+KNOWN_PARENT_HQ = [
+    (r'amazon\.com', 'United States'), (r'microsoft', 'United States'), (r'alphabet', 'United States'),
+    (r'meta platforms', 'United States'), (r'digital realty', 'United States'),
+    (r'equinix', 'United States'), (r'comcast', 'United States'),
+    (r'(funds managed by )?blackstone', 'United States'), (r'american tower', 'United States'),
+    (r'citigroup', 'United States'), (r'cnx resources', 'United States'),
+    (r'iron mountain', 'United States'), (r'galaxy digital', 'United States'),
+    (r'terawulf', 'United States'), (r'nordson', 'United States'), (r'prologis', 'United States'),
+    (r'verizon', 'United States'), (r'cbre group', 'United States'), (r'at&t', 'United States'),
+    (r'hut 8', 'United States'), (r'cleanspark', 'United States'), (r'lumen technologies', 'United States'),
+    (r"lowe's companies", 'United States'), (r'soluna holdings', 'United States'),
+    (r'lexington realty', 'United States'),
+    (r'ntt(, inc\.| data group)', 'Japan'), (r'mapletree', 'Singapore'), (r'ses s\.a\.', 'Luxembourg'),
+    (r'viridien', 'France'), (r'iren limited', 'Australia'), (r'macquarie', 'Australia'),
+]
+
+
+def known_parent_origin(parent):
+    """owner_origin for a parent in KNOWN_PARENT_HQ, else None. Multi-party parents (joint
+    ventures, "A; B", "A / B") never match, since one country can't describe them."""
+    p = parent.lower().strip()
+    if re.search(r'joint venture|;|/| jv\b', p):
+        return None
+    return next((country for pattern, country in KNOWN_PARENT_HQ if re.match(pattern, p)), None)
+
+
+ORIGIN_NOTE = 'owner_origin from public corporate HQ, not facility-specific evidence (tier set to 3)'
+
+
 def build_row(row, fields, search):
     """Merge deterministic seed/geography fields with Claude's coded fields."""
     from_public_knowledge = fields.pop('owner_parent_from_public_knowledge')
+    origin_from_public_knowledge = fields.pop('owner_origin_from_public_knowledge', False)
     linked = fields.pop('foreign_linked_entities')
     allowed = {r['url'] for r in search['results']}
     # Claude cites search results by number; resolve them to the full URLs saved with the search.
@@ -522,6 +568,13 @@ def build_row(row, fields, search):
         out['attribution_tier'] = '3'
         notes.append('owner_parent from public corporate structure, not facility-specific '
                      'evidence (tier set to 3)')
+    if out['owner_origin'] == NOT_DISCLOSED and out['owner_parent'] != NOT_DISCLOSED:
+        origin = known_parent_origin(out['owner_parent'])
+        if origin:
+            out['owner_origin'], origin_from_public_knowledge = origin, True
+    if origin_from_public_knowledge and out['owner_origin'] != NOT_DISCLOSED:
+        out['attribution_tier'] = '3'
+        notes.append(ORIGIN_NOTE)
     notes.append(row['landing_note'])
     out.update({
         'facility_id': row['facility_id'],
