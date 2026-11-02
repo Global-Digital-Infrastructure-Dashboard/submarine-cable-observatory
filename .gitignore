@@ -39,3 +39,5 @@ data/Data_Centers_Database.xlsx
 data/trackdatacenters_seed.csv
 # Enrichment outputs carry FracTracker fields; keep local until a citation-compliant export exists
 data/datacenter_enrichment*
+# 5G pipeline: search cache and run logs stay local
+data/5g_*.jsonl

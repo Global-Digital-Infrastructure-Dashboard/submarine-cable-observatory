@@ -1,6 +1,7 @@
 """
 Shared helpers for the data-processing scripts:
-dataset loading, bloc classification, and the Supabase client.
+dataset loading, bloc classification, the Supabase client, and paid-API helpers
+(Perplexity search, Claude client, spend tracking, capped batch runs, resumable CSVs).
 """
 
 import os
@@ -259,3 +260,204 @@ def to_native(value):
 
 def clean_rows(rows):
     return [{k: to_native(v) for k, v in row.items()} for row in rows]
+
+
+# ============================================================================
+# PAID API HELPERS (Perplexity search, Claude extraction, spend tracking)
+# ============================================================================
+
+# USD per token. Perplexity responses usually report their own cost (usage.cost.total_cost);
+# its table is only the fallback when they don't.
+CLAUDE_PRICE = {
+    'claude-opus-5-5': {'input': 4.00 / 1e6, 'output': 20.00 / 1e6, 'cache_read': 0.20 / 1e6},
+    'claude-sonnet-5-5': {'input': 2.00 / 1e6, 'output': 10.00 / 1e6, 'cache_read': 0.20 / 1e6},
+}
+BATCH_DISCOUNT = 0.5  # Message Batches: half price on every token, cache reads/writes included
+BATCH_SAFETY = 1.05  # margin on the worst-case per-row batch rate (output length varies)
+PERPLEXITY_URL = 'https://api.perplexity.ai/chat/completions'
+PERPLEXITY_MODEL = 'sonar-pro'
+PERPLEXITY_PRICE = {'input': 3.00 / 1e6, 'output': 15.00 / 1e6, 'request': 10.00 / 1000}
+
+
+def usage_cost(model, usage, batch=False):
+    """USD for one response from its usage block (a dict), including cache writes/reads."""
+    price = CLAUDE_PRICE[model]
+    writes = usage.get('cache_creation') or {}
+    write_5m = writes.get('ephemeral_5m_input_tokens', 0)
+    write_1h = writes.get('ephemeral_1h_input_tokens', 0)
+    if not writes:
+        write_5m = usage.get('cache_creation_input_tokens') or 0
+    cost = (usage['input_tokens'] * price['input']
+            + write_5m * price['input'] * 1.25
+            + write_1h * price['input'] * 2
+            + (usage.get('cache_read_input_tokens') or 0) * price['cache_read']
+            + usage['output_tokens'] * price['output'])
+    return cost * (BATCH_DISCOUNT if batch else 1)
+
+
+def average(costs, default):
+    return sum(costs) / len(costs) if costs else default
+
+
+def anthropic_client():
+    """Claude client from ANTHROPIC_API_KEY. Keys not scoped to a workspace (e.g. an org-level
+    research key) must name one per request, from ANTHROPIC_WORKSPACE_ID. Retries aren't
+    logged, and a request that fails after Anthropic processes it is still billed - keep them
+    to one so unlogged spend stays small."""
+    import anthropic
+
+    key = env_key('ANTHROPIC_API_KEY')
+    if not key:
+        sys.exit('Missing ANTHROPIC_API_KEY: add it to .env (gitignored) as NAME=value, or export it.')
+    workspace = env_key('ANTHROPIC_WORKSPACE_ID')
+    return anthropic.Anthropic(api_key=key, max_retries=1,
+                               default_headers={'anthropic-workspace-id': workspace} if workspace else None)
+
+
+def perplexity_search(system, prompt, api_key, context_size='medium'):
+    """One sonar-pro search: {'answer', 'results', 'usage', 'cost'}, cost as Perplexity reports it."""
+    import time
+    import requests
+
+    body = {
+        'model': PERPLEXITY_MODEL,
+        'messages': [{'role': 'system', 'content': system}, {'role': 'user', 'content': prompt}],
+        'web_search_options': {'search_context_size': context_size},
+    }
+    for attempt in range(5):
+        resp = requests.post(PERPLEXITY_URL, json=body, timeout=120,
+                             headers={'Authorization': f'Bearer {api_key}'})
+        if resp.status_code == 429 or resp.status_code >= 500:
+            time.sleep(min(2 ** attempt * 5, 120))
+            continue
+        resp.raise_for_status()
+        data = resp.json()
+        usage = data.get('usage', {})
+        cost = (usage.get('cost') or {}).get('total_cost')
+        if cost is None:
+            cost = (usage.get('prompt_tokens', 0) * PERPLEXITY_PRICE['input']
+                    + usage.get('completion_tokens', 0) * PERPLEXITY_PRICE['output']
+                    + PERPLEXITY_PRICE['request'])
+        results = data.get('search_results') or [{'url': u} for u in data.get('citations', [])]
+        return {'answer': data['choices'][0]['message']['content'], 'results': results,
+                'usage': usage, 'cost': cost}
+    resp.raise_for_status()
+
+
+def open_resumable_csv(path, columns, key):
+    """Append-mode DictWriter on `path` plus the `key` values already written, so a re-run skips
+    completed rows. Exits if an existing file has different columns."""
+    import csv
+
+    done = set()
+    if os.path.exists(path):
+        header = next(csv.reader(open(path)), None)
+        if header and header != columns:
+            sys.exit(f"{path} has different columns than this version writes: "
+                     f"missing {sorted(set(columns) - set(header))}, extra {sorted(set(header) - set(columns))}.")
+        done = set(pd.read_csv(path, usecols=[key], dtype=str)[key]) if header else set()
+    new_file = not os.path.exists(path) or os.path.getsize(path) == 0
+    out_f = open(path, 'a', newline='')
+    writer = csv.DictWriter(out_f, fieldnames=columns)
+    if new_file:
+        writer.writeheader()
+        out_f.flush()
+    return writer, out_f, done
+
+
+def worst_case_batch_rate(model, batched, fallback_rate, cache_prefix_tokens):
+    """Per-row batch cost to size a chunk with, assuming every row writes the prompt cache.
+
+    A big batch runs in parallel, so many rows miss the cache: on 2026-10-29 a third of a
+    1,137-row batch wrote it (2x input price) instead of reading it, and the batch cost 21%
+    over the average of earlier, mostly-cached rows. So take each logged batched row's cost
+    (`batched`: (cost, usage) pairs) as if its cache read had been a 1h write, average that,
+    and add a margin. With no batched rows yet, use `fallback_rate` (a synchronous per-row
+    rate) at the batch discount plus a full cache write.
+    """
+    price = CLAUDE_PRICE[model]
+    miss_premium = (price['input'] * 2 - price['cache_read']) * BATCH_DISCOUNT
+    rates = [cost + (usage.get('cache_read_input_tokens') or 0) * miss_premium for cost, usage in batched]
+    if rates:
+        return average(rates, 0) * BATCH_SAFETY, f'worst case (every row a cache write) over {len(rates)} batched rows'
+    return ((fallback_rate * BATCH_DISCOUNT + cache_prefix_tokens * miss_premium) * BATCH_SAFETY,
+            'conservative: no batched rows yet')
+
+
+def run_capped_batches(client, model, items, make_params, on_result, on_error, state_path, cap,
+                       batch_rows, rate_fn, cache_prefix_tokens):
+    """Extract via the Message Batches API without ever being able to exceed `cap` (USD).
+
+    Collects any batch recorded in `state_path` but not yet collected, then submits `items`
+    ((custom_id, payload) pairs) in chunks of at most `batch_rows`, one at a time. Each chunk
+    is sized to what is left of the cap after the billed cost of the chunks before it, at the
+    per-row rate `rate_fn()` returns ((rate, basis)): a chunk is billed in full even if it
+    overruns the balance. For each result, on_result(custom_id, message, cost, batch_id) writes
+    it, or on_error(custom_id, error, batch_id) logs it; the cost of an invalid but billed result
+    is still counted. Returns the cost of everything collected this run.
+    """
+    import json
+    import time
+
+    state = [json.loads(line) for line in open(state_path)] if os.path.exists(state_path) else []
+    collected = {s['batch_id'] for s in state if s.get('collected')}
+    pending = [s for s in state if 'facility_ids' in s and s['batch_id'] not in collected]
+
+    def collect(entry):
+        batch_id = entry['batch_id']
+        while True:
+            b = client.messages.batches.retrieve(batch_id)
+            c = b.request_counts
+            print(f"  {time.strftime('%H:%M:%S')} batch {batch_id}: {b.processing_status} - "
+                  f"{c.succeeded} succeeded, {c.errored} errored, {c.processing} processing")
+            if b.processing_status == 'ended':
+                break
+            time.sleep(60)
+        spent = done = failed = 0
+        for result in client.messages.batches.results(batch_id):
+            cost = 0.0
+            try:
+                if result.result.type != 'succeeded':
+                    raise RuntimeError(f"batch result {result.result.type}: {getattr(result.result, 'error', '')}")
+                message = result.result.message
+                cost = usage_cost(entry['model'], message.usage.to_dict(), batch=True)
+                on_result(result.custom_id, message, cost, batch_id)
+            except Exception as e:
+                failed += 1
+                on_error(result.custom_id, e, batch_id)
+            else:
+                done += 1
+            spent += cost
+        with open(state_path, 'a') as f:
+            f.write(json.dumps({'batch_id': batch_id, 'collected': True}) + '\n')
+        print(f"\nBatch {batch_id}: {done} rows written, {failed} failed. Claude cost ${spent:.2f} "
+              f"(${spent / max(done, 1):.4f}/row at batch price, cache included).")
+        return spent
+
+    # A batch left from an earlier run was budgeted then; count it against this cap anyway.
+    spent = sum(collect(entry) for entry in pending)
+    submitted = {i for entry in pending for i in entry['facility_ids']}
+    items = [(i, p) for i, p in items if i not in submitted]
+    cache_write = cache_prefix_tokens * CLAUDE_PRICE[model]['input'] * 2 * BATCH_DISCOUNT
+    while items:
+        per_row, basis = rate_fn()
+        left = cap - spent
+        n = min(len(items), batch_rows, max(0, int((left - cache_write) // per_row)))
+        if n == 0:
+            print(f"${left:.2f} left of the ${cap:.2f} cap doesn't cover one row at "
+                  f"${per_row:.4f}/row ({basis}); stopping with {len(items)} rows unsubmitted.")
+            break
+        chunk, items = items[:n], items[n:]
+        print(f"Submitting {n} rows: at most ${n * per_row + cache_write:.2f} (${per_row:.4f}/row, {basis}); "
+              f"${spent:.2f} spent so far this run, cap ${cap:.2f}.")
+        batch = client.messages.batches.create(requests=[
+            {'custom_id': i, 'params': make_params(p)} for i, p in chunk])
+        # 'facility_ids' is the state file's historical name for the batch's custom_ids.
+        entry = {'batch_id': batch.id, 'model': model, 'facility_ids': [i for i, _ in chunk],
+                 'submitted_at': time.strftime('%Y-%m-%dT%H:%M:%S')}
+        with open(state_path, 'a') as f:
+            f.write(json.dumps(entry) + '\n')
+        print(f"Batch {batch.id} submitted; recorded in {state_path} so it can be collected if this exits.")
+        spent += collect(entry)
+    print(f"\nClaude cost this run: ${spent:.2f} of cap ${cap:.2f}.")
+    return spent

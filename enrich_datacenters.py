@@ -41,7 +41,9 @@ import numpy as np
 import pandas as pd
 import requests
 
-from pipeline_common import DATASET_PATH, canonical_country, env_key, fetch_all, get_anon_client
+from pipeline_common import (DATASET_PATH, anthropic_client, average, canonical_country,
+                             env_key, fetch_all, get_anon_client, perplexity_search, run_capped_batches,
+                             usage_cost, worst_case_batch_rate)
 
 SEED_PATH = 'data/Data_Centers_Database.xlsx'
 SEED_SHEET = 'DB_Output_V2'
@@ -54,20 +56,10 @@ SEARCH_CACHE = 'data/datacenter_searches.jsonl'
 FULL_OUTPUT = 'data/datacenter_enrichment.csv'
 DRY_RUN_ROWS = 10
 
-PERPLEXITY_URL = 'https://api.perplexity.ai/chat/completions'
-PERPLEXITY_MODEL = 'sonar-pro'
 CLAUDE_MODELS = {'opus': 'claude-opus-5-5', 'sonnet': 'claude-sonnet-5-5'}
 
 # USD. Perplexity responses usually report their own cost (usage.cost.total_cost);
 # this table is only the fallback when they don't.
-CLAUDE_PRICE = {
-    'claude-opus-5-5': {'input': 4.00 / 1e6, 'output': 20.00 / 1e6, 'cache_read': 0.20 / 1e6},
-    'claude-sonnet-5-5': {'input': 2.00 / 1e6, 'output': 10.00 / 1e6, 'cache_read': 0.20 / 1e6},
-}
-BATCH_DISCOUNT = 0.5  # Message Batches: half price on every token, cache reads/writes included
-BATCH_SAFETY = 1.05  # margin on the worst-case per-row batch rate (output length varies)
-PERPLEXITY_PRICE = {'input': 3.00 / 1e6, 'output': 15.00 / 1e6, 'request': 10.00 / 1000}
-
 NOT_DISCLOSED = 'not disclosed'
 # Station names that are only a state/province ('Maryland, United States') geocode to a
 # region centroid hundreds of km from the real landing, so they're left out of the match.
@@ -419,30 +411,7 @@ def search_perplexity(row, api_key):
     location = ', '.join(p for p in (clean(row['address']), clean(row['city']), clean(row['state'])) if p)
     prompt = PERPLEXITY_QUESTION.format(facility_name=clean(row['facility_name']), location=location,
                                         operator_line=operator_line(row))
-    body = {
-        'model': PERPLEXITY_MODEL,
-        'messages': [{'role': 'system', 'content': PERPLEXITY_SYSTEM},
-                     {'role': 'user', 'content': prompt}],
-        'web_search_options': {'search_context_size': 'medium'},
-    }
-    for attempt in range(5):
-        resp = requests.post(PERPLEXITY_URL, json=body, timeout=120,
-                             headers={'Authorization': f'Bearer {api_key}'})
-        if resp.status_code == 429 or resp.status_code >= 500:
-            time.sleep(min(2 ** attempt * 5, 120))
-            continue
-        resp.raise_for_status()
-        data = resp.json()
-        usage = data.get('usage', {})
-        cost = (usage.get('cost') or {}).get('total_cost')
-        if cost is None:
-            cost = (usage.get('prompt_tokens', 0) * PERPLEXITY_PRICE['input']
-                    + usage.get('completion_tokens', 0) * PERPLEXITY_PRICE['output']
-                    + PERPLEXITY_PRICE['request'])
-        results = data.get('search_results') or [{'url': u} for u in data.get('citations', [])]
-        return {'answer': data['choices'][0]['message']['content'], 'results': results,
-                'usage': usage, 'cost': cost}
-    resp.raise_for_status()
+    return perplexity_search(PERPLEXITY_SYSTEM, prompt, api_key)
 
 
 def user_content(row, search):
@@ -473,22 +442,6 @@ def request_params(model, row, search, cache_ttl):
                           'format': {'type': 'json_schema', 'schema': EXTRACTION_SCHEMA}},
         'messages': [{'role': 'user', 'content': user_content(row, search)}],
     }
-
-
-def usage_cost(model, usage, batch=False):
-    """USD for one response from its usage block (a dict), including cache writes/reads."""
-    price = CLAUDE_PRICE[model]
-    writes = usage.get('cache_creation') or {}
-    write_5m = writes.get('ephemeral_5m_input_tokens', 0)
-    write_1h = writes.get('ephemeral_1h_input_tokens', 0)
-    if not writes:
-        write_5m = usage.get('cache_creation_input_tokens') or 0
-    cost = (usage['input_tokens'] * price['input']
-            + write_5m * price['input'] * 1.25
-            + write_1h * price['input'] * 2
-            + (usage.get('cache_read_input_tokens') or 0) * price['cache_read']
-            + usage['output_tokens'] * price['output'])
-    return cost * (BATCH_DISCOUNT if batch else 1)
 
 
 def parse_response(message):
@@ -623,10 +576,6 @@ def past_costs(output):
     return claude, searches
 
 
-def average(costs, default):
-    return sum(costs) / len(costs) if costs else default
-
-
 # ============================================================================
 # RUN
 # ============================================================================
@@ -706,59 +655,26 @@ def run_search_only(todo, searches, searches_f, api_key, search_costs, args):
     print(f"{SEARCH_CACHE} now holds {len(searches)} searches. No Claude calls were made.")
 
 
-def worst_case_batch_rate(model, claude_costs):
-    """Per-row batch cost to size a chunk with, assuming every row writes the prompt cache.
-
-    A big batch runs in parallel, so many rows miss the cache: on 2026-10-29 a third of a
-    1,137-row batch wrote it (2x input price) instead of reading it, and the batch cost 21%
-    over the average of earlier, mostly-cached rows. So take each logged batched row's
-    cost as if its cache read had been a 1h write, average that, and add a margin.
-    """
-    price = CLAUDE_PRICE[model]
-    miss_premium = (price['input'] * 2 - price['cache_read']) * BATCH_DISCOUNT
-    rates = []
-    for line in open(FULL_OUTPUT + '.raw.jsonl') if os.path.exists(FULL_OUTPUT + '.raw.jsonl') else []:
-        c = json.loads(line)['claude']
-        if c.get('batch'):
-            rates.append(c['cost'] + (c['usage'].get('cache_read_input_tokens') or 0) * miss_premium)
-    if rates:
-        return average(rates, 0) * BATCH_SAFETY, f'worst case (every row a cache write) over {len(rates)} batched rows'
-    p90 = float(np.percentile(claude_costs, 90)) if claude_costs else CLAUDE_ROW_ESTIMATE
-    return (p90 * BATCH_DISCOUNT + CACHE_PREFIX_TOKENS * miss_premium) * BATCH_SAFETY, 'conservative: no batched rows yet'
+def batched_usage():
+    """(cost, usage) of every row extracted via the Batches API, for sizing the next chunk."""
+    if not os.path.exists(FULL_OUTPUT + '.raw.jsonl'):
+        return []
+    rows = (json.loads(line)['claude'] for line in open(FULL_OUTPUT + '.raw.jsonl'))
+    return [(c['cost'], c['usage']) for c in rows if c.get('batch')]
 
 
-def collect_batch(client, entry, seed, searches, writer, out_f, raw_f, err_f, claude_costs, state_path):
-    """Wait for one submitted batch, write its results like the synchronous path, and return its cost."""
-    batch_id = entry['batch_id']
-    while True:
-        b = client.messages.batches.retrieve(batch_id)
-        c = b.request_counts
-        print(f"  {time.strftime('%H:%M:%S')} batch {batch_id}: {b.processing_status} - "
-              f"{c.succeeded} succeeded, {c.errored} errored, {c.processing} processing")
-        if b.processing_status == 'ended':
-            break
-        time.sleep(60)
-    spent = done = failed = 0
-    for result in client.messages.batches.results(batch_id):
-        fid = result.custom_id
+def run_batch(client, model, todo, searches, writer, out_f, raw_f, err_f, claude_costs, args, output):
+    """Extract via the Message Batches API in cap-aware chunks (see run_capped_batches)."""
+    seed = load_seed()
+    seed = add_geographic_fields(seed, geocode_stations(load_landing_stations())).set_index('facility_id', drop=False)
+    rows = [r for _, r in todo.iterrows() if r['facility_id'] in searches]
+    if len(rows) < len(todo):
+        print(f"{len(todo) - len(rows)} remaining rows have no cached search yet - run --search-only first.")
+
+    def on_result(fid, message, cost, batch_id):
         row, search = seed.loc[fid], searches[fid]
-        try:
-            if result.result.type != 'succeeded':
-                raise RuntimeError(f"batch result {result.result.type}: {getattr(result.result, 'error', '')}")
-            message = result.result.message
-            fields = parse_response(message)
-            usage = message.usage.to_dict()
-            cost = usage_cost(entry['model'], usage, batch=True)
-        except Exception as e:
-            # A refused or invalid result may still be billed; count it if usage is there.
-            if result.result.type == 'succeeded':
-                spent += usage_cost(entry['model'], result.result.message.usage.to_dict(), batch=True)
-            failed += 1
-            err_f.write(json.dumps({'facility_id': fid, 'facility_name': clean(row['facility_name']),
-                                    'error': f"{type(e).__name__}: {e}", 'batch_id': batch_id}) + '\n')
-            err_f.flush()
-            print(f"  ✗ {clean(row['facility_name'])} ({fid}): {type(e).__name__}: {e}")
-            continue
+        fields = parse_response(message)
+        usage = message.usage.to_dict()
         writer.writerow(build_row(row, dict(fields), search))
         out_f.flush()
         raw_f.write(json.dumps({'facility_id': fid, 'perplexity': {**search, 'cost': 0.0},
@@ -767,60 +683,21 @@ def collect_batch(client, entry, seed, searches, writer, out_f, raw_f, err_f, cl
                                default=str) + '\n')
         raw_f.flush()
         claude_costs.append(cost)
-        spent += cost
-        done += 1
-    with open(state_path, 'a') as f:
-        f.write(json.dumps({'batch_id': batch_id, 'collected': True}) + '\n')
-    print(f"\nBatch {batch_id}: {done} rows written, {failed} failed. Claude cost ${spent:.2f} "
-          f"(${spent / max(done, 1):.4f}/row at batch price, cache included).")
-    return spent
 
+    def on_error(fid, e, batch_id):
+        name = clean(seed.loc[fid, 'facility_name'])
+        err_f.write(json.dumps({'facility_id': fid, 'facility_name': name,
+                                'error': f"{type(e).__name__}: {e}", 'batch_id': batch_id}) + '\n')
+        err_f.flush()
+        print(f"  ✗ {name} ({fid}): {type(e).__name__}: {e}")
 
-def run_batch(client, model, todo, searches, writer, out_f, raw_f, err_f, claude_costs, args, output):
-    """Extract via the Message Batches API: collect any batch already submitted, then submit chunks
-    of at most --batch-rows one at a time, each sized to what is left of --claude-cap after the
-    billed cost of the chunks before it, at a worst-case per-row rate. A chunk is billed in full
-    even if it overruns the balance, so no chunk may be able to exceed what remains."""
-    state_path = output + '.batches.jsonl'
-    state = [json.loads(line) for line in open(state_path)] if os.path.exists(state_path) else []
-    collected = {s['batch_id'] for s in state if s.get('collected')}
-    pending = [s for s in state if 'facility_ids' in s and s['batch_id'] not in collected]
-    seed = load_seed()
-    seed = add_geographic_fields(seed, geocode_stations(load_landing_stations())).set_index('facility_id', drop=False)
-    collect = lambda entry: collect_batch(client, entry, seed, searches, writer, out_f, raw_f, err_f,
-                                          claude_costs, state_path)
-
-    # A batch left from an earlier run was budgeted then; count it against this cap anyway.
-    spent = sum(collect(entry) for entry in pending)
-    submitted = {fid for entry in pending for fid in entry['facility_ids']}
-    rows = [r for _, r in todo.iterrows() if r['facility_id'] in searches and r['facility_id'] not in submitted]
-    if len(rows) + len(submitted) < len(todo):
-        print(f"{len(todo) - len(rows) - len(submitted)} remaining rows have no cached search yet - run --search-only first.")
-    rows = rows[:args.max_rows]
-    cache_write = CACHE_PREFIX_TOKENS * CLAUDE_PRICE[model]['input'] * 2 * BATCH_DISCOUNT
-    while rows:
-        per_row, basis = worst_case_batch_rate(model, claude_costs)
-        left = args.claude_cap - spent
-        n = min(len(rows), args.batch_rows, max(0, int((left - cache_write) // per_row)))
-        if n == 0:
-            print(f"${left:.2f} left of --claude-cap ${args.claude_cap:.2f} doesn't cover one row at "
-                  f"${per_row:.4f}/row ({basis}); stopping with {len(rows)} rows unsubmitted.")
-            break
-        chunk, rows = rows[:n], rows[n:]
-        print(f"Submitting {n} rows: at most ${n * per_row + cache_write:.2f} (${per_row:.4f}/row, {basis}); "
-              f"${spent:.2f} spent so far this run, cap ${args.claude_cap:.2f}.")
-        batch = client.messages.batches.create(requests=[
-            {'custom_id': r['facility_id'],
-             'params': request_params(model, r, searches[r['facility_id']], cache_ttl='1h')}
-            for r in chunk
-        ])
-        entry = {'batch_id': batch.id, 'model': model, 'facility_ids': [r['facility_id'] for r in chunk],
-                 'submitted_at': time.strftime('%Y-%m-%dT%H:%M:%S')}
-        with open(state_path, 'a') as f:
-            f.write(json.dumps(entry) + '\n')
-        print(f"Batch {batch.id} submitted; recorded in {state_path} so it can be collected if this exits.")
-        spent += collect(entry)
-    print(f"\nClaude cost this run: ${spent:.2f} of cap ${args.claude_cap:.2f}.")
+    p90 = float(np.percentile(claude_costs, 90)) if claude_costs else CLAUDE_ROW_ESTIMATE
+    run_capped_batches(
+        client, model, [(r['facility_id'], r) for r in rows[:args.max_rows]],
+        lambda r: request_params(model, r, searches[r['facility_id']], cache_ttl='1h'),
+        on_result, on_error, output + '.batches.jsonl', args.claude_cap, args.batch_rows,
+        lambda: worst_case_batch_rate(model, batched_usage(), p90, CACHE_PREFIX_TOKENS),
+        CACHE_PREFIX_TOKENS)
 
 
 def main():
@@ -860,15 +737,7 @@ def main():
         sys.exit(f"Missing {', '.join(missing)}: add {'them' if len(missing) > 1 else 'it'} to .env "
                  f"(gitignored) as NAME=value, or export in the environment.")
 
-    client = None
-    if 'ANTHROPIC_API_KEY' in keys:
-        import anthropic
-        # Retries aren't logged, and a request that fails after Anthropic processes it is still
-        # billed - keep them to one so unlogged spend stays small.
-        # Keys not scoped to a workspace (e.g. an org-level research key) must name one per request.
-        workspace = env_key('ANTHROPIC_WORKSPACE_ID')
-        client = anthropic.Anthropic(api_key=keys['ANTHROPIC_API_KEY'], max_retries=1,
-                                     default_headers={'anthropic-workspace-id': workspace} if workspace else None)
+    client = anthropic_client() if 'ANTHROPIC_API_KEY' in keys else None
 
     model = CLAUDE_MODELS[args.model]
     output = args.output or (FULL_OUTPUT if args.full else DRY_RUN_OUTPUT.format(model=args.model))
