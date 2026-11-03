@@ -43,7 +43,7 @@ import jsonschema
 import numpy as np
 import pandas as pd
 
-from pipeline_common import (anthropic_client, average, env_key, fetch_all, get_anon_client,
+from pipeline_common import (anthropic_client, average, canonical_country, env_key, fetch_all, get_anon_client,
                              open_resumable_csv, perplexity_search, run_capped_batches, usage_cost,
                              worst_case_batch_rate)
 
@@ -78,6 +78,12 @@ DISCOVERY_LOG = 'data/5g_discovery.raw.jsonl'
 SEARCH_ESTIMATE = 0.009
 DISCOVERY_ESTIMATE = 0.045   # one Claude call per market, synchronous
 OPERATOR_ESTIMATE = 0.125    # one synchronous Claude extraction over four searches
+# State equity (percent) above which an operator is state-backed whether or not it is also
+# listed; at STATE_OWNED_PCT or more it is state-owned. Applied in the prompt and enforced in
+# build_row from the coded state_equity_pct.
+STATE_BACKED_PCT = 10
+STATE_OWNED_PCT = 50
+
 # Fixed system prompt (which carries the output schema), in tokens (messages.count_tokens, 2026-11-02). Used only
 # for the cache-write allowance when sizing batches.
 PREFIX_TOKENS = 8855
@@ -135,8 +141,10 @@ providers.""",
     'ownership': """{operator} ({market}) - ownership as of {year}.
 1. Ownership type: private, publicly listed, state-owned, or state-backed through a minority \
 stake.
-2. Any direct or indirect state or sovereign-fund equity: percentage and the holding \
-vehicle's name.
+2. State equity, direct or indirect: list every government, state-owned company or sovereign \
+wealth fund - domestic or foreign - holding 3% or more of the operator or of its ultimate \
+parent, with the percentage, the holder's name, the state behind it, and the date of the \
+figure. Say explicitly if the parent's major-shareholder disclosures show none.
 3. The ultimate parent company and the country where it is legally incorporated.
 4. The operating entity's jurisdiction of incorporation, if different from {market}.""",
 
@@ -343,6 +351,8 @@ market_vendor_shares, with the analyst house and year, and not in the element li
 where 5G runs non-standalone, because there the 4G core is the core vendor of record.
 - management_system_vendor is the supplier of the RAN configuration, orchestration and \
 update-management system, coded separately from the equipment it manages.
+- Software the operator or its group builds itself is a supplier entry named exactly \
+"in-house (<group name>)".
 - open_ran_status: actively_deploying (O-RAN interfaces in production), \
 guiding_future_evolution (O-RAN principles guide RAN evolution), somewhat_integrated, \
 not_integrated.
@@ -368,27 +378,41 @@ the source doesn't say which kind of coverage a figure measures, status is \
 upstream_transit_provider: named providers.
 
 Ownership layer:
-- ownership_type: private, listed, state_owned, or state_backed_minority.
-- state_equity: percent held directly or indirectly by a state entity or sovereign fund, with \
-the holding vehicle named (a sovereign fund rarely appears under the state's own name). A \
-source saying there is no state holding is a value of 0.
+- ownership_type: private, listed, state_owned, or state_backed_minority. Where state_equity \
+is coded, it decides, whether or not the company is also listed: {STATE_OWNED_PCT}% or more is \
+state_owned; above {STATE_BACKED_PCT}% is state_backed_minority. Otherwise - including when no \
+state equity is reported - code listed (the operator's or its ultimate parent's shares are \
+publicly traded) or private from the evidence.
+- state_equity: percent held directly or indirectly by any state - domestic or foreign - \
+through government, state-owned companies or sovereign funds, with the holding vehicles and \
+the states behind them named (a sovereign fund rarely appears under the state's own name). \
+Stakes in the ultimate parent count, multiplied through the ownership chain (15% of a parent \
+that owns 100% of the operator is 15%); sum the stakes of different states and name each. A \
+source saying the parent's major shareholders include no state holder is a value of 0.
 - parent_company_origin: the ultimate parent and the country of its legal incorporation (not \
-its headquarters).
+its headquarters). country is the country's common English short name only (e.g. "United \
+Kingdom", not "England and Wales"; "Netherlands", not "Kingdom of the Netherlands").
 - legal_domicile: the operating entity's jurisdiction of incorporation, only where it differs \
 from the market; "{NOT_APPLICABLE}" where it is incorporated in the market.
 
 Regulatory layer, coded as the regime applies to this operator:
 - vendor_restriction_exists: yes if a restriction on designated high-risk suppliers applies to \
-this operator. no only if a source says none applies - absence of a restriction in the \
-evidence is "{NOT_DISCLOSED}", because it may mean nobody asked. An instrument that binds some \
-operators and not others (e.g. contracts signed with named operators) applies only to those.
+this operator. no when a source says none applies, or when the evidence describes the national \
+regime and its instruments do not reach this operator (e.g. contracts signed with named \
+operators, and this operator is not one of them): tier and source are those of the evidence \
+showing who the instruments bind. Only when the evidence says nothing about the national regime \
+is it "{NOT_DISCLOSED}", because that may mean nobody asked.
+- When vendor_restriction_exists is no, every other restriction field (instrument type, \
+bindingness, scope, rip_and_replace_deadline) is "{NOT_APPLICABLE}"; describe instruments that \
+bind other operators in notes.
 - restriction_instrument_type: statute, contract, licence_condition, administrative_designation.
 - restriction_bindingness: binding, voluntary, or proposed. A proposed instrument alongside a \
 binding one: code binding, and describe the proposal in notes.
 - restriction_scope: the set of network elements the restriction covers (core, ran, \
 transport, management_system).
-- rip_and_replace_deadline: one entry per covered element, with its deadline and the funding \
-mechanism ("none stated" when no public money is attached).
+- rip_and_replace_deadline: one entry per covered element, with its deadline as YYYY-MM-DD \
+("end of 2026" is 2026-12-31; a deadline stated only to the month is its last day) and the \
+funding mechanism ("none stated" when no public money is attached).
 - data_localization, telecom_fdi_screening: a brief description naming the instrument and \
 authority.
 - spectrum_award_mechanism: how this operator's 5G spectrum was assigned.
@@ -419,12 +443,23 @@ VENDOR_ORIGIN = [
     ('affirmed', 'United States'), ('juniper', 'United States'), ('hewlett packard', 'United States'),
     ('hpe', 'United States'), ('parallel wireless', 'United States'), ('dell', 'United States'),
     ('red hat', 'United States'), ('nvidia', 'United States'), ('vmware', 'United States'),
-    ('amdocs', 'Guernsey'),
+    ('amdocs', 'Guernsey'), ('netcracker', 'Japan'), ('capgemini', 'France'), ('atos', 'France'),
+    ('accenture', 'Ireland'), ('ibm', 'United States'), ('commscope', 'United States'),
+    ('adtran', 'United States'), ('adva optical', 'United States'),
+    ('ribbon', 'United States'), ('casa systems', 'United States'), ('airspan', 'United States'),
+    ('amazon', 'United States'), ('aws', 'United States'), ('google', 'United States'),
+    ('qualcomm', 'United States'), ('fiberhome', 'China'), ('datang', 'China'), ('ceragon', 'Israel'),
+    ('tata consultancy', 'India'), ('tcs', 'India'), ('tech mahindra', 'India'), ('infosys', 'India'),
+    ('wipro', 'India'),
 ]
+# ADVA Optical belongs to Adtran, NetCracker to NEC.
 
 
-def vendor_origin(vendor):
+def vendor_origin(vendor, parent_origin=None):
+    """Origin of a vendor's ultimate parent; in-house software takes the operator's parent origin."""
     v = vendor.lower().strip()
+    if v.startswith('in-house'):
+        return parent_origin
     return next((country for prefix, country in VENDOR_ORIGIN if v.startswith(prefix)), None)
 
 
@@ -480,6 +515,10 @@ class SearchCache:
     def get(self, key):
         return self.entries.get(key)
 
+    def fresh(self, key, prompt):
+        """Cached under this key and asked with this exact question (a reworded question re-searches)."""
+        return key in self.entries and self.entries[key]['prompt'] == prompt
+
     def put(self, key, search, prompt):
         entry = {'key': key, 'searched_at': date.today().isoformat(), 'prompt': prompt, 'search': search}
         with self.lock:
@@ -510,7 +549,7 @@ class Spend:
 def run_searches(jobs, cache, api_key, spend, workers):
     """jobs: (key, prompt). Searches every uncached job, in groups of `workers`, stopping before a
     group that could exceed the Perplexity cap. Returns the keys still missing."""
-    todo = [(k, p) for k, p in jobs if not cache.get(k)]
+    todo = [(k, p) for k, p in jobs if not cache.fresh(k, p)]
     rate = average(cache.costs(), SEARCH_ESTIMATE)
     for start in range(0, len(todo), workers):
         group = todo[start:start + workers]
@@ -530,7 +569,7 @@ def run_searches(jobs, cache, api_key, spend, workers):
                 spend.add('perplexity', search['cost'])
                 print(f"  searched {k:55} ${search['cost']:.4f}")
         rate = average(cache.costs(), SEARCH_ESTIMATE)
-    return [k for k, _ in jobs if not cache.get(k)]
+    return [k for k, p in jobs if not cache.fresh(k, p)]
 
 # ============================================================================
 # CLAUDE CALLS
@@ -742,6 +781,8 @@ def build_row(op, year, fields, searches, cables):
         for i, r in enumerate(searches[layer]['search']['results'], 1):
             labels[f'{prefix}{i}'] = r['url']
     cited = []
+    po = fields['parent_company_origin']
+    parent_origin = canonical_country(po['value']['country']) if po['status'] == VALUE and po['value']['country'] else None
 
     for name in FIELDS:
         f = fields[name]
@@ -781,7 +822,7 @@ def build_row(op, year, fields, searches, cables):
                                             else cell(v['holding_vehicle']))
         elif name == 'parent_company_origin':
             out['parent_company'] = cell(v['parent_company'])
-            out['parent_company_origin'] = cell(v['country'])
+            out['parent_company_origin'] = cell(v['country'], canonical_country)
         elif name == 'legacy_4g_carryover':
             out['legacy_4g_carryover'] = cell(v['carryover'], lambda b: str(b).lower())
             out['legacy_4g_vendor'] = cell(v['vendor'])
@@ -793,7 +834,7 @@ def build_row(op, year, fields, searches, cables):
         elif name in VENDOR_ELEMENTS or name == 'core_vendor_4g_legacy':
             out[name] = fmt_vendors(v) if has else miss
             if has:
-                origins = [vendor_origin(e['vendor']) for e in v]
+                origins = [vendor_origin(e['vendor'], parent_origin) for e in v]
                 unknown = [e['vendor'] for e, o in zip(v, origins) if o is None]
                 if unknown:
                     notes.append(f"{name}: no vendor-origin record yet for {', '.join(unknown)}")
@@ -815,6 +856,16 @@ def build_row(op, year, fields, searches, cables):
             out[name] = cell(v)
         out[f'{name}_tier'] = cell(f['tier'] if f['tier'] != 'none' else '')
         out[f'{name}_source'] = cell(f['source'])
+
+    # State equity decides ownership_type, listed or not (STATE_BACKED_PCT / STATE_OWNED_PCT).
+    se = fields['state_equity']
+    if se['status'] == VALUE and se['value']['pct'] is not None and se['value']['pct'] > STATE_BACKED_PCT:
+        expected = 'state_owned' if se['value']['pct'] >= STATE_OWNED_PCT else 'state_backed_minority'
+        if out['ownership_type'] != expected:
+            notes.append(f"ownership_type: {out['ownership_type']} recoded {expected} from state equity "
+                         f"{fmt_num(se['value']['pct'])}%")
+            out['ownership_type'] = expected
+            out['ownership_type_tier'], out['ownership_type_source'] = se['tier'], se['source']
 
     out['market_vendor_shares'] = '; '.join(
         f"{s['element']}: {s['vendor']} {fmt_num(s['share_pct'])}% of {s['share_basis']} ({s['analyst_house']}, {s['year']})"
@@ -921,7 +972,7 @@ def main():
         name = op['operator_name'] + (f" ({op['brands']})" if op['brands'] and op['brands'] != NOT_DISCLOSED else '')
         jobs += [(search_key(layer, f"{op['operator_id']}|{args.year}"),
                   LAYER_QUESTIONS[layer].format(operator=name, market=op['market'], year=args.year)) for layer in LAYERS]
-    print(f"\nSearches: {len(jobs)} needed, {sum(1 for k, _ in jobs if cache.get(k))} cached.")
+    print(f"\nSearches: {len(jobs)} needed, {sum(1 for k, p in jobs if cache.fresh(k, p))} cached.")
     run_searches(jobs, cache, pplx_key, spend, args.workers)
 
     def searches_for(op):
