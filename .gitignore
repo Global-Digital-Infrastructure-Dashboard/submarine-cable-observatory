@@ -41,3 +41,4 @@ data/trackdatacenters_seed.csv
 data/datacenter_enrichment*
 # 5G pipeline: search cache and run logs stay local
 data/5g_*.jsonl
+data/5g_*.csv

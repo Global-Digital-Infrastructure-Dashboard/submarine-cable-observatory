@@ -39,6 +39,7 @@ import unicodedata
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 
+import jsonschema
 import numpy as np
 import pandas as pd
 
@@ -77,9 +78,9 @@ DISCOVERY_LOG = 'data/5g_discovery.raw.jsonl'
 SEARCH_ESTIMATE = 0.009
 DISCOVERY_ESTIMATE = 0.045   # one Claude call per market, synchronous
 OPERATOR_ESTIMATE = 0.125    # one synchronous Claude extraction over four searches
-# Fixed system prompt + output schema, in tokens (messages.count_tokens, 2026-11-02). Used only
+# Fixed system prompt (which carries the output schema), in tokens (messages.count_tokens, 2026-11-02). Used only
 # for the cache-write allowance when sizing batches.
-PREFIX_TOKENS = 13200
+PREFIX_TOKENS = 8855
 LAYERS = ['vendor', 'physical', 'ownership']  # per-operator searches; 'regulatory' is per market
 
 # ============================================================================
@@ -253,7 +254,7 @@ FIELDS = {
     'core_vendor_4g_legacy': ('vendor', listof(VENDOR_ENTRY)),
     'open_ran_status': ('vendor', enum('actively_deploying', 'guiding_future_evolution',
                                        'somewhat_integrated', 'not_integrated')),
-    'legacy_4g_carryover': ('vendor', obj(carryover={'type': 'boolean'}, vendor={'type': 'string'})),
+    'legacy_4g_carryover': ('vendor', obj(carryover={'type': ['boolean', 'null']}, vendor={'type': 'string'})),
     # Ownership
     'ownership_type': ('ownership', enum('private', 'listed', 'state_owned', 'state_backed_minority')),
     'state_equity': ('ownership', obj(pct=NULLABLE_NUMBER, holding_vehicle={'type': 'string'})),
@@ -288,6 +289,9 @@ def empty_value(schema):
 
 
 def coded(value_schema):
+    # A single-choice value must be able to sit empty when its status is not 'value'.
+    if 'enum' in value_schema and '' not in value_schema['enum']:
+        value_schema = {**value_schema, 'enum': value_schema['enum'] + ['']}
     return obj(status=enum(*STATUSES), value=value_schema, tier=enum(*TIERS), source={'type': 'string'},
                evidence_results=listof({'type': 'string'}))
 
@@ -390,7 +394,15 @@ authority.
 - spectrum_award_mechanism: how this operator's 5G spectrum was assigned.
 
 notes: one to three sentences on conflicts between sources, market-level figures, and anything \
-the fields could not hold."""
+the fields could not hold.
+
+Reply with only a JSON object (no prose, no code fence) that validates against this JSON Schema:
+""" + json.dumps(EXTRACTION_SCHEMA, separators=(',', ':'))
+
+# The extraction schema is too large for constrained decoding ("compiled grammar is too large"
+# at as few as 8 coded fields), so it travels in the system prompt and every reply is validated
+# here instead. A reply that fails is logged as an error and retried on the next run.
+EXTRACTION_VALIDATOR = jsonschema.Draft202012Validator(EXTRACTION_SCHEMA)
 
 # ============================================================================
 # DERIVED FIELDS
@@ -402,7 +414,7 @@ the fields could not hold."""
 VENDOR_ORIGIN = [
     ('huawei', 'China'), ('zte', 'China'), ('ericsson', 'Sweden'), ('nokia', 'Finland'),
     ('infinera', 'Finland'), ('samsung', 'South Korea'), ('nec', 'Japan'), ('fujitsu', 'Japan'),
-    ('rakuten', 'Japan'), ('cisco', 'United States'), ('mavenir', 'United States'),
+    ('rakuten', 'Japan'), ('altiostar', 'Japan'), ('cisco', 'United States'), ('mavenir', 'United States'),
     ('ciena', 'United States'), ('oracle', 'United States'), ('microsoft', 'United States'),
     ('affirmed', 'United States'), ('juniper', 'United States'), ('hewlett packard', 'United States'),
     ('hpe', 'United States'), ('parallel wireless', 'United States'), ('dell', 'United States'),
@@ -525,31 +537,54 @@ def run_searches(jobs, cache, api_key, spend, workers):
 # ============================================================================
 
 
-def parse_response(message):
+def parse_response(message, validator=None):
+    """The reply's JSON. With a validator (unconstrained extraction), strip any code fence and
+    raise unless the reply matches the schema."""
     if message.stop_reason == 'refusal':
         raise RuntimeError(f"Claude refused extraction: {message.stop_details}")
     if message.stop_reason == 'max_tokens':
         raise RuntimeError('Claude hit max_tokens before finishing the extraction')
-    return json.loads(next(b.text for b in message.content if b.type == 'text'))
+    text = next(b.text for b in message.content if b.type == 'text').strip()
+    if validator is None:
+        return json.loads(text)
+    fields = json.loads(re.sub(r'^```(?:json)?\s*|\s*```$', '', text))
+    errors = sorted(validator.iter_errors(fields), key=lambda e: list(e.path))
+    if errors:
+        raise ValueError(f"{len(errors)} schema error(s), first at {'/'.join(map(str, errors[0].path)) or 'root'}: "
+                         f"{errors[0].message[:200]}")
+    return fields
 
 
 def request_params(system, schema, content, effort, cache_ttl):
     """Messages API params shared by the synchronous and Batches paths. The system prompt (plus
-    the output schema, which renders ahead of it) is identical for every row, so it is cached."""
+    the output schema, which renders ahead of it) is identical for every row, so it is cached.
+    schema=None leaves the output unconstrained (the schema is then in the system prompt)."""
     cache_control = {'type': 'ephemeral', **({'ttl': cache_ttl} if cache_ttl != '5m' else {})}
     return {
         'model': MODEL,
         'max_tokens': 16000,
         'system': [{'type': 'text', 'text': system, 'cache_control': cache_control}],
-        'output_config': {'effort': effort, 'format': {'type': 'json_schema', 'schema': schema}},
+        'output_config': {'effort': effort, **({'format': {'type': 'json_schema', 'schema': schema}} if schema else {})},
         'messages': [{'role': 'user', 'content': content}],
     }
 
 
-def call_claude(client, params):
+def call_claude(client, params, validator=None):
+    """(fields, response, cost). A reply that fails to parse raises CostlyError carrying its cost."""
     response = client.beta.messages.create(**params, betas=['server-side-fallback-2026-07-01'], fallbacks='default')
     # Price at the requested model: a fallback model may not be in the price table.
-    return parse_response(response), response, usage_cost(MODEL, response.usage.to_dict())
+    cost = usage_cost(MODEL, response.usage.to_dict())
+    try:
+        return parse_response(response, validator), response, cost
+    except Exception as e:
+        raise CostlyError(f"{type(e).__name__}: {e}", cost) from e
+
+
+class CostlyError(RuntimeError):
+    """A billed response that could not be used."""
+    def __init__(self, message, cost):
+        super().__init__(message)
+        self.cost = cost
 
 
 def results_block(prefix, search):
@@ -762,7 +797,8 @@ def build_row(op, year, fields, searches, cables):
                 unknown = [e['vendor'] for e, o in zip(v, origins) if o is None]
                 if unknown:
                     notes.append(f"{name}: no vendor-origin record yet for {', '.join(unknown)}")
-                out[f'{name}_origin'] = '; '.join(dict.fromkeys(o or NOT_YET_COLLECTED for o in origins))
+                # One origin per vendor, in the same order, so the two columns line up.
+                out[f'{name}_origin'] = '; '.join(o or NOT_YET_COLLECTED for o in origins)
             else:
                 out[f'{name}_origin'] = miss
             if name in VENDOR_ELEMENTS:
@@ -841,10 +877,12 @@ def main():
     parser.add_argument('--effort', default='medium', choices=['low', 'medium', 'high'])
     parser.add_argument('--workers', type=int, default=4, help='concurrent Perplexity searches')
     parser.add_argument('--discover-only', action='store_true', help='stop after building the operator list')
+    parser.add_argument('--output', help='panel CSV path (default: the dry-run or full output)')
+    parser.add_argument('--operator-ids', help='comma-separated operator_ids to code (default: all in the markets)')
     args = parser.parse_args()
 
     cache = SearchCache()
-    output = FULL_OUTPUT if args.full else DRY_RUN_OUTPUT
+    output = args.output or (FULL_OUTPUT if args.full else DRY_RUN_OUTPUT)
     if args.estimate:
         known = load_operators()
         n_ops = int((known['included'] == 'yes').sum()) if args.full and len(known) else args.operators
@@ -865,6 +903,8 @@ def main():
     discover(markets, args.year, cache, client, pplx_key, spend, args)
     ops = load_operators()
     ops = ops[ops['market'].isin(markets) & (ops['included'] == 'yes')]
+    if args.operator_ids:
+        ops = ops[ops['operator_id'].isin(args.operator_ids.split(','))]
     print(f"\n{len(ops)} included operator(s) in {', '.join(markets)}: "
           + ', '.join(ops['operator_name']))
     if args.discover_only:
@@ -922,8 +962,9 @@ def main():
         p90 = float(np.percentile(sync_costs, 90)) if sync_costs else OPERATOR_ESTIMATE
         spent = run_capped_batches(
             client, MODEL, list(by_row.items()),
-            lambda op: request_params(CLAUDE_SYSTEM, EXTRACTION_SCHEMA, content(op), args.effort, '1h'),
-            lambda rid, message, cost, bid: write(by_row[rid], parse_response(message), message, cost, bid),
+            lambda op: request_params(CLAUDE_SYSTEM, None, content(op), args.effort, '1h'),
+            lambda rid, message, cost, bid: write(by_row[rid], parse_response(message, EXTRACTION_VALIDATOR),
+                                                   message, cost, bid),
             lambda rid, e, bid: log_error(rid, e, bid),
             output + '.batches.jsonl', spend.cap['claude'] - spend.spent['claude'], args.batch_rows,
             lambda: worst_case_batch_rate(MODEL, [(c['cost'], c['usage']) for c in prior if c.get('batch')],
@@ -936,10 +977,12 @@ def main():
             if not spend.allows('claude', rate):
                 print(f"  Claude cap reached: stopping before {op['operator_name']}.")
                 break
-            params = request_params(CLAUDE_SYSTEM, EXTRACTION_SCHEMA, content(op), args.effort, '5m')
+            params = request_params(CLAUDE_SYSTEM, None, content(op), args.effort, '5m')
             try:
-                fields, message, cost = call_claude(client, params)
+                fields, message, cost = call_claude(client, params, EXTRACTION_VALIDATOR)
             except Exception as e:
+                # A billed but unusable reply still counts against the cap.
+                spend.add('claude', getattr(e, 'cost', 0))
                 log_error(f"{op['operator_id']}-{args.year}", e)
                 continue
             spend.add('claude', cost)
