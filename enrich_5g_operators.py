@@ -84,27 +84,19 @@ OPERATOR_ESTIMATE = 0.125    # one synchronous Claude extraction over four searc
 STATE_BACKED_PCT = 10
 STATE_OWNED_PCT = 50
 
-# Shareholders that are states or state-controlled, given to Claude as a reference list: shareholder disclosures name the holder, rarely the state
-# behind it (e& for the UAE). Reviewed 2026-11-02; a holder not listed counts only when the
-# evidence itself shows the state link.
-STATE_HOLDERS = [
-    ('e&', 'United Arab Emirates (Emirates Investment Authority)'),
-    ('emirates telecommunications', 'United Arab Emirates (Emirates Investment Authority)'),
-    ('mubadala', 'United Arab Emirates'), ('abu dhabi investment authority', 'United Arab Emirates'),
-    ('saudi telecom', 'Saudi Arabia (Public Investment Fund)'), ('stc', 'Saudi Arabia (Public Investment Fund)'),
-    ('public investment fund', 'Saudi Arabia'), ('qatar investment authority', 'Qatar'),
-    ('kuwait investment authority', 'Kuwait'), ('gic', 'Singapore'), ('temasek', 'Singapore'),
-    ('china investment corporation', 'China'), ('norges bank', 'Norway'),
-    ('sepi', 'Spain'), ('sociedad estatal de participaciones industriales', 'Spain'),
-    ('kfw', 'Germany'), ('bpifrance', 'France'), ("agence des participations de l'etat", 'France'),
-    ('cassa depositi e prestiti', 'Italy'), ('cdp', 'Italy'), ('obag', 'Austria'),
-    ('osterreichische beteiligungs', 'Austria'), ('solidium', 'Finland'),
-    ('ireland strategic investment fund', 'Ireland'), ('hellenic corporation of assets', 'Greece'),
-]
+# Shareholders that are states or state-controlled (data/state_holders.csv), given to Claude as a
+# reference list: shareholder disclosures name the holder, rarely the state behind it (e& for
+# the UAE). Compiled by Claude from general knowledge, not from sources; each row carries a
+# review_status and the source to verify it against. A holder not listed counts only when the
+# evidence itself shows the state link, and every list-based classification is flagged per row.
+STATE_HOLDERS_PATH = 'data/state_holders.csv'
+STATE_HOLDERS = pd.read_csv(STATE_HOLDERS_PATH, dtype=str, keep_default_na=False)
+STATE_HOLDER_ENTRIES = set(STATE_HOLDERS['entry'])
+STATE_HOLDER_REFERENCE = '\n'.join(f"  {r.entry} | {r.also_named} | {r.state}" for r in STATE_HOLDERS.itertuples())
 
 # Fixed system prompt (which carries the output schema), in tokens (messages.count_tokens, 2026-11-02). Used only
 # for the cache-write allowance when sizing batches.
-PREFIX_TOKENS = 8855
+PREFIX_TOKENS = 10105
 LAYERS = ['vendor', 'physical', 'ownership']  # per-operator searches; 'regulatory' is per market
 
 # ============================================================================
@@ -284,7 +276,9 @@ FIELDS = {
     'legacy_4g_carryover': ('vendor', obj(carryover={'type': ['boolean', 'null']}, vendor={'type': 'string'})),
     # Ownership
     'ownership_type': ('ownership', enum('private', 'listed', 'state_owned', 'state_backed_minority')),
-    'state_equity': ('ownership', obj(pct=NULLABLE_NUMBER, holding_vehicle={'type': 'string'})),
+    'state_equity': ('ownership', obj(pct=NULLABLE_NUMBER, holders=listof(obj(
+        holder={'type': 'string'}, pct=NULLABLE_NUMBER, state={'type': 'string'},
+        state_link=enum('source', 'reference_list'), reference_entry={'type': 'string'})))),
     'parent_company_origin': ('ownership', obj(parent_company={'type': 'string'}, country={'type': 'string'})),
     'legal_domicile': ('ownership', {'type': 'string'}),
     # Regulatory
@@ -402,15 +396,19 @@ is coded, it decides, whether or not the company is also listed: {STATE_OWNED_PC
 state_owned; above {STATE_BACKED_PCT}% is state_backed_minority. Otherwise - including when no \
 state equity is reported - code listed (the operator's or its ultimate parent's shares are \
 publicly traded) or private from the evidence.
-- state_equity: percent held directly or indirectly by any state - domestic or foreign - \
-through government, state-owned companies or sovereign funds, with the holding vehicles and \
-the states behind them named (a sovereign fund rarely appears under the state's own name). \
+- state_equity: pct is the percent held directly or indirectly by any state - domestic or \
+foreign - through government, state-owned companies or sovereign funds: the sum of holders. \
 Stakes in the ultimate parent count, multiplied through the ownership chain (15% of a parent \
-that owns 100% of the operator is 15%); sum the stakes of different states and name each. A \
-source saying the parent's major shareholders include no state holder is a value of 0. These \
-holders are state-controlled (reviewed reference list) even when the evidence does not say so: \
-{'; '.join(f'{h} = {st}' for h, st in STATE_HOLDERS)}. The stake still needs a source; when \
-the state link comes only from this list, say so in notes.
+that owns 100% of the operator is 15%). holders: one entry per state holder, as the source \
+names it, with its pct of the operator after that multiplication and the state behind it. \
+state_link says how you know the holder is state-controlled: "source" only when a cited result \
+itself says so; "reference_list" when the evidence names the holder but not its state link and \
+the holder is on the reference list below - then reference_entry is that list's entry copied \
+exactly (otherwise ""). A holder on neither is not a state holder. The stake itself always \
+needs a source. A source saying the major shareholders include no state holder is pct 0 with \
+no holders.
+  Reference list of state-controlled holders (entry | also named | state):
+{STATE_HOLDER_REFERENCE}
 - parent_company_origin: the ultimate parent and the country of its legal incorporation (not \
 its headquarters). country is the country's common English short name only (e.g. "United \
 Kingdom", not "England and Wales"; "Netherlands", not "Kingdom of the Netherlands").
@@ -761,7 +759,7 @@ def flat_columns():
         elif name == 'population_coverage':
             cols += ['population_coverage_pct', 'coverage_definition']
         elif name == 'state_equity':
-            cols += ['state_equity_pct', 'state_holding_vehicle']
+            cols += ['state_equity_pct', 'state_holders', 'state_equity_from_reference_list']
         elif name == 'parent_company_origin':
             cols += ['parent_company', 'parent_company_origin']
         elif name == 'legacy_4g_carryover':
@@ -782,7 +780,10 @@ PANEL_COLUMNS = flat_columns()
 
 
 def fmt_num(x):
-    return '' if x is None else (str(int(x)) if float(x).is_integer() else str(x))
+    if x is None:
+        return ''
+    x = round(float(x), 4)  # sums of shares carry float noise (20.005399999999998)
+    return str(int(x)) if x.is_integer() else str(x)
 
 
 def fmt_vendors(entries):
@@ -840,8 +841,22 @@ def build_row(op, year, fields, searches, cables):
             out['coverage_definition'] = cell(v['definition'])
         elif name == 'state_equity':
             out['state_equity_pct'] = cell(v['pct'], fmt_num)
-            out['state_holding_vehicle'] = (NOT_APPLICABLE if has and v['pct'] == 0 and not v['holding_vehicle']
-                                            else cell(v['holding_vehicle']))
+            holders = v['holders'] if has else []
+            out['state_holders'] = '; '.join(
+                f"{h['holder']} {fmt_num(h['pct']) + '%' if h['pct'] is not None else '(share not stated)'} "
+                f"({h['state']}; state link: {'reference list' if h['state_link'] == 'reference_list' else 'source'})"
+                for h in holders) or (NOT_APPLICABLE if has and v['pct'] == 0 else cell(''))
+            # Mechanical split of evidence-based from reference-list state findings (cf.
+            # owner_parent_inferred in the data-center enrichment): a yes/no column, plus a
+            # fixed-wording note per list-based holder.
+            listed = [h for h in holders if h['state_link'] == 'reference_list']
+            out['state_equity_from_reference_list'] = ('yes' if listed else 'no') if has else miss
+            for h in listed:
+                notes.append(f"state_holder_list: {h['holder']} classified as state-controlled per reviewed "
+                             f"reference list, not from this row's own source material")
+                if h['reference_entry'] not in STATE_HOLDER_ENTRIES:
+                    notes.append(f"state_holder_list: {h['holder']} cites reference entry "
+                                 f"'{h['reference_entry']}', which is not on the list; check by hand")
         elif name == 'parent_company_origin':
             out['parent_company'] = cell(v['parent_company'])
             out['parent_company_origin'] = cell(v['country'], canonical_country)
