@@ -192,7 +192,7 @@ DISCOVERY_SCHEMA = {
                     'parent_company': {'type': 'string'},
                     'holds_spectrum_licence': {'type': 'string', 'enum': ['yes', 'no', 'unclear']},
                     'five_g_status': {'type': 'string',
-                                      'enum': ['launched', 'soft_launched', 'announced', 'none']},
+                                      'enum': ['launched', 'soft_launched', 'announced', 'none', 'unclear']},
                     'five_g_launch_date': {'type': 'string'},
                     'evidence_results': {'type': 'array', 'items': {'type': 'integer'}},
                 },
@@ -219,8 +219,12 @@ Deutschland"), not a brand or the group.
 - legal_entity: the licensed company, e.g. "Telekom Deutschland GmbH"; "{NOT_DISCLOSED}" if not given.
 - brands: its consumer brands, ";"-separated.
 - parent_company: the group it belongs to; "{NOT_DISCLOSED}" if not given.
-- holds_spectrum_licence: yes if it holds its own mobile spectrum licence.
-- five_g_status: launched, soft_launched, announced (not yet commercial), or none.
+- holds_spectrum_licence: yes if the evidence shows it holds its own mobile spectrum licence; \
+no only if the evidence shows it has none (e.g. it runs on another operator's network); \
+unclear when the evidence does not say. Silence is unclear, never no.
+- five_g_status: launched, soft_launched, announced (the evidence says 5G is not yet \
+commercial), none (the evidence says it offers no 5G), or unclear when the evidence does not \
+establish which. Silence is unclear, never announced or none.
 - five_g_launch_date: YYYY-MM-DD, YYYY-MM or YYYY as stated; "{NOT_DISCLOSED}" if not given.
 - evidence_results: the numbers of the search results that support the entry.
 List MVNOs, resellers and wholesale-only networks only in notes, saying why each is excluded. \
@@ -332,7 +336,10 @@ with their search results: vendor (results V1, V2, ...), physical and network (P
 ownership (O1, ...), and the national regulatory regime (R1, ...). Inside each answer, [n] \
 refers to that block's result n. Code from that evidence only - never from background \
 knowledge, and never by guessing. The observation is the year in the record; later or earlier \
-events count only as dated context.
+events count only as dated context. The record's discovery_flag and researcher_note name open \
+questions (an unconfirmed licence or launch, a shared network, an uncertain status) for the \
+evidence to settle: they are not evidence, and notes should say how the evidence resolved them \
+or that it did not.
 
 Every field is an object with:
 - status: "{VALUE}" when the evidence supports a value. "{NOT_DISCLOSED}" when the value exists \
@@ -660,7 +667,8 @@ def discovery_content(market, year, search):
 
 def operator_content(op, year, searches):
     record = {k: op[k] for k in ('operator_id', 'operator_name', 'legal_entity', 'brands', 'parent_company',
-                                 'market', 'five_g_status', 'five_g_launch_date')}
+                                 'market', 'five_g_status', 'five_g_launch_date', 'discovery_flag',
+                                 'researcher_note')}
     record['observation_year'] = year
     blocks = [f"<operator_record>\n{json.dumps(record, indent=1)}\n</operator_record>"]
     for layer, prefix in (('vendor', 'V'), ('physical', 'P'), ('ownership', 'O'), ('regulatory', 'R')):
@@ -675,19 +683,54 @@ def operator_content(op, year, searches):
 
 OPERATOR_COLUMNS = ['operator_id', 'market', 'market_iso', 'operator_name', 'legal_entity', 'brands',
                     'parent_company', 'holds_spectrum_licence', 'five_g_status', 'five_g_launch_date',
-                    'included', 'exclusion_reason', 'source_urls', 'discovered_at']
+                    'included', 'exclusion_reason', 'discovery_flag', 'source_urls', 'discovered_at']
+
+# Decisions the researcher made about specific operators, kept apart from the discovery
+# output (which stays evidence-only) and overlaid when the list is loaded. Each is dated and
+# shown in researcher_note; an override of `included` is never written into the CSV.
+RESEARCHER_DECISIONS = {
+    # operator_id: (included override or None, note)
+    'DK-tt-network': (None, "researcher 2026-11-03: Telia and Telenor's shared network company. One row "
+                            "for vendor and network coding, since those decisions are made jointly; "
+                            "ownership records both owners (Telia Company and Telenor)"),
+    'ES-digi-spain': (True, "researcher 2026-11-03: included although discovery coded no 5G. Digi holds "
+                            "spectrum but its status as a full network operator is unclear; to be "
+                            "resolved by the research searches, not at discovery"),
+    'US-dish-wireless': (None, "researcher 2026-11-03: whether DISH/EchoStar still runs its own network in "
+                               "2026 is uncertain (most spectrum sold, Boost moving to AT&T's network); "
+                               "to be resolved by the research searches"),
+}
 
 
-def load_operators():
+def load_operators(raw=False):
+    """The discovered operators, with RESEARCHER_DECISIONS overlaid (included, researcher_note)
+    unless raw - discovery reads and rewrites the raw list, so overrides never reach the CSV."""
     if not os.path.exists(OPERATORS_PATH):
-        return pd.DataFrame(columns=OPERATOR_COLUMNS)
-    return pd.read_csv(OPERATORS_PATH, dtype=str, keep_default_na=False)
+        return pd.DataFrame(columns=OPERATOR_COLUMNS + ([] if raw else ['researcher_note']))
+    ops = pd.read_csv(OPERATORS_PATH, dtype=str, keep_default_na=False)
+    if 'discovery_flag' not in ops:  # lists built before the flag existed
+        ops.insert(ops.columns.get_loc('exclusion_reason') + 1, 'discovery_flag', 'none')
+    ops['exclusion_reason'] = ops['exclusion_reason'].replace('', 'none')
+    if raw:
+        return ops
+    ops['researcher_note'] = 'none'
+    for oid, (include, note) in RESEARCHER_DECISIONS.items():
+        hit = ops['operator_id'] == oid
+        if not hit.any():
+            sys.exit(f"RESEARCHER_DECISIONS names {oid}, which is not in {OPERATORS_PATH}")
+        ops.loc[hit, 'researcher_note'] = note
+        if include is not None:
+            ops.loc[hit, 'included'] = 'yes' if include else 'no'
+    return ops
 
 
 def discover(markets, year, cache, client, api_key, spend, args):
     """Search and code each market without operators yet; append them to OPERATORS_PATH.
     operator_ids are assigned once and never re-derived, so later years keep the same ids."""
-    known = load_operators()
+    known = load_operators(raw=True)
+    if args.rediscover:
+        redo = [m.strip() for m in args.rediscover.split(',')]
+        known = known[~known['market'].isin(redo)]
     todo = [m for m in markets if m not in set(known['market'])]
     if not todo:
         return
@@ -724,17 +767,22 @@ def discover(markets, year, cache, client, api_key, spend, args):
             while oid in taken:
                 oid, n = f"{base}-{n}", n + 1
             taken.add(oid)
-            included = op['holds_spectrum_licence'] == 'yes' and op['five_g_status'] in ('launched', 'soft_launched')
+            # Exclude only on evidence: a licence the evidence says is missing, or 5G the evidence
+            # says is not yet commercial. Silence on either includes the operator with a flag.
+            licence, status = op['holds_spectrum_licence'], op['five_g_status']
+            included = licence != 'no' and status in ('launched', 'soft_launched', 'unclear')
             reason = '' if included else (
-                'no own spectrum licence' if op['holds_spectrum_licence'] != 'yes'
-                else f"5G status: {op['five_g_status']}")
+                'evidence shows no own spectrum licence' if licence == 'no' else f"evidence shows 5G status: {status}")
+            flags = (['own spectrum licence not evidenced in the discovery search'] if licence == 'unclear' else []) + \
+                    (['5G launch not evidenced in the discovery search'] if status == 'unclear' else [])
             cited = [urls[i - 1] for i in op['evidence_results'] if 1 <= i <= len(urls)]
             rows.append({'operator_id': oid, 'market': market, 'market_iso': MARKETS[market],
                          'operator_name': op['operator_name'], 'legal_entity': op['legal_entity'],
                          'brands': op['brands'], 'parent_company': op['parent_company'],
                          'holds_spectrum_licence': op['holds_spectrum_licence'],
                          'five_g_status': op['five_g_status'], 'five_g_launch_date': op['five_g_launch_date'],
-                         'included': 'yes' if included else 'no', 'exclusion_reason': reason,
+                         'included': 'yes' if included else 'no', 'exclusion_reason': reason or 'none',
+                         'discovery_flag': '; '.join(flags) or 'none',
                          'source_urls': '; '.join(dict.fromkeys(cited)) or NOT_DISCLOSED,
                          'discovered_at': entry['searched_at']})
         names = ', '.join(o['operator_name'] for o in fields['operators'])
@@ -742,7 +790,9 @@ def discover(markets, year, cache, client, api_key, spend, args):
         if fields['notes']:
             print(f"    notes: {fields['notes']}")
     if rows:
-        pd.concat([known, pd.DataFrame(rows, columns=OPERATOR_COLUMNS)]).to_csv(OPERATORS_PATH, index=False)
+        out = pd.concat([known, pd.DataFrame(rows, columns=OPERATOR_COLUMNS)])
+        order = {m: i for i, m in enumerate(MARKETS)}
+        out.sort_values('market', key=lambda c: c.map(order), kind='stable').to_csv(OPERATORS_PATH, index=False)
 
 # ============================================================================
 # PANEL ROWS
@@ -799,6 +849,8 @@ def build_row(op, year, fields, searches, cables):
            'observation_year': str(year),
            'reference_date': max(s['searched_at'] for s in searches.values())}
     notes = [fields['notes']] if fields['notes'].strip() else []
+    notes += [f"discovery_flag: {op['discovery_flag']}"] if op['discovery_flag'] != 'none' else []
+    notes += [op['researcher_note']] if op['researcher_note'] != 'none' else []
     labels = {}
     for layer, prefix in (('vendor', 'V'), ('physical', 'P'), ('ownership', 'O'), ('regulatory', 'R')):
         for i, r in enumerate(searches[layer]['search']['results'], 1):
@@ -965,6 +1017,10 @@ def main():
     parser.add_argument('--effort', default='medium', choices=['low', 'medium', 'high'])
     parser.add_argument('--workers', type=int, default=4, help='concurrent Perplexity searches')
     parser.add_argument('--discover-only', action='store_true', help='stop after building the operator list')
+    parser.add_argument('--rediscover', help='comma-separated markets whose operator list is rebuilt '
+                                             '(from the cached discovery search)')
+    parser.add_argument('--searches-only', action='store_true',
+                        help='build operator lists and run every search, then stop before extraction')
     parser.add_argument('--output', help='panel CSV path (default: the dry-run or full output)')
     parser.add_argument('--operator-ids', help='comma-separated operator_ids to code (default: all in the markets)')
     args = parser.parse_args()
@@ -1010,7 +1066,11 @@ def main():
         jobs += [(search_key(layer, f"{op['operator_id']}|{args.year}"),
                   LAYER_QUESTIONS[layer].format(operator=name, market=op['market'], year=args.year)) for layer in LAYERS]
     print(f"\nSearches: {len(jobs)} needed, {sum(1 for k, p in jobs if cache.fresh(k, p))} cached.")
-    run_searches(jobs, cache, pplx_key, spend, args.workers)
+    missing = run_searches(jobs, cache, pplx_key, spend, args.workers)
+    if args.searches_only:
+        print(f"\nSearches only: {len(jobs) - len(missing)} of {len(jobs)} cached, {len(missing)} missing. "
+              f"No extraction run. {spend.summary()}.")
+        return
 
     def searches_for(op):
         found = {layer: cache.get(search_key(layer, f"{op['operator_id']}|{args.year}")) for layer in LAYERS}
