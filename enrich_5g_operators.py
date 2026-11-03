@@ -84,6 +84,24 @@ OPERATOR_ESTIMATE = 0.125    # one synchronous Claude extraction over four searc
 STATE_BACKED_PCT = 10
 STATE_OWNED_PCT = 50
 
+# Shareholders that are states or state-controlled, given to Claude as a reference list: shareholder disclosures name the holder, rarely the state
+# behind it (e& for the UAE). Reviewed 2026-11-02; a holder not listed counts only when the
+# evidence itself shows the state link.
+STATE_HOLDERS = [
+    ('e&', 'United Arab Emirates (Emirates Investment Authority)'),
+    ('emirates telecommunications', 'United Arab Emirates (Emirates Investment Authority)'),
+    ('mubadala', 'United Arab Emirates'), ('abu dhabi investment authority', 'United Arab Emirates'),
+    ('saudi telecom', 'Saudi Arabia (Public Investment Fund)'), ('stc', 'Saudi Arabia (Public Investment Fund)'),
+    ('public investment fund', 'Saudi Arabia'), ('qatar investment authority', 'Qatar'),
+    ('kuwait investment authority', 'Kuwait'), ('gic', 'Singapore'), ('temasek', 'Singapore'),
+    ('china investment corporation', 'China'), ('norges bank', 'Norway'),
+    ('sepi', 'Spain'), ('sociedad estatal de participaciones industriales', 'Spain'),
+    ('kfw', 'Germany'), ('bpifrance', 'France'), ("agence des participations de l'etat", 'France'),
+    ('cassa depositi e prestiti', 'Italy'), ('cdp', 'Italy'), ('obag', 'Austria'),
+    ('osterreichische beteiligungs', 'Austria'), ('solidium', 'Finland'),
+    ('ireland strategic investment fund', 'Ireland'), ('hellenic corporation of assets', 'Greece'),
+]
+
 # Fixed system prompt (which carries the output schema), in tokens (messages.count_tokens, 2026-11-02). Used only
 # for the cache-write allowance when sizing batches.
 PREFIX_TOKENS = 8855
@@ -141,10 +159,11 @@ providers.""",
     'ownership': """{operator} ({market}) - ownership as of {year}.
 1. Ownership type: private, publicly listed, state-owned, or state-backed through a minority \
 stake.
-2. State equity, direct or indirect: list every government, state-owned company or sovereign \
-wealth fund - domestic or foreign - holding 3% or more of the operator or of its ultimate \
-parent, with the percentage, the holder's name, the state behind it, and the date of the \
-figure. Say explicitly if the parent's major-shareholder disclosures show none.
+2. Significant shareholders: every holder of 3% or more of the operator and of its ultimate \
+parent, as listed in the latest major-shareholding disclosures (annual report, securities \
+regulator register such as the CNMV, AMF, BaFin or SEC filings), with the percentage and the \
+date of each figure. Then say which of these holders are governments, state-owned companies or \
+sovereign wealth funds, and the state behind each.
 3. The ultimate parent company and the country where it is legally incorporated.
 4. The operating entity's jurisdiction of incorporation, if different from {market}.""",
 
@@ -388,7 +407,10 @@ through government, state-owned companies or sovereign funds, with the holding v
 the states behind them named (a sovereign fund rarely appears under the state's own name). \
 Stakes in the ultimate parent count, multiplied through the ownership chain (15% of a parent \
 that owns 100% of the operator is 15%); sum the stakes of different states and name each. A \
-source saying the parent's major shareholders include no state holder is a value of 0.
+source saying the parent's major shareholders include no state holder is a value of 0. These \
+holders are state-controlled (reviewed reference list) even when the evidence does not say so: \
+{'; '.join(f'{h} = {st}' for h, st in STATE_HOLDERS)}. The stake still needs a source; when \
+the state link comes only from this list, say so in notes.
 - parent_company_origin: the ultimate parent and the country of its legal incorporation (not \
 its headquarters). country is the country's common English short name only (e.g. "United \
 Kingdom", not "England and Wales"; "Netherlands", not "Kingdom of the Netherlands").
