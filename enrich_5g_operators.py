@@ -83,6 +83,12 @@ OPERATOR_ESTIMATE = 0.125    # one synchronous Claude extraction over four searc
 # build_row from the coded state_equity_pct.
 STATE_BACKED_PCT = 10
 STATE_OWNED_PCT = 50
+# Every state ownership_type stays provisional until Prof. Shen signs off on the state-holder
+# list and the two open rules; flagged per row in ownership_type_provisional and the notes.
+STATE_TYPES = ('state_owned', 'state_backed_minority')
+PROVISIONAL_NOTE = ("ownership_type PROVISIONAL: pending Prof. Shen's sign-off on data/state_holders.csv and on "
+                    "two open rules (sum state stakes across states or count per state; whether passive "
+                    "sovereign-fund stakes such as Norges or GIC count)")
 
 # Shareholders that are states or state-controlled (data/state_holders.csv), given to Claude as a
 # reference list: shareholder disclosures name the holder, rarely the state behind it (e& for
@@ -504,12 +510,29 @@ def normalize_cable(name):
     return re.sub(r'[^a-z0-9]+', ' ', re.sub(r'\(.*?\)', ' ', name)).strip()
 
 
+def cable_keys(name):
+    """Lookup keys for a cable name: the normalized name, the same without spaces or a trailing
+    'cable'/'submarine system' ('SEA-ME-WE 5' = 'SeaMeWe-5', 'PEACE' = 'PEACE Cable'), with the
+    SMW-n shorthand spelled out, and any abbreviation in brackets ('Southeast Asia-Japan Cable 2
+    (SJC2)' is also found as 'SJC2')."""
+    full = normalize_cable(name)
+    compact = re.sub(r'( submarine)?( cable)?( system)?$', '', full).replace(' ', '')
+    keys = [full, re.sub(r'^smw(?=\d)', 'seamewe', compact)]
+    keys += [normalize_cable(a).replace(' ', '') for a in re.findall(r'\((.*?)\)', name)]
+    return [k for k in dict.fromkeys(keys) if k]
+
+
+def match_cable(name, cables):
+    return next((cables[k] for k in cable_keys(name) if k in cables), None)
+
+
 def load_cable_names():
-    """normalized name -> cable_name in submarinecables. cable_name is the stable join key: the
-    table's id changes whenever push_submarinecables.py replaces its rows."""
+    """lookup key (see cable_keys) -> cable_name in submarinecables. cable_name is the stable
+    join key: the table's id changes whenever push_submarinecables.py replaces its rows."""
     names = {}
     for r in fetch_all(get_anon_client(), 'submarinecables', 'id,cable_name'):
-        names.setdefault(normalize_cable(r['cable_name']), r['cable_name'])
+        for k in cable_keys(r['cable_name']):
+            names.setdefault(k, r['cable_name'])
     return names
 
 # ============================================================================
@@ -696,9 +719,21 @@ RESEARCHER_DECISIONS = {
     'ES-digi-spain': (True, "researcher 2026-11-03: included although discovery coded no 5G. Digi holds "
                             "spectrum but its status as a full network operator is unclear; to be "
                             "resolved by the research searches, not at discovery"),
+    'GR-nova': (None, "researcher 2026-11-13: Nova incorporates WIND Hellas's mobile operations - WIND Hellas merged "
+                      "with Nova Greece in Jan 2023 and its mobile services were rebranded Nova (confirmed by the "
+                      "researcher from Wikipedia and an industry telecom portal), so WIND Hellas evidence is coded as "
+                      "Nova's"),
     'US-dish-wireless': (None, "researcher 2026-11-03: whether DISH/EchoStar still runs its own network in "
                                "2026 is uncertain (most spectrum sold, Boost moving to AT&T's network); "
-                               "to be resolved by the research searches"),
+                               "to be resolved by the research searches. researcher 2026-11-13: kept in the "
+                               "2026 panel as a restructured operator - its 600 MHz and 3.45 GHz spectrum "
+                               "was sold to AT&T and AWS-4 to SpaceX, DISH Wireless entered bankruptcy and "
+                               "its own network was being dismantled; vendor fields describe the network "
+                               "as built"),
+    'US-uscellular': (None, "researcher 2026-11-13: kept in the 2026 panel as a restructured operator - "
+                            "T-Mobile absorbed UScellular's wireless operations on 1 Aug 2025 and its "
+                            "spectrum was sold to AT&T and Verizon; vendor and spectrum fields describe "
+                            "UScellular's own network before the transfer"),
 }
 
 
@@ -823,6 +858,8 @@ def flat_columns():
         elif name == 'core_vendor_4g_legacy':
             cols.append(f'{name}_origin')
         cols += [f'{name}_tier', f'{name}_source']
+        if name == 'ownership_type':
+            cols.append('ownership_type_provisional')
     return cols + ['market_vendor_shares', 'notes', 'source_urls']
 
 
@@ -916,8 +953,8 @@ def build_row(op, year, fields, searches, cables):
             out['legacy_4g_carryover'] = cell(v['carryover'], lambda b: str(b).lower())
             out['legacy_4g_vendor'] = cell(v['vendor'])
         elif name == 'cable_landing_dependency':
-            matched = [cables[normalize_cable(c)] for c in v if normalize_cable(c) in cables] if has else []
-            unmatched = [c for c in v if normalize_cable(c) not in cables] if has else []
+            matched = [match_cable(c, cables) for c in v if match_cable(c, cables)] if has else []
+            unmatched = [c for c in v if not match_cable(c, cables)] if has else []
             out['cable_landing_dependency'] = '; '.join(dict.fromkeys(matched)) or (NOT_DISCLOSED if has else miss)
             out['cable_landing_unmatched'] = '; '.join(unmatched) or (NOT_APPLICABLE if has else miss)
         elif name in VENDOR_ELEMENTS or name == 'core_vendor_4g_legacy':
@@ -955,6 +992,9 @@ def build_row(op, year, fields, searches, cables):
                          f"{fmt_num(se['value']['pct'])}%")
             out['ownership_type'] = expected
             out['ownership_type_tier'], out['ownership_type_source'] = se['tier'], se['source']
+    provisional = out['ownership_type'] in STATE_TYPES
+    out['ownership_type_provisional'] = 'yes' if provisional else 'no'
+    notes += [PROVISIONAL_NOTE] if provisional else []
 
     out['market_vendor_shares'] = '; '.join(
         f"{s['element']}: {s['vendor']} {fmt_num(s['share_pct'])}% of {s['share_basis']} ({s['analyst_house']}, {s['year']})"
