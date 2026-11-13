@@ -7,9 +7,10 @@ coding rules, missingness, worked German row).
 Phase 1 (this script): the current year only.
   1. Discovery: one Perplexity search per market ("licensed mobile network operators offering
      5G service in <market>"), coded by Claude into data/5g_operators.csv. No seed file.
-  2. Per operator: vendor, physical/network and ownership searches, plus one regulatory
+  2. Per operator: vendor, physical/network, ownership, spectrum-inventory and coverage
+     searches, plus one regulatory
      search per market, all cached in data/5g_searches.jsonl so nothing is paid for twice.
-  3. Claude codes each operator from those four searches into data/5g_operator_panel.csv
+  3. Claude codes each operator from its searches into data/5g_operator_panel.csv
      (resumable by row_id). Derived fields (vendor origin, per-element HHI) and the cable join
      to the submarinecables table are computed here, not by Claude.
 Phase 2 (2019-present annual panel) reuses the same row shape with one row per year.
@@ -77,7 +78,7 @@ DISCOVERY_LOG = 'data/5g_discovery.raw.jsonl'
 # sonar-pro average was $0.0073; these prompts ask for more, so assume a little higher.
 SEARCH_ESTIMATE = 0.009
 DISCOVERY_ESTIMATE = 0.045   # one Claude call per market, synchronous
-OPERATOR_ESTIMATE = 0.125    # one synchronous Claude extraction over four searches
+OPERATOR_ESTIMATE = 0.125    # one synchronous Claude extraction over six searches
 # State equity (percent) above which an operator is state-backed whether or not it is also
 # listed; at STATE_OWNED_PCT or more it is state-owned. Applied in the prompt and enforced in
 # build_row from the coded state_equity_pct.
@@ -103,7 +104,10 @@ STATE_HOLDER_REFERENCE = '\n'.join(f"  {r.entry} | {r.also_named} | {r.state}" f
 # Fixed system prompt (which carries the output schema), in tokens (messages.count_tokens, 2026-11-02). Used only
 # for the cache-write allowance when sizing batches.
 PREFIX_TOKENS = 10105
-LAYERS = ['vendor', 'physical', 'ownership']  # per-operator searches; 'regulatory' is per market
+LAYERS = ['vendor', 'physical', 'ownership', 'spectrum', 'coverage']  # per-operator; 'regulatory' is per market
+# Result-label prefix of each search block in the extraction input (and in build_row's URL lookup).
+BLOCKS = (('vendor', 'V'), ('physical', 'P'), ('ownership', 'O'), ('spectrum', 'S'), ('coverage', 'C'),
+          ('regulatory', 'R'))
 
 # ============================================================================
 # PERPLEXITY PROMPTS
@@ -153,6 +157,23 @@ or standalone availability), date and who reported it.
 6. Submarine cables the operator owns capacity on or depends on for international traffic.
 7. Internet exchange points the operator peers at (how many) and its upstream IP transit \
 providers.""",
+
+    # Spectrum and coverage get their own searches (2026-11-13): inside the physical search they
+    # came back mostly "not found" for bands outside the 5G auctions.
+    'spectrum': """{operator} ({market}) - complete mobile spectrum holdings as of {year}.
+List every band in which {operator} holds a mobile spectrum licence, for all technologies and \
+not only 5G (e.g. 700, 800, 900 MHz, 1.5 GHz, 1800 MHz, 2.1, 2.3, 2.6 GHz, 3.4-3.8 GHz, 26 GHz), \
+with the amount in MHz for each (paired bands as 2x n MHz), the licence expiry date, and the \
+award it came from. Use the national regulator's spectrum register or licence table where \
+possible, naming it and its date. Say whether the list is the operator's complete holding or \
+only part of it.""",
+
+    'coverage': """{operator} ({market}) - 5G coverage as of {year}.
+1. The latest 5G coverage percentage that {operator} reports, or that the regulator reports for \
+{operator}, with its exact definition (share of population, households or territory; outdoor or \
+indoor; any minimum speed), its date and its source.
+2. Any 5G standalone coverage or availability figure, with the same detail.
+Keep {operator}'s figures separate from national-market and group-level figures.""",
 
     'ownership': """{operator} ({market}) - ownership as of {year}.
 1. Ownership type: private, publicly listed, state-owned, or state-backed through a minority \
@@ -337,9 +358,10 @@ EXTRACTION_SCHEMA = obj(
 
 CLAUDE_SYSTEM = f"""You code one 5G mobile operator for a research panel on vendor dependence: \
 whose equipment sits in which element of the operator's network, who owns the operator, and \
-what law binds the arrangement. You receive the operator's record and four Perplexity answers \
+what law binds the arrangement. You receive the operator's record and six Perplexity answers \
 with their search results: vendor (results V1, V2, ...), physical and network (P1, ...), \
-ownership (O1, ...), and the national regulatory regime (R1, ...). Inside each answer, [n] \
+ownership (O1, ...), spectrum holdings (S1, ...), coverage (C1, ...), and the national \
+regulatory regime (R1, ...). Inside each answer, [n] \
 refers to that block's result n. Code from that evidence only - never from background \
 knowledge, and never by guessing. The observation is the year in the record; later or earlier \
 events count only as dated context. The record's discovery_flag and researcher_note name open \
@@ -390,8 +412,11 @@ tender awards) at tier 3 with the source named.
 Physical and network layers:
 - spectrum_low / spectrum_mid / spectrum_high: total MHz the operator holds below 1 GHz, from 1 \
 to 6 GHz, and above 24 GHz. regulator_band_labels lists the regulator's own band names with \
-MHz each, e.g. "700 MHz: 2x10; 3.6 GHz: 90". Bands between 6 and 24 GHz belong to no class: \
-mention them in notes.
+MHz each, e.g. "700 MHz: 2x10; 3.6 GHz: 90". Give mhz only when the evidence gives the \
+operator's complete holding in that class - every band it holds there; then mhz is their sum. \
+When only some of the operator's bands in a class are known, mhz is null and \
+regulator_band_labels lists the known bands followed by "(partial)": a sum of the known bands \
+is never a total. Bands between 6 and 24 GHz belong to no class: mention them in notes.
 - licenses: one entry per 5G licence, with dates as YYYY-MM-DD (or YYYY-MM / YYYY when only \
 that is stated) and the renewal condition as stated.
 - core_architecture: non_standalone_only, both_in_parallel, or standalone_only.
@@ -694,7 +719,7 @@ def operator_content(op, year, searches):
                                  'researcher_note')}
     record['observation_year'] = year
     blocks = [f"<operator_record>\n{json.dumps(record, indent=1)}\n</operator_record>"]
-    for layer, prefix in (('vendor', 'V'), ('physical', 'P'), ('ownership', 'O'), ('regulatory', 'R')):
+    for layer, prefix in BLOCKS:
         s = searches[layer]
         blocks.append(f"<{layer}_search>\n<answer>\n{s['answer']}\n</answer>\n"
                       f"<results>\n{results_block(prefix, s)}\n</results>\n</{layer}_search>")
@@ -898,7 +923,7 @@ def build_row(op, year, fields, searches, cables):
     notes += [f"discovery_flag: {op['discovery_flag']}"] if op['discovery_flag'] != 'none' else []
     notes += [op['researcher_note']] if op['researcher_note'] != 'none' else []
     labels = {}
-    for layer, prefix in (('vendor', 'V'), ('physical', 'P'), ('ownership', 'O'), ('regulatory', 'R')):
+    for layer, prefix in BLOCKS:
         for i, r in enumerate(searches[layer]['search']['results'], 1):
             labels[f'{prefix}{i}'] = r['url']
     cited = []
@@ -1035,7 +1060,7 @@ def estimate(n_markets, n_operators, cache, output):
     searches = n_markets * 2 + n_operators * len(LAYERS)
     basis = lambda xs: f"measured over {len(xs)}" if xs else 'prior, not yet measured'
     lines = [
-        ('Perplexity searches', f"{searches} ({n_markets} discovery + {n_markets} regulatory + {n_operators} x 3)",
+        ('Perplexity searches', f"{searches} ({n_markets} discovery + {n_markets} regulatory + {n_operators} x {len(LAYERS)})",
          searches * search_rate, f"${search_rate:.4f}/search, {basis(cache.costs())}"),
         ('Claude discovery', f"{n_markets} calls", n_markets * disc_rate, f"${disc_rate:.4f}/market, {basis(disc)}"),
         ('Claude extraction (batch)', f"{n_operators} operators", n_operators * op_rate * 0.5,
