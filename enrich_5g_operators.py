@@ -734,6 +734,15 @@ RESEARCHER_DECISIONS = {
                             "T-Mobile absorbed UScellular's wireless operations on 1 Aug 2025 and its "
                             "spectrum was sold to AT&T and Verizon; vendor and spectrum fields describe "
                             "UScellular's own network before the transfer"),
+    'IT-telecom-italia': (None, "researcher 2026-11-13: 'BlueMed' in the coded cable 'BlueMed/BlueRaman' is "
+                                "read as the Blue cable (the Mediterranean leg, per Sparkle's own branding), "
+                                "kept separate from Raman (the eastern leg) as submarinecables records them"),
+}
+
+# Cable names the researcher has matched by hand for one operator, alongside its RESEARCHER_DECISIONS
+# note: operator_id -> {coded cable name: submarinecables cable_name}. Never applied to other rows.
+RESEARCHER_CABLE_MATCHES = {
+    'IT-telecom-italia': {'BlueMed/BlueRaman': 'Blue'},  # researcher 2026-11-13
 }
 
 
@@ -953,8 +962,10 @@ def build_row(op, year, fields, searches, cables):
             out['legacy_4g_carryover'] = cell(v['carryover'], lambda b: str(b).lower())
             out['legacy_4g_vendor'] = cell(v['vendor'])
         elif name == 'cable_landing_dependency':
-            matched = [match_cable(c, cables) for c in v if match_cable(c, cables)] if has else []
-            unmatched = [c for c in v if not match_cable(c, cables)] if has else []
+            by_hand = RESEARCHER_CABLE_MATCHES.get(op['operator_id'], {})
+            match = lambda c: by_hand.get(c) or match_cable(c, cables)
+            matched = [match(c) for c in v if match(c)] if has else []
+            unmatched = [c for c in v if not match(c)] if has else []
             out['cable_landing_dependency'] = '; '.join(dict.fromkeys(matched)) or (NOT_DISCLOSED if has else miss)
             out['cable_landing_unmatched'] = '; '.join(unmatched) or (NOT_APPLICABLE if has else miss)
         elif name in VENDOR_ELEMENTS or name == 'core_vendor_4g_legacy':
