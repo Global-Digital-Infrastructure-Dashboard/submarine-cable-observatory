@@ -39,7 +39,8 @@ def G(government, holder, pct, pct_of, basis, as_of, url, stype, note=''):
 
 # Israel shares: one consistent source for all four operators.
 IL_SHARE = 'https://investors.cellcom.co.il/wp-content/uploads/2026/06/Cellcom-Israel-Ltd.-Periodic-Report-for-2025.pdf'
-IL_SHARE_NOTE = "Cellcom's own estimate of the market at 31 Dec 2025 (Cellcom 32, Partner 23, Pelephone 23, HOT 14)"
+IL_SHARE_NOTE = ("Cellcom's own estimate of the market at 31 Dec 2025 (Cellcom 32, Partner 23, Pelephone 23, HOT 14), p.67; "
+                 "verified against the PDF in the 2026-11-15 spot-check (HOT 14% confirmed visually by the researcher)")
 LU_ILR = 'https://www.ilr.lu/wp-content/uploads/ilr-stat-10062026-Rapport-telecom-2025.pdf'
 UY_SHARE = 'https://www.telcobrief.com/en/market-data/uruguay'
 UY_NOTE = ("Dec 2025 URSEC subscription counts via TelcoBrief: ANTEL 2,448,826; Movistar 1,344,705; Claro 1,139,384; "
@@ -57,7 +58,9 @@ OOREDOO_AR = 'https://www.ooredoo.com/wp-content/uploads/2026/03/2025-Ooredoo-An
 OOREDOO_OWN = 'https://www.ooredoo.com/wp-content/uploads/2026/07/Ownership-Structure-Top-Shareholders.pdf'
 E_AND_NOTE = ('state link for e& comes from the data/state_holders.csv reference list (pending Prof. Shen review); '
               'the Vodafone filing names e& but does not call it state-owned')
-PHI_DISPUTE = ('DISPUTED: the 2020 Partner/HOT (PHI shared network) 5G deployment is attributed to Ericsson by INSS '
+PHI_DISPUTE = ("SPOT-CHECK 2026-11-15: INSS p.1 verified: 'Partner-Hot Mobile and Pelephone would use Ericsson equipment'. The "
+               "Nokia attribution below comes from an unidentified Bezeq/Pelephone-related report and was not verified. "
+               'DISPUTED: the 2020 Partner/HOT (PHI shared network) 5G deployment is attributed to Ericsson by INSS '
                'and by Israelpedia, but to Nokia by a Bezeq/Pelephone-related report; secondary sources also say '
                'Partner signed an Ericsson MoU in Jan 2023 to make Ericsson its "primary supplier". Coded Ericsson '
                'with no share category.')
@@ -117,17 +120,21 @@ OPERATORS = [
          vendor_operates=ND()),
     # ------------------------------------------------------------------ Singapore
     dict(region='Asia-Pacific', country='Singapore', operator_name='Singtel',
-         share=V(50.7, 'https://cdn2.singteldigital.com/content/dam/singtel/investorRelations/annualReports/2025/Singtel-AR25.pdf', CO, 'at 31 Mar 2025', 2025),
+         share=ND("Singtel AR FY25 gives 4.5m Singapore mobile customers (p.5) but no Singapore market-share %. SPOT-CHECK FIX: the "
+                  "50.7% coded earlier was Telkomsel's Indonesian share (AR25 p.118 associates table)"),
          launch=V(2020, 'https://cdn1.singteldigital.com/content/dam/singtel/business/sb/articles/transforming-singapores-future-with-5g.pdf', CO, 'NSA commercial Sep 2020; SA May 2021'),
-         ran5=[R('Ericsson', 'all', 'https://cdn2.singteldigital.com/content/dam/singtel/investorRelations/annualReports/2020/agm2020-responses-to-questions.pdf', CO,
-                 "Singtel chose 'Ericsson's equipment solely' for its 5G network (2020 AGM responses)")],
+         ran5=[R('Ericsson', 'not_disclosed', 'https://www.ericsson.com/en/cases/2022/singtel-and-ericsson', CO,
+                 "Ericsson case study (Feb 2022, updated Oct 2024) lists 'Ericsson 5G RAN' among solutions deployed in Singtel's 5G SA; "
+                 "no exclusivity wording and no other vendor named. SPOT-CHECK FIX: 'Ericsson solely' in the 2020 AGM document is a "
+                 "shareholder's question (Q21); Singtel's answer ('vendor agnostic… most optimal solution') neither confirms nor "
+                 "denies sole supply, so no share category is coded")],
          ran4=[], ran4_note='4G RAN vendor not named in the sources found',
-         gov=[G('Singapore', 'Temasek Holdings', 50.56, 'Singtel', 'direct', '2026-06-30',
+         gov=[G('Singapore', 'Temasek Holdings', 50.55, 'Singtel', 'direct', '2026-06-30',
                 'https://cdn1.singteldigital.com/content/dam/singtel/investorRelations/annualReports/2026/Letter-to-Shareholders.pdf', CO,
-                'computed from share counts: 8,304,071,181 direct shares within a 51.99% combined interest'),
+                'computed: 8,304,071,181 direct shares / 16,426,070,100 issued (5% = 821,303,505 shares, letter s.2.7); combined 51.99% (p.13)'),
               G('Singapore', 'Temasek Holdings (deemed, via subsidiaries/associates)', 1.43, 'Singtel', 'via_parent', '2026-06-30',
                 'https://cdn1.singteldigital.com/content/dam/singtel/investorRelations/annualReports/2026/Letter-to-Shareholders.pdf', CO,
-                'computed from 235,133,564 deemed shares within the 51.99% combined interest'),
+                'computed: 235,133,564 deemed shares / 16,426,070,100 issued'),
               G('Norway', 'Norges Bank Investment Management (GPFG)', 0.76, 'Singtel', 'direct', '2025-12-31', NBIM, CO)],
          core=V('Ericsson', 'https://www.ericsson.com/en/cases/2022/singtel-and-ericsson', CO, 'dual-mode 5G Core; NSA used an upgraded Ericsson EPC'),
          first_contract=ND('Ericsson 5G pilot network launched July 2018; contract date not found'),
@@ -197,24 +204,29 @@ OPERATORS = [
          gov=[G('Uzbekistan', 'Ministry of Economy and Finance', 67.17, 'Uzbektelecom JSC', 'direct', '2025-12-31',
                 'https://openinfo.uz/media/int_report/08c4d98a-95e7-4ee7-8771-8093b193f1f5.pdf', CO, '2025 consolidated financial statements'),
               G('Uzbekistan', 'National Investment Fund of Uzbekistan (UzNIF; 100% owned by the Ministry of Economy and Finance)', 25.0, 'Uzbektelecom JSC', 'direct', '2025-12-31',
-                'https://openinfo.uz/media/int_report/08c4d98a-95e7-4ee7-8771-8093b193f1f5.pdf', CO, '25% transferred from the Ministry'),
-              G('Uzbekistan', 'State Assets Management Agency', 2.033, 'Uzbektelecom JSC', 'direct', '2026-08-28',
-                'https://uztelecom.uz/uploads/media/2024/%D0%AF%D0%BD%D0%B2%D0%B0%D1%80%D1%8C/STRUCTURE%20OF%20SHARE%20CAPITAL.pdf', CO,
-                "DISPUTED: the search dates this share-structure file to 28 Aug 2026, but its URL path says 2024/January, and the FY2025 statements say the remaining 7.83% is held by entities each under 1%"),
-              G('Uzbekistan', 'SUE Center of Radio Communication, Broadcasting and Television', 0.34, 'Uzbektelecom JSC', 'direct', '2026-08-28',
-                'https://uztelecom.uz/uploads/media/2024/%D0%AF%D0%BD%D0%B2%D0%B0%D1%80%D1%8C/STRUCTURE%20OF%20SHARE%20CAPITAL.pdf', CO, 'same file as the State Assets Management Agency row'),
-              G('Uzbekistan', 'SUE Unicon.uz', 0.002, 'Uzbektelecom JSC', 'direct', '2026-08-28',
-                'https://uztelecom.uz/uploads/media/2024/%D0%AF%D0%BD%D0%B2%D0%B0%D1%80%D1%8C/STRUCTURE%20OF%20SHARE%20CAPITAL.pdf', CO, 'same file')],
+                'https://openinfo.uz/media/int_report/08c4d98a-95e7-4ee7-8771-8093b193f1f5.pdf', CO, '25% transferred from the Ministry')],
+         gov_note=("SPOT-CHECK FIX (2026-11-15): three rows removed (State Assets Management Agency 2.033%, Center of Radio Communication "
+                   "0.34%, Unicon.uz 0.002%). They came from a share-structure file the search dated 28 Aug 2026, but the file itself "
+                   "shows the Ministry at 92.174%, i.e. the pre-2025 structure. The FY2025 statements (p.15), the latest official filing, "
+                   "list only the Ministry 67.17%, UzNIF 25.00% and 'other legal entities and individuals (individually hold less than "
+                   "1%)' 7.83%."),
          core=ND('network is NSA; EPC vendor not named'),
          first_contract=ND('Huawei pre-trial 5G tests in 2019; Huawei supply agreement 1 May 2021 not stated to cover 5G'), vendor_operates=ND()),
     dict(region='Central Asia & Eastern Europe', country='Uzbekistan', operator_name='Mobiuz',
          share=V(22.0, UZ_SHARE, NEWS, UZ_NOTE + '; BMI (via Times of Central Asia) gives 20.9% at end-2024', 2023),
          launch=V(2022, 'https://developingtelecoms.com/telecom-technology/wireless-networks/13947-mobiuz-goes-live-with-5g-services-in-uzbek-capital.html', NEWS, 'Tashkent, Sep 2022'),
-         ran5=[R('Huawei', 'not_disclosed', 'https://www.datacenterdynamics.com/en/news/mobiuz-launches-5g-services-in-uzbek-capital', NEWS, 'Huawei supplied the equipment for the Sep 2022 launch')],
-         ran4=[R('Huawei', 'not_disclosed', 'https://www.uzdaily.uz/en/mobiuz-expands-its-technical-capabilities/', NEWS, 'Huawei shipments under a US$150m modernisation project (Nov 2020)'),
-               R('ZTE', 'not_disclosed', 'https://www.zte.com.cn/global/about/news/Mobiuz-and-ZTE-drive-digital-transformation-in-Uzbekistan-with-successful-network-modernization-project.html', CO, 'modernisation in Karakalpakstan and Khorezm, 1,200+ base stations (Sep 2025); generation not stated')],
-         gov=[G('Uzbekistan', 'Digital Economy Development Support Fund "Digital Trust" (state fund)', 100.0, 'Universal Mobile Systems LLC (Mobiuz)', 'direct', '2025-06-09',
-                'https://gov.uz/en/davaktiv/news/view/59663', REG, "state sale of 100% launched 9 Jun 2025; a US-led consortium was selected 4 Jun 2026, closing not confirmed")],
+         ran5=[R('Huawei', 'not_disclosed', 'https://developingtelecoms.com/telecom-technology/wireless-networks/13947-mobiuz-goes-live-with-5g-services-in-uzbek-capital.html', NEWS,
+                 "Developing Telecoms (7 Sep 2022), citing TeleGeography: the US$150m Chinese loan funds 'the implementation of 5G - all using "
+                 "equipment provided by Huawei'. SPOT-CHECK: the originally cited DCD article was blocked (403) under both fetch methods, so it was re-cited here")],
+         ran4=[R('Huawei', 'not_disclosed', 'https://developingtelecoms.com/telecom-technology/wireless-networks/13947-mobiuz-goes-live-with-5g-services-in-uzbek-capital.html', NEWS,
+                 "same article: 'nationwide 3G & 4G coverage expansion… all using equipment provided by Huawei'. SPOT-CHECK FIX: the "
+                 "originally cited UzDaily piece mentions Huawei equipment but no network generation")],
+         ran4_note=("SPOT-CHECK FIX: ZTE removed from 4G. ZTE's Sep 2025 release covers replacing base stations and 1,200+ new ones in "
+                    "Karakalpakstan and Khorezm, but never names a generation"),
+         gov=[G('Uzbekistan', 'State of Uzbekistan (state share managed by the State Assets Management Agency, UzSAMA)', 100.0, 'Universal Mobile Systems LLC (Mobiuz)', 'direct', '2025-06-09',
+                'https://gov.uz/en/davaktiv/news/view/59663', REG,
+                "UzSAMA announced privatisation of '100% of the state-owned share'. SPOT-CHECK FIX: the holder was previously coded as 'Digital "
+                "Trust', a name this page doesn't use (it came from Gazeta.uz, which isn't cited). A US-led consortium was selected 4 Jun 2026; closing not confirmed")],
          core=ND(), first_contract=ND(), vendor_operates=ND()),
     # ------------------------------------------------------------------ Uruguay
     dict(region='Latin America & Caribbean', country='Uruguay', operator_name='ANTEL',
@@ -256,11 +268,15 @@ OPERATORS = [
     dict(region='Middle East', country='Israel', operator_name='Cellcom',
          share=V(32.0, IL_SHARE, CO, IL_SHARE_NOTE, 2025),
          launch=V(2020, IL_SHARE, CO, '5G launched 2020 per 2025 periodic report'),
-         ran5=[], ran5_note='5G RAN vendor not named in filings; 4G/5G network shared with Wecom',
-         ran4=[R('Nokia (NSN Israel)', 'not_disclosed', IL_SHARE, CO, 'LTE/LTE-A framework agreement since Apr 2014')],
+         ran5=[R('Nokia (NSN Israel)', 'not_disclosed', IL_SHARE, CO,
+                 "SPOT-CHECK FIX: p.90 framework agreement with NSN Israel covers purchase of 'advanced 4th Generation and 5th Generation technology'; network shared with Wecom")],
+         ran4=[R('Nokia (NSN Israel)', 'not_disclosed', IL_SHARE, CO, 'LTE/LTE-A framework agreement (p.90), since Apr 2014')],
          gov=[], gov_note="no state holder in filings (controlling holder FF6-Cell LP, private); NBIM held no Israeli telecoms at 31 Dec 2025",
-         core=ND('NSN framework covers 4G/5G and associated core equipment; the SA core vendor is not named'),
-         first_contract=ND(), vendor_operates=ND('Amdocs runs IT/billing operations (since 2010), not the network')),
+         core=ND("NSN framework covers 4G/5G and associated core equipment (p.90); p.91: Cellcom 'entered into an agreement to build "
+                 "and operate a 5th Generation network core (standalone)' with an UNNAMED counterparty"),
+         first_contract=ND(),
+         vendor_operates=ND("p.91: an agreement to 'build and operate' the SA 5G core exists, but the counterparty is not named, so "
+                            "it can't be shown to be an equipment vendor; Amdocs runs IT/billing operations (since 2010), not the network")),
     dict(region='Middle East', country='Israel', operator_name='Partner',
          share=V(23.0, IL_SHARE, CO, IL_SHARE_NOTE, 2025),
          launch=V(2020, 'https://www.itu.int/en/ITU-D/Regional-Presence/Europe/Documents/Events/2020/5G_EUR_CIS/5G_Israel-final.pdf', REG, 'Sep 2020'),
@@ -273,7 +289,9 @@ OPERATORS = [
     dict(region='Middle East', country='Israel', operator_name='Pelephone',
          share=V(23.0, IL_SHARE, CO, IL_SHARE_NOTE, 2025),
          launch=V(2020, 'https://www.datacenterdynamics.com/en/news/israel-awards-5g-contracts-pelephone-hot-mobile-and-partner-comms/', NEWS, 'launched commercially by 1 Oct 2020'),
-         ran5=[R('Ericsson', 'all', 'https://ir.bezeq.co.il/static-files/770b7f6a-96d1-4b0d-92c2-e4cb0a15bc9e', CO, "Bezeq annual report: Ericsson supplied Pelephone's UMTS, LTE and 5G infrastructure")],
+         ran5=[R('Ericsson', 'all', 'https://ir.bezeq.co.il/static-files/770b7f6a-96d1-4b0d-92c2-e4cb0a15bc9e', CO,
+                 "Bezeq annual report: Ericsson supplied Pelephone's UMTS, LTE and 5G infrastructure. SPOT-CHECK: UNVERIFIED, because the Bezeq file "
+                 "returned 403 under both fetch methods. INSS (verified) says Pelephone 'would use Ericsson equipment' but has no sole-supplier wording")],
          ran4=[R('Ericsson', 'all', 'https://en.globes.co.il/en/article-pelephone-picks-ericsson-as-sole-4g-vendor-1000972189', NEWS, 'sole 4G vendor (2014); Bezeq annual report confirms')],
          gov=[], gov_note='100% owned by Bezeq (no controlling shareholder); no state holder found; NBIM held no Bezeq at 31 Dec 2025',
          core=V('Ericsson', 'https://ir.bezeq.co.il/news-releases/news-release-details/pelephone-expects-reach-100-thousand-5g-max-customers-and-will/', CO, 'independent SA core built with Ericsson (NIS 50m); 5G MAX launched Sep 2024'),
@@ -300,7 +318,9 @@ OPERATORS = [
     dict(region='Western Europe', country='Luxembourg', operator_name='Tango',
          share=V(32.9, LU_ILR, REG, 'ILR 2025 report (Proximus Luxembourg)', 2025),
          launch=V(2020, 'https://www.proximusnxt.lu/en/5g-beyond-borders', CO, '23 Oct 2020'),
-         ran5=[R('Nokia', 'all', 'https://www.proximusnxt.lu/en/partnerships-finnish-company-nokia-and-swedish-company-ericsson', CO, "Nokia selected for 5G RAN and to replace the incumbent radio vendor (7-year deal, 15 Dec 2020)")],
+         ran5=[R('Nokia', 'not_disclosed', 'https://www.proximusnxt.lu/en/partnerships-finnish-company-nokia-and-swedish-company-ericsson', CO,
+                 "Nokia 'selected both to actively participate in the deployment of the 5G network and to progressively modernize the existing "
+                 "2G, 3G and 4G networks by 2023' (15 Dec 2020). SPOT-CHECK FIX: previously 'all', but the release has no sole-supplier wording")],
          ran4=[R('Nokia', 'not_disclosed', 'https://www.proximusnxt.lu/en/tango-and-proximus-nxt-partner', CO, 'progressive modernisation of 2G/3G/4G by 2023'),
                R('Huawei', 'not_disclosed', 'https://www.lightreading.com/5g/proximus-dumps-huawei-in-luxembourg-too', NEWS, '100% of 4G RAN as of Dec 2020 (Strand Consult); replacement by Nokia under way, completion not confirmed')],
          gov=[G('Belgium', 'Belgian State (via SFPIM)', 53.51, 'Proximus PLC', 'via_parent', '2025-12-31', PROXIMUS_AR, CO,
@@ -327,10 +347,9 @@ OPERATORS = [
                  'GSMA report (Nov 2024): ~40% of mobile connections; VinaPhone 30, MobiFone 16, Vietnamobile 12, Gmobile 2', 2024),
          launch=V(2024, 'https://english.mst.gov.vn/viettel-launches-vietnams-first-5g-network-197241016083258314.htm', REG, '15 Oct 2024'),
          ran5=[R('Ericsson', 'most', 'https://www.ericsson.com/en/press-releases/2024/9/viettel-vietnam-extends-ericsson-partnership-through-major-5g-network-award', CO, "awarded 30 Sep 2024; 'majority of provinces' incl. Hanoi, northern and central Vietnam"),
-               R('Nokia', 'some', 'https://www.nokia.com/asset/i/215526/', CO, '22 provinces, ~2,500 sites (2024)'),
                R('Viettel High Tech (in-house)', 'small', 'https://www.vietnam.vn/en/2-800-tram-goc-5g-do-viettel-phat-trien-duoc-dua-vao-mang-luoi', NEWS,
                  '2,800 own-made gNodeBs (Oct 2026), compared with >20,000 new 5G sites by end-2025 (Developing Telecoms)')],
-         ran5_note="excluded: Qualcomm (chipsets/L1 software inside Viettel's own radios); a Huawei-led group's US$23m '5G equipment' contract and ZTE antenna contracts with unclear year and scope",
+         ran5_note="SPOT-CHECK FIX: Nokia ('some', 22 provinces / ~2,500 sites) removed. The cited nokia.com asset is an Omdia report on core-network vendors and doesn't mention Nokia's Viettel RAN; no other source was checked. Ericsson 'most' was verified against Ericsson's 30 Sep 2024 release ('majority share of Viettel's nationwide 5G deployment'). Viettel High Tech's 2,800 gNodeBs were verified; 'small' is a researcher judgment against >20,000 sites. Also excluded: Qualcomm (chipsets/L1 software inside Viettel's own radios); a Huawei-led group's US$23m '5G equipment' contract and ZTE antenna contracts with unclear year and scope",
          ran4=[R('Ericsson', 'not_disclosed', 'https://www.ericsson.com/en/press-releases/2024/9/viettel-vietnam-extends-ericsson-partnership-through-major-5g-network-award', CO, '4G modernisation in the same areas as its 5G award')],
          gov=[G('Vietnam', 'State of Vietnam (owner rights exercised by the Ministry of National Defence)', 100.0, 'Viettel Group', 'direct', '2018-01-11',
                 'https://vpcp.chinhphu.vn/chi-dao-dieu-hanh-cua-chinh-phu-thu-tuong-chinh-phu-ngay-11-1-2018-11519405.htm', REG, 'Decree 05/2018/ND-CP: state holds 100% of charter capital')],

@@ -79,7 +79,9 @@ def main():
         panel.append(row)
 
     non_european = sorted(r['operator_id'] for r in panel if r['region'] != 'Western Europe')
-    k = max(1, round(len(non_european) / 10))
+    # Originally ~1 in 10 (k=2). Widened to 6 on 2026-11-15 after the first two showed errors; the same seed
+    # extends the sample, so the first two picks are unchanged. Results: 5g_expansion/spotcheck_2026-11-15.csv
+    k = 6
     picks = set(random.Random(SEED).sample(non_european, k))
     for r in panel:
         r['spot_check'] = r['operator_id'] in picks

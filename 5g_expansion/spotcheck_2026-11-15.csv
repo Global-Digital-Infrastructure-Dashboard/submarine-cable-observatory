@@ -1,0 +1,43 @@
+#,pass,operator,fact_as_coded,result,reason_or_evidence,action
+1,random-2,Israel|Cellcom,Cellcom share 32% (2025),confirmed,"Cellcom 2025 periodic report p.24 and p.67: 'market share estimated at 32%'",none
+2,random-2,Israel|Cellcom,Partner 23% / Pelephone 23% (2025),confirmed,"same report p.67: 'The Group 32%, Partner 23%, Pelephone 23%'",none
+3,random-2,Israel|Cellcom,HOT 14% (2025),confirmed,"p.67 garbled in text extraction ('1413'); researcher confirmed 14% visually",note updated
+4,random-2,Israel|Cellcom,5G launched 2020,confirmed,"p.75: '5th Generation network (NR 5G) - launched in 2020'",none
+5,random-2,Israel|Cellcom,Nokia (NSN) framework agreement (4G),confirmed,"p.90; the agreement also covers 5G technology, which had been under-coded",Nokia added to 5G RAN; p.91 core build-and-operate agreement (counterparty unnamed) noted
+6,random-2,Singapore|Singtel,Singtel share 50.7% (2025),wrong,"AR FY25 p.118: 50.7% is Telkomsel's (Indonesia) share in the associates table; no Singapore % in the report",share -> not_disclosed (4.5m customers in note)
+7,random-2,Singapore|Singtel,Ericsson sole 5G RAN supplier,wrong,"2020 AGM p.12: 'solely' is in a shareholder's question; Singtel's answer neither confirms nor denies",Ericsson kept with no share category; re-cited to Ericsson case study (lists 'Ericsson 5G RAN' in Singtel's 5G SA; no exclusivity wording)
+8,random-2,Singapore|Singtel,Temasek 8.304bn direct + 0.235bn deemed shares = 51.99%,confirmed,"Letter to Shareholders 30 Jun 2026 p.13",none
+9,random-2,Singapore|Singtel,Temasek split 50.56% / 1.43%,wrong,"exact issued shares 16,426,070,100 (letter s.2.7) give 50.55% / 1.43%; rounding error of 0.01",corrected to 50.55
+10,random-4,Uruguay|Claro,share 23.10% (Dec 2025),confirmed,"TelcoBrief table: Claro 1,139,384 of 4,932,915 lines = 23.10%",none
+11,random-4,Uruguay|Claro,Nokia 5G RAN,confirmed,"Developing Telecoms Jun 2021: 'will use the latest generation Nokia equipment in the Access Network' (trials)",none
+12,random-4,Uruguay|Claro,Norges 0.07% of America Movil,confirmed,"NBIM 31 Dec 2025 holdings file, read directly",none
+13,random-4,Kenya|Safaricom,share 65.3% (30 Sep 2025),confirmed,"CA Q1 2025/26 sector statistics p.13: 'mobile subscriptions… 65.3'",none
+14,random-4,Kenya|Safaricom,5G launch 2022,confirmed,"Safaricom release body dated '27 October 2022' (page CMS date differs)",none
+15,random-4,Kenya|Safaricom,Huawei + Nokia 5G partners,confirmed,"'Nokia and Huawei have been chosen as the two technology partners to implement the roll out of Safaricom's 5G network'",none
+16,random-4,Kenya|Safaricom,Government of Kenya 20% (30 Jun 2026),confirmed,"Safaricom IAR FY2026 p.12 and p.19: 'Government of Kenya 20%'",none
+17,random-4,Kenya|Safaricom,Norges 0.82% direct,confirmed,"NBIM 31 Dec 2025 holdings file, read directly",none
+18,random-4,Kenya|Safaricom,e& 17.005026% of Vodafone Group,confirmed,"Vodafone 2026 Annual Report p.239 DTR5 table",none
+19,random-4,Kenya|Safaricom,Norges Bank 3.0004% of Vodafone Group,confirmed,"Vodafone 2026 Annual Report p.239",none
+20,random-4,Tajikistan|MegaFon,share 22.9% (computed from TAdviser 2024 counts),unverifiable,"page deleted: TAdviser now returns 'requested page not found'",flag only
+21,random-4,Tajikistan|MegaFon,5G launch 2020,confirmed,"megafon.tj/about (Russian): '21 февраля 2020 года МегаФон Таджикистан первым в стране начал внедрение… 5G'",none
+22,random-4,Tajikistan|MegaFon,Tojiktelecom 25% direct,confirmed,"Asia-Plus 26 Oct 2021: 'the remaining 25% belong to the national operator OJSC Tojiktelecom'",none
+23,random-4,Uzbekistan|Mobiuz,share 22% (Dec 2023),confirmed,"Freedom House 2024: 'Mobiuz at 22 percent' (Uztelecom data, Dec 2023)",none
+24,random-4,Uzbekistan|Mobiuz,5G launch 2022,confirmed,"Developing Telecoms 07 Sep 2022: 'has begun offering 5G services in areas of Tashkent'",none
+25,random-4,Uzbekistan|Mobiuz,Huawei 5G RAN (cited DCD),unverifiable,"blocked: DCD returned 403/bot check under both fetch methods. Developing Telecoms (verified) supports Huawei for 5G",re-cited to Developing Telecoms
+26,random-4,Uzbekistan|Mobiuz,Huawei 4G RAN (cited UzDaily),wrong,"UzDaily mentions Huawei equipment but no network generation, so the cited source doesn't support '4G'. Developing Telecoms supports Huawei for 3G and 4G",re-cited to Developing Telecoms
+27,random-4,Uzbekistan|Mobiuz,ZTE 4G RAN,wrong,"ZTE Sep 2025 release: base stations in two regions, no network generation stated",removed from 4G; moved to note
+28,random-4,Uzbekistan|Mobiuz,"Digital Trust holds 100%",wrong,"gov.uz confirms '100% of the state-owned share' but never names Digital Trust (that name came from uncited Gazeta.uz)",holder -> State of Uzbekistan (UzSAMA)
+29,targeted,Libya|Al-madar,Nokia 4G RAN 'small' (one stadium),confirmed,"Nokia's LinkedIn post: Stadium LTE solution, C-RAN, Benghazi National Stadium",none
+30,targeted,Luxembourg|Post,Ericsson 5G RAN 'all',confirmed,"post.lu: 'rollout of POST's 5G network is based on Ericsson infrastructure, the historical and current supplier'",none
+31,targeted,Luxembourg|Tango,Nokia 5G RAN 'all',wrong,"release says Nokia 'selected… to actively participate in the deployment of the 5G network'; no sole-supplier wording",-> not_disclosed
+32,targeted,Luxembourg|Orange,Nokia 5G RAN 'all',confirmed,"Orange LU 9 Oct 2020 release, Nokia quote: 'As the only radio supplier for this stand-alone evolving 5G network'",none
+33,targeted,Israel|Pelephone,Ericsson 5G RAN 'all' (Bezeq report),unverifiable,"blocked: Bezeq IR file returned 403 under both fetch methods. INSS supports Ericsson as vendor but not 'all'",flag in note
+34,targeted,Israel|Pelephone,Ericsson 4G RAN 'all',confirmed,"Globes 16 Sep 2014: 'Pelephone picks Ericsson as sole 4G vendor'",none
+35,targeted,Israel|Partner,Ericsson 4G RAN 'all',confirmed,"Partner 2018 20-F p.46: 'Ericsson is currently our sole radio and core network equipment supplier'",none
+36,targeted,Uzbekistan|Ucell,ZTE 4G RAN 'most',confirmed,"ZTE case study: 'Ucell finally chose ZTE as its main LTE equipment supplier' ('main' coded as 'most')",none
+37,targeted,Vietnam|Viettel,Ericsson 5G RAN 'most',confirmed,"Ericsson 30 Sep 2024 release (via WebFetch): 'majority share of Viettel's nationwide 5G deployment'; 'majority of provinces'",none
+38,targeted,Vietnam|Viettel,Nokia 5G RAN 'some' (22 provinces),wrong,"cited nokia.com asset is an Omdia report on core-network vendors; no Nokia/Viettel RAN claim",Nokia removed
+39,targeted,Vietnam|Viettel,"Viettel High Tech 2,800 gNodeBs ('small')",confirmed,"vietnam.vn: '2,800 5G base stations developed by Viettel have been put into the network'; 'small' is a judgment",none
+40,targeted,Israel|Partner+HOT,Ericsson for PHI 5G (disputed),confirmed,"INSS p.1: 'Partner-Hot Mobile and Pelephone would use Ericsson equipment'. The Nokia side of the dispute was not verified",dispute note updated
+41,targeted,Uzbekistan|Uzbektelecom,share-structure file dated 28 Aug 2026 (SAMA 2.033% etc.),wrong,"the file shows the Ministry at 92.174%, i.e. the pre-2025 structure; FY2025 statements say others are individually <1%",3 rows removed
+42,targeted,Uzbekistan|Uzbektelecom,Ministry 67.17% + UzNIF 25.00% (31 Dec 2025),confirmed,"FY2025 consolidated financial statements p.15",none
