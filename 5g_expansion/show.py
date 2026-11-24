@@ -2,7 +2,9 @@
 import json, sys, re
 c = sys.argv[1]
 for e in map(json.loads, open('data/5g_expansion_searches.jsonl')):
-    _, layer, country, op = e['key'].split('|')
+    parts = e['key'].split('|')
+    if len(parts) != 4: continue
+    _, layer, country, op = parts
     if country != c: continue
     print(f"\n######## {op} :: {layer}")
     a = re.sub(r'\n{2,}', '\n', e['search']['answer'])

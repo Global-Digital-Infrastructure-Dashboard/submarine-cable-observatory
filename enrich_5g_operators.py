@@ -41,6 +41,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 
 import jsonschema
+
+import gov_stakes_core
 import numpy as np
 import pandas as pd
 
@@ -84,12 +86,10 @@ OPERATOR_ESTIMATE = 0.125    # one synchronous Claude extraction over six search
 # build_row from the coded state_equity_pct.
 STATE_BACKED_PCT = 10
 STATE_OWNED_PCT = 50
-# Every state ownership_type stays provisional until Prof. Shen signs off on the state-holder
-# list and the two open rules; flagged per row in ownership_type_provisional and the notes.
+# Prof. Shen's ownership rule (2026-11 review) replaces the summed state_equity_pct for ownership_type:
+# per-holder stakes and the largest-single-government derivation live in gov_stakes_core.py, which
+# build_row applies last. ownership_type_provisional is set there (reference-list state links only).
 STATE_TYPES = ('state_owned', 'state_backed_minority')
-PROVISIONAL_NOTE = ("ownership_type PROVISIONAL: pending Prof. Shen's sign-off on data/state_holders.csv and on "
-                    "two open rules (sum state stakes across states or count per state; whether passive "
-                    "sovereign-fund stakes such as Norges or GIC count)")
 
 # Shareholders that are states or state-controlled (data/state_holders.csv), given to Claude as a
 # reference list: shareholder disclosures name the holder, rarely the state behind it (e& for
@@ -892,6 +892,8 @@ def flat_columns():
         elif name == 'core_vendor_4g_legacy':
             cols.append(f'{name}_origin')
         cols += [f'{name}_tier', f'{name}_source']
+        if name == 'state_equity':
+            cols += gov_stakes_core.NEW_COLUMNS
         if name == 'ownership_type':
             cols.append('ownership_type_provisional')
     return cols + ['market_vendor_shares', 'notes', 'source_urls']
@@ -1028,15 +1030,13 @@ def build_row(op, year, fields, searches, cables):
                          f"{fmt_num(se['value']['pct'])}%")
             out['ownership_type'] = expected
             out['ownership_type_tier'], out['ownership_type_source'] = se['tier'], se['source']
-    provisional = out['ownership_type'] in STATE_TYPES
-    out['ownership_type_provisional'] = 'yes' if provisional else 'no'
-    notes += [PROVISIONAL_NOTE] if provisional else []
 
     out['market_vendor_shares'] = '; '.join(
         f"{s['element']}: {s['vendor']} {fmt_num(s['share_pct'])}% of {s['share_basis']} ({s['analyst_house']}, {s['year']})"
         for s in fields['market_vendor_shares']) or NOT_DISCLOSED
     out['notes'] = ' | '.join(notes) or 'none'
     out['source_urls'] = '; '.join(dict.fromkeys(cited)) or NOT_DISCLOSED
+    gov_stakes_core.apply_ownership(out)
     assert all(out[c] != '' for c in PANEL_COLUMNS), [c for c in PANEL_COLUMNS if out[c] == '']
     return {c: out[c] for c in PANEL_COLUMNS}
 
