@@ -161,6 +161,9 @@ STAKES = {
                                 chain='Orange S.A. -> Atlas Services Belgium 76.29% of Orange Belgium'),
     'SK-orange-slovensko': orange('Orange S.A. AMF prospectus supplement, 9 Jun 2026 (31 Dec 2025)',
                                   chain='Orange S.A. -> Atlas Services Belgium -> 100% of Orange Slovensko'),
+    # Researcher decision 2026-11-24 (migration): Orange S.A. owns 100% of MasOrange since 8 Jun 2026 (Lorca's 50% acquired).
+    'ES-masorange': orange(ORANGE_URD + '; Light Reading, Sep 2026 (MasOrange now wholly owned by Orange)', parent_pct=100.0,
+                           chain="Orange S.A. 100% of MasOrange since 8 Jun 2026 (a 50:50 joint venture with Lorca before)"),
     'RO-orange-romania': [
         H('Romania', 'Romanian Ministry of Research, Innovation and Digitalization', 'government_ministry', 20.0, 'Orange Romania', 'direct',
           '2025-12-31', 'Orange 2025 Universal Registration Document', link_source='Orange 2025 Universal Registration Document',
@@ -173,6 +176,8 @@ STAKES = {
     'EE-telia-eesti': telia('Telia Company shareholdings as of 30 Jun 2026', as_of='2026-06-30', chain='Telia Company AB -> Telia Eesti; ' + ASSUMED),
     'LT-telia-lietuva': telia('Telia Company Annual Report 2025 (Swedish State 41.1%); Telia Lietuva Annual Report 2025 (Telia Company 88.15%)',
                               factor=0.8815, parent_pct=88.15),
+    # Researcher decision 2026-11-24 (migration): treated as wholly owned by Telia Company, like Telia Norge / Telia Eesti.
+    'FI-telia-finland': telia('Telia Company Annual Report 2025 (shareholders at 31 Dec 2025)', chain='Telia Company AB -> Telia Finland Oyj; ' + ASSUMED),
     'SE-telenor': telenor("Telenor's Share and Shareholders page, 27 Feb 2026", chain='Telenor ASA -> Telenor Sverige; percentage not stated; ' + ASSUMED),
     'NO-telenor-norge': telenor('Telenor ASA major shareholders as of 27 February 2026', chain='Telenor ASA -> Telenor Norge; ' + ASSUMED),
     'FI-dna': telenor('Telenor ASA, Shareholders as of 27 February 2026; DNA stock exchange release archive',
@@ -186,6 +191,12 @@ STAKES = {
     'IT-fastweb': [H('Switzerland', 'Swiss Confederation', 'government_ministry', 51.0, 'Swisscom Ltd', 'via_parent', '2025-12-31',
                      'Swisscom annual report / 2025 financial statements, major shareholders as of 31 Dec 2025',
                      link_source='Swisscom annual report 2025', chain='Swisscom Ltd -> Fastweb; ' + ASSUMED)],
+    # Researcher decision 2026-11-24 (migration): Swisscom has owned Vodafone Italia since 31 Dec 2024; merged into Fastweb
+    # S.p.A. on 1 Jan 2026. The core panel keeps both rows (not back-ported); the migrated files carry one Fastweb row.
+    'IT-vodafone-italia': [H('Switzerland', 'Swiss Confederation', 'government_ministry', 51.0, 'Swisscom Ltd', 'via_parent', '2025-12-31',
+                             'Swisscom annual report / 2025 financial statements, major shareholders as of 31 Dec 2025',
+                             link_source='Swisscom annual report 2025', parent_pct=100.0,
+                             chain='Swisscom Ltd 100% of Vodafone Italia since 31 Dec 2024; merged into Fastweb S.p.A. on 1 Jan 2026')],
     'BE-proximus': [H('Belgium', 'Federal Holding and Investment Company (SFPIM)', 'state_holding_company', 53.51, 'Proximus PLC', 'direct',
                       '2026-01', 'Proximus Integrated Annual Report 2025 (shareholder analysis Jan 2026)',
                       link_source='Proximus Integrated Annual Report 2025')],
@@ -214,8 +225,12 @@ STAKES = {
                           'direct', '2025-12-31', 'China Mobile Limited 2025 annual report materials; US Federal Register, 10 Jun 2026',
                           link_source='US Federal Register, 10 Jun 2026 (CMCC directly owned and controlled by SASAC)')],
     'CN-china-unicom': [H('China', 'China United Network Communications Group Company Limited (Unicom Group)', 'state_owned_company', 80.67,
-                          'China Unicom (Hong Kong)', 'direct', '2026-06-30', 'China Unicom (Hong Kong) interim report 2026 (30 Jun 2026)',
-                          link_source='China Unicom 2025 annual report notes (SOE directly controlled by the PRC government)')],
+                          'China Unicom (Hong Kong)', 'via_parent', '2026-06-30', 'China Unicom (Hong Kong) interim report 2026 (30 Jun 2026)',
+                          link_source='China Unicom 2025 annual report notes (SOE directly controlled by the PRC government)',
+                          chain=('Unicom Group -> China United Network Communications Limited 53.52% + Unicom Group BVI 27.15% -> China Unicom '
+                                 '(Hong Kong); the filing reports 80.67% as an indirect/deemed interest in the operator itself, so no '
+                                 'multiplication (factor 1)'),
+                          note='recoded direct -> via_parent 2026-11-24 (researcher decision); ownership_type unchanged')],
     'CN-china-telecom': [H('China', 'China Telecommunications Corporation', 'state_owned_company', 63.9, 'China Telecom Corporation Limited',
                            'direct', '2025-12-31', 'China Telecom 2025 annual report, changes in shares', link_source='China Telecom 2025 annual report'),
                          H('China', 'Guangdong Rising Holdings Group Co., Ltd.', 'state_owned_company', 5.24, 'China Telecom Corporation Limited',
@@ -234,6 +249,7 @@ DROPPED = {
     'GR-vodafone-greece': ['Norges Bank 3.0004% of Vodafone Group Plc (2026-03-31; board seat not checked)'],
     'NL-vodafoneziggo': ['Norges Bank 3.0004% of Vodafone Group Plc (2026-03-31; board seat not checked)'],
     'SE-telia': ['Norges Bank 1.7% of Telia Company AB (2026-06-30; board seat not checked)'],
+    'FI-telia-finland': ['Norges Bank 1.7% of Telia Company AB (2026-06-30; board seat not checked)'],
     'NO-telenor-norge': ['Kuwait Investment Authority 0.53% of Telenor ASA (2026-02-27; board seat not checked)'],
     'HR-hrvatski-telekom': ['CERP (Restructuring and Sale Center) / Republic of Croatia 1.9% of Hrvatski Telekom (2025-12-31; board seat not checked)'],
     'SE-tele2': ['Norges Bank Investment Management 1.6% of Tele2 AB (2025-12-31; board seat not checked)'],
@@ -343,7 +359,12 @@ def check():
 
 # Deliberate differences from the earlier coding: HT now counts the German state via DT (absent before); Croatia
 # drops out (CERP's 1.9% is below 5%, and the War Veterans' Fund is not a state holder).
-EXPECTED = {('HR-hrvatski-telekom', 'Germany'): round(28.3 * 0.546, 4)}
+# Migration decisions 2026-11-24: Telia Finland, MasOrange and Vodafone Italia had no coded state equity (not_disclosed);
+# their parent-level stakes are added here.
+EXPECTED = {('HR-hrvatski-telekom', 'Germany'): round(28.3 * 0.546, 4),
+            ('FI-telia-finland', 'Sweden'): 41.1,
+            ('ES-masorange', 'France'): round(13.39 + 9.56, 4),
+            ('IT-vodafone-italia', 'Switzerland'): 51.0}
 
 
 def main(dry=False):

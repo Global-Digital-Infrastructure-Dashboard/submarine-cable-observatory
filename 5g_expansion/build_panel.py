@@ -31,6 +31,10 @@ def batches():
         yield mod
 
 
+def core_ids(value):
+    return [c for c in (x.strip() for x in value.split(';')) if c]
+
+
 def evidence_text():
     text = []
     for path in ('data/5g_expansion_searches.jsonl', 'data/5g_searches.jsonl'):
@@ -54,16 +58,21 @@ def main():
             problems.append(f'{where}: {e}')
             return ''
 
-    panel, ran, gov, switches, not_added = [], [], [], [], {}
+    panel, ran, gov, switches, not_added, migrated = [], [], [], [], {}, {}
     for mod in batches():
         batch = mod.__name__
         not_added.update(getattr(mod, 'CHECKED_NOT_ADDED', {}))
         for op in mod.OPERATORS:
             oid = f"{op['country']}|{op['operator_name']}"
+            # One row may carry several core ids ('a; b') when core operators have merged (Fastweb + Vodafone Italia).
+            for cid in core_ids(op.get('core_operator_id', '')):
+                if cid in migrated:
+                    problems.append(f'{oid}: core_operator_id {cid} migrated twice (also {migrated[cid]})')
+                migrated[cid] = oid
             if any(r['operator_id'] == oid for r in panel):
                 problems.append(f'{oid}: coded twice')
             row = dict(operator_id=oid, region=op['region'], country=op['country'], operator_name=op['operator_name'],
-                       name_note=op.get('name_note', ''))
+                       name_note=op.get('name_note', ''), core_operator_id=op.get('core_operator_id', ''))
             for field, name in SCALARS.items():
                 f = op[field]
                 if f['status'] == 'value' and not f['source_url']:
@@ -126,6 +135,14 @@ def main():
     picks = set(random.Random(SEED).sample(sorted(old_ids), 6))
     for r in panel:
         r['spot_check'] = r['operator_id'] in picks
+
+    # Every core-panel operator is migrated exactly once (Prof. Shen, 2026-11).
+    with open('data/5g_operator_panel.csv') as f:
+        core = {r['operator_id'] for r in csv.DictReader(f)}
+    missing, extra = sorted(core - set(migrated)), sorted(set(migrated) - core)
+    problems += [f'core operator {c} not migrated' for c in missing] + [f'core_operator_id {c} not in the core panel' for c in extra]
+    print(f'core panel: {len(core)} operators; migrated {len(migrated)} ids into '
+          f'{sum(1 for r in panel if r["core_operator_id"])} rows; missing {missing}; extra {extra}')
 
     if problems:
         print('\n'.join(problems))
