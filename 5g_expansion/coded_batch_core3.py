@@ -231,8 +231,11 @@ OPERATORS = [
                 "no completion found. Pension rule (2026-11-26): ATP was established by law in 1964 and the Minister of Employment "
                 "appoints its boards (atp.dk)",
                 chain='DKT Holdings ApS -> DK Telekommunikation ApS (100%) -> TDC Holding A/S (100%) -> TDC NET A/S (100%)')],
-         gov_note=("PFA and PKA (16.7% each of DKT Holdings) are not coded: neither is shown to be set up by law or to have a "
-                   "government-appointed board (not checked against their own sites). DISPUTED timing: if Macquarie's purchase has "
+         gov_note=("PFA (16.7% of DKT Holdings via PFA Ophelia InvestCo I 2018 K/S) does not meet the pension rule (checked "
+                   "2026-11-26): PFA Holding is owned by the PFA Foundation and its 1917 founding organisations, and its board is "
+                   "elected by the annual general meeting (english.pfa.dk). PKA (16.7% via PKA Ophelia Holding K/S, managed by AIP "
+                   "Management P/S) is NOT CONFIRMED either way: pka.dk renders its board and ownership pages only with JavaScript "
+                   "and no statute or annual report of the PKA funds was found, so it is not coded pending a source. DISPUTED timing: if Macquarie's purchase has "
                    "closed, ATP is no longer a holder; the Danish company register (CVR 39186829) was not reachable by script"),
          gov_dropped=[],
          core=V('Ericsson', 'https://www.ericsson.com/en/press-releases/3/2023/ericsson-and-tdc-net-launch-first-5g-standalone-network-in-denmark',
