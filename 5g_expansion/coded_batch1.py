@@ -89,10 +89,16 @@ OPERATORS = [
                 '35.00% at 31 Mar 2025 (FY2025 financial statements); the government sold 15% to Vodacom, completed 30 Jun 2026'),
               G('United Arab Emirates', 'e& (Emirates Telecommunications Group)', 'state_owned_company', 17.005026, 'Vodafone Group Plc', 'via_parent', '2026-03-31', VODAFONE_AR,
                 E_AND_NOTE, link_url=E_AND_AR,
-                chain='Vodafone Group Plc -> Vodacom Group 65.10% -> Vodafone Kenya (Vodacom majority since 30 Jun 2026; % not stated) -> Safaricom PLC 55%')],
+                chain='Vodafone Group Plc -> Vodacom Group 65.10% -> Vodafone Kenya (Vodacom majority since 30 Jun 2026; % not stated) -> Safaricom PLC 55%'),
+              G('South Africa', 'Government Employees Pension Fund (GEPF)', 'pension_fund', 12.24, 'Vodacom Group Limited', 'via_parent',
+                '2025-03-31', 'https://www.vodacom.com/pdf/agm/2025/notice-of-annual-general-meeting-2025.pdf',
+                "Vodacom notice of AGM 2025, p.11 major shareholders: 'Government Employee Pension Fund (GEPF) 254 385 551 12.24' "
+                "(verified in batch 5, 2026-11-26). Added under Prof. Shen's pension rule (2026-11-26)",
+                chain='Vodacom Group -> Vodafone Kenya (Vodacom majority since 30 Jun 2026; % not stated) -> Safaricom PLC 55%')],
          gov_dropped=['Norges Bank Investment Management 0.82% of Safaricom PLC (2025-12-31; board seat not checked)',
                       "Norges Bank 3.0004% of Vodafone Group Plc (2026-03-31; NBIM's file shows 1.56% at 2025-12-31; board seat not checked)"],
-         gov_note='Vodacom-level state holders not found in a current filing (an older report gave GEPF 12.9% in 2017); NBIM held no Vodacom shares at 31 Dec 2025',
+         gov_note=('GEPF added 2026-11-26 from the Vodacom 2025 AGM notice (an older report gave 12.9% in 2017); NBIM held no Vodacom '
+                   'shares at 31 Dec 2025'),
          core=ND('Nokia and Huawei are the named 5G partners; the core vendor is not specified'),
          first_contract=ND("Huawei/Nokia partner selection was announced in the 'switches on 5G' release; the searches disagree on its date (19 Mar 2021 vs 20 Oct 2022)"),
          vendor_operates=ND()),

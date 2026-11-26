@@ -167,8 +167,10 @@ OPERATORS = [
          gov=[G('Spain', 'Sociedad Estatal de Participaciones Industriales (SEPI)', 'state_holding_company', 10.0, 'Telefónica, S.A.', 'via_parent',
                 '2025-12-31', TEF_CGR, 'state link from data/state_holders.csv', link='reference_list',
                 chain="Telefónica, S.A. -> Telefónica Móviles España; percentage of the operating subsidiary not stated"),
-              G('Saudi Arabia', 'Public Investment Fund (via Green Bridge Investment Company SCS and Saudi Telecom Company)', 'sovereign_wealth_fund',
-                9.999, 'Telefónica, S.A.', 'via_parent', '2025-12-31', TEF_CGR, 'state link from data/state_holders.csv', link='reference_list',
+              G('Saudi Arabia', 'Public Investment Fund', 'sovereign_wealth_fund',
+                9.97, 'Telefónica, S.A.', 'via_parent', '2025-12-31', TEF_CGR,
+                "state link from data/state_holders.csv. Held via Green Bridge Investment Company SCS and Saudi Telecom Company; "
+                "aligned 2026-11-26 with the sister Telefónica rows (was 9.999 here)", link='reference_list',
                 chain="Telefónica, S.A. -> Telefónica Móviles España; percentage of the operating subsidiary not stated")],
          gov_dropped=[],
          core=V('Huawei', 'https://www.lightreading.com/5g/telef-nica-hooked-on-huawei-years-after-clean-network-vow',

@@ -66,7 +66,7 @@ SOURCE_TYPES_BY_DOMAIN = {
         'tstt.co.tt', 'bmobile.co.tt', 'reports.investors.vodafone.com', 'postgroup.lu', 'post.lu', 'megafon.tj',
         'antel.com.uy', 'almadar.ly', 'eand.com', 'prnewswire.com', 'linkedin.com',
         # funds writing about themselves (pension rule, 2026-11-26)
-        'gepf.co.za', 'atp.dk', 'ap3.se', 'epf.lk', 'ilmarinen.fi', 'tdcgroup.com', 'tdcnet.dk',
+        'gepf.co.za', 'vodacom.com', 'nssfug.org', 'bpopf.co.bw', 'atp.dk', 'ap3.se', 'epf.lk', 'ilmarinen.fi', 'tdcgroup.com', 'tdcnet.dk',
     ],
     'government': [
         'ca.go.ke', 'vpcp.chinhphu.vn', 'gub.uy', 'ttparliament.org', 'nbim.no', 'itu.int', 'ilr.lu', 'gov.uz',
@@ -135,7 +135,12 @@ PENSION_FUNDS = {
     'Third Swedish National Pension Fund': ('both', 'https://www.ap3.se/en/om-ap3/styrelse'),
     'General Retirement & Social Insurance Authority': ('both', 'https://www.daman.gov.qa/English/AboutUs/Pages/Vision-and-Mission.aspx'),
     "Employees' Provident Fund (Sri Lanka)": ('both', 'https://epf.lk/?page_id=2'),
+    'National Social Security Fund (Uganda)': ('gov_appoints_board',
+        'https://nssfug.org/media-center/latest-news/media/labour-minister-appoints-new-nssf-board-of-directors'),
 }
+# Also checked 2026-11-26 and NOT meeting the rule as written: the Botswana Public Officers Pension Fund (registered under the
+# general Pensions and Provident Funds Act 1987 rather than set up by its own law; the government nominates 5 of its 13
+# trustees, not the board; bpopf.co.bw About and Fund Rules pages).
 
 
 def register(domains=None, overrides=None, vendors=None):
