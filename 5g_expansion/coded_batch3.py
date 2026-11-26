@@ -6,7 +6,8 @@ Schema, source types and the 5% rule: schema.py. Primary-source checks made whil
 
 Batch notes:
 - Ukraine: only 5G pilots were found (Lviv 2025, Kyiv Jul 2026), so launch is not_disclosed and pilot vendors
-  are noted, not coded (as for MobiFone's Open RAN pilot in batch 1).
+  are noted, not coded (as for MobiFone's Open RAN pilot in batch 1). Prof. Shen (2026-11-26): kept out of the main
+  sample, rows flagged sample_status = pilot_only; no replacement country.
 - Pakistan: PTA authorised phased commercial 5G for Jazz, Ufone and Zong on 19 Mar 2026; only Zong states a launch.
   PTA's annual report (operator counts) timed out on every fetch, so computed shares are not coded.
 - Sri Lanka: Khazanah (36.69% of Axiata) is coded on Axiata's own wording ('the sovereign wealth fund of the
@@ -54,10 +55,18 @@ LV_SHARE_NOTE = ("share of mobile INTERNET connections in 2022 (regulator SPRK d
                  "Bite 23.4; verified on the LSM page. No regulator share of all mobile subscriptions found")
 UA_PILOT = 'https://digital-strategy.ec.europa.eu/en/miscellaneous/ukraine-kyivstar-vodafone-ukraine-and-lifecell-launch-5g-pilot-kyiv'
 UA_LAUNCH = ND("only 5G pilots found (Lviv 2025; Kyiv, Jul 2026, all three operators); no commercial launch")
+# Prof. Shen (2026-11-26): pilots don't count as a launch, so Ukraine is outside the main sample. Its rows are kept,
+# flagged pilot_only, so the country can be reintroduced if commercial 5G launches; no replacement country is drawn.
+UA_SAMPLE = dict(sample_status='pilot_only',
+                 sample_status_note=('outside the main sample (Prof. Shen, 2026-11-26): only 5G pilots, no commercial launch; '
+                                     'data kept for reintroduction if commercial service launches; no replacement drawn'))
 UA_SHARE = ND('the regulator (NKEK) site returned no operator-level subscription data')
 LMT_OWN = 'https://eng.lsm.lv/article/economy/business/15.07.2025-latvian-state-wants-to-buy-out-telias-stakes-in-two-telecoms-companies.a606911/'
 LMT_BNN = 'https://bnn-news.com/money/latvia-seeks-strategic-investors-for-tet-and-lmt-several-dozens-already-identified-s7rwe5n'
 TELIA_OWN = 'https://www.teliacompany.com/en/articles/shareholdings'
+
+DIALOG_CHAIN = ("Axiata Group Berhad -> Axiata Investments (Labuan) 73.75% of Dialog Axiata PLC (31 Dec 2025); Axiata's percentage of "
+                "the Labuan entity not stated")
 
 OPERATORS = [
     # ------------------------------------------------------------------ Pakistan
@@ -157,7 +166,7 @@ OPERATORS = [
                  "networks will be upgraded in the same rollout; verified")],
          gov=[], gov_note='no state holder at 5% or more in Tele2 AB (Freya Investissement 19.8%, BlackRock 6.2%)',
          gov_dropped=['Norges Bank Investment Management 1.69% of Tele2 AB (Aug 2026; board seat not checked)',
-                      'Third Swedish National Pension Fund (AP3) 0.69% of Tele2 AB (Oct 2026; board seat not checked)'],
+                      'Third Swedish National Pension Fund (AP3) 0.69% of Tele2 AB (Oct 2026; meets the pension rule: state fund, board appointed by the government, ap3.se; board seat not checked)'],
          core=V('Nokia', 'https://www.nokia.com/newsroom/nokia-to-accelerate-tele2s-digitalization-with-distributed-cloud-core/',
                 'SA 5G core, Voice over 5G and Cloud Packet Core for Sweden and the Baltics incl. Latvia (11 Jan 2021)'),
          first_contract=ND('Nokia core (Jan 2021) and RAN (Jan 2022) deals post-date the Jan 2020 launch'),
@@ -181,7 +190,7 @@ OPERATORS = [
                           'Ericsson framework agreement for 5G in Latvia and Lithuania; an earlier Huawei 5G MoU (2019) was not a supply contract'),
          vendor_operates=ND('Nokia MantaRay network management software is a product, not managed operations')),
     # ------------------------------------------------------------------ Ukraine
-    dict(region='Central Asia & Eastern Europe', country='Ukraine', operator_name='Kyivstar',
+    dict(region='Central Asia & Eastern Europe', country='Ukraine', operator_name='Kyivstar', **UA_SAMPLE,
          share=UA_SHARE, launch=UA_LAUNCH,
          ran5=[], ran5_note=("Kyiv pilot (Jul 2026) used 'a mix of Ericsson and Huawei equipment', Huawei the 'basic supplier for Kyiv' "
                              "(dev.ua); pilot only, not coded"),
@@ -191,7 +200,7 @@ OPERATORS = [
          core=ND('Ericsson and ZTE are in the existing core; no 5G core vendor named'),
          first_contract=ND('Rakuten Symphony letter of intent for 4G/5G Open RAN (28 Feb 2024) is not a contract'),
          vendor_operates=ND()),
-    dict(region='Central Asia & Eastern Europe', country='Ukraine', operator_name='Vodafone',
+    dict(region='Central Asia & Eastern Europe', country='Ukraine', operator_name='Vodafone', **UA_SAMPLE,
          name_note='Vodafone Ukraine (PrJSC VF Ukraine; Vodafone brand partner, owned by NEQSOL)',
          share=UA_SHARE, launch=UA_LAUNCH,
          ran5=[], ran5_note=("5G testing with Huawei (Kropyvnytskyi, Ivano-Frankivsk) and Nokia (Vynnyky) from 14 May 2025; Nokia equipment "
@@ -200,7 +209,7 @@ OPERATORS = [
          gov=[], gov_note='Telco Investments B.V. 99% (ultimate parent NEQSOL Holding, beneficial owner Nasib Hasanov); no state holder (H1 2025 statements)',
          gov_dropped=[],
          core=ND(), first_contract=ND('only 5G trials with Nokia (2024) and Huawei/Nokia testing (2025)'), vendor_operates=ND()),
-    dict(region='Central Asia & Eastern Europe', country='Ukraine', operator_name='lifecell',
+    dict(region='Central Asia & Eastern Europe', country='Ukraine', operator_name='lifecell', **UA_SAMPLE,
          share=UA_SHARE, launch=UA_LAUNCH,
          ran5=[], ran5_note="Kyiv pilot (Jul 2026): 'lifecell built its network on Ericsson stations' (dev.ua); pilot only, not coded",
          ran4=[], ran4_note=("Odessa Journal (Nov 2025): 11,755 Huawei and 11,473 Ericsson base stations in lifecell's network, generation not "
@@ -244,13 +253,17 @@ OPERATORS = [
                 "Axiata's audited statements call Khazanah 'the sovereign wealth fund of the Government of Malaysia' (36.71% direct in the "
                 "narrative; 36.69% in the 31 Mar 2026 shareholding table); same basis as batch 4 (XLSmart)",
                 link_url='https://www.axiata.com/2025IAR/documents/Axiata-Governance-and-Audited-Financial-Statements-2025.pdf',
-                chain="Axiata Group Berhad -> Axiata Investments (Labuan) 73.75% of Dialog Axiata PLC (31 Dec 2025); Axiata's percentage of the Labuan entity not stated")],
-         gov_note=("NOT RECORDED: Employees Provident Fund Board 19.36% and Permodalan Nasional Berhad 18.28% of Axiata (31 Mar 2026; each "
-                   "has a representative director): Axiata's report does not describe them as government-owned or state-controlled "
-                   "(exp|supp|axiata-holders) and they are not on data/state_holders.csv. The XLSmart ownership search "
-                   "(exp|gov|Indonesia|XLSmart) gives EPF 17.68%, date not reconciled; batch 4 now also uses 19.36%. Also direct in Dialog: Bharti Airtel 10.36% (private), Employees' Provident Fund 2.58% "
-                   "(state status not stated)"),
-         gov_dropped=[],
+                chain=DIALOG_CHAIN),
+              G('Malaysia', 'Employees Provident Fund Board (EPF)', 'pension_fund', 19.36, 'Axiata Group Berhad', 'via_parent', '2026-03-31',
+                'https://www.axiata.com/2025IAR/documents/Axiata-Integrated-Annual-Report-2025-Overview.pdf',
+                "Axiata IAR2025 shareholding structure as at 31 Mar 2026 (Overview document, PDF p.2; read 2026-11-26); an EPF representative "
+                "director sits on Axiata's board (exp|supp|axiata-holders). Pension rule: established by the Employees Provident Fund Act "
+                "1991 (Act 452), Board appointed by the Minister", chain=DIALOG_CHAIN, board_seat='yes')],
+         gov_note=("EPF coded under Prof. Shen's pension rule (2026-11-26); before it, EPF was left out because Axiata's report does "
+                   "not call it state-owned. Permodalan Nasional Berhad 18.28% of Axiata is not coded: a unit-trust manager, not a "
+                   "pension fund, and not described as state-owned. Also direct in Dialog: Bharti Airtel 10.36% (private)"),
+         gov_dropped=["Employees' Provident Fund (Sri Lanka) 2.58% of Dialog Axiata PLC (direct; meets the pension rule: established "
+                      "under EPF Act No. 15 of 1958, assets managed by the Central Bank of Sri Lanka, epf.lk; board seat not checked)"],
          core=ND(), first_contract=ND('Ericsson RAN agreement (5 Mar 2026) post-dates the Dec 2025 launch'),
          vendor_operates=ND('Ericsson Managed Enterprise Cloud (2015) is an enterprise-cloud service, not network operation')),
 ]

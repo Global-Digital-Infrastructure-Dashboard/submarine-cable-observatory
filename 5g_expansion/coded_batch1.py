@@ -261,7 +261,7 @@ OPERATORS = [
          ran5=[R('Nokia', 'not_disclosed', 'https://library.oapen.org/bitstream/handle/20.500.12657/99202/9781003489450_10.4324_9781003489450-11.pdf?sequence=1&isAllowed=y', 'academic book (2025): Nokia partner for the 2023 5G tender')],
          ran4=[], ran4_note='Ericsson was sole GSM supplier (2005) and 3G supplier (2007); no LTE vendor found',
          gov=[],
-         gov_dropped=['Tredje AP-fonden (AP3) 0.62% of Millicom (2026; aggregator data; board seat not checked)',
+         gov_dropped=['Tredje AP-fonden (AP3) 0.62% of Millicom (2026; aggregator data; meets the pension rule, ap3.se; board seat not checked)',
                       "Norges Bank Investment Management 0.69% of Millicom (2026; aggregator data; NBIM's own file shows none at 2025-12-31)",
                       'State of Wyoming, 2,241 Millicom shares (2026; aggregator data; percentage negligible)'],
          gov_note=("Telefonica sold 100% of Telefonica Moviles del Uruguay to Millicom on 7 Oct 2025 (Telefonica disclosure), so SEPI and PIF no longer reach it. "

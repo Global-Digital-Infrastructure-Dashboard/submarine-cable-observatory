@@ -107,7 +107,9 @@ OPERATORS = [
                  "Nokia (7 Jun 2022): the ten-year extension 'will cover 50 percent of Orange's network in northern Poland' (basis: share of the network, all generations; 2022). DATED: Huawei's 70% is 2020 [decision 2026-11-24: all-generation share, coded to 4G only]; the 2022 Nokia extension modernises the existing radio network in its half of the network; prior Nokia (NSN) supply in the "
                  "2012 NetWorks! shared RAN")],
          gov=orange_gov('Orange S.A. 50.67% of Orange Polska (listed in Warsaw), 31 Dec 2025', parent_pct=50.67),
-         gov_dropped=[], gov_note=("Allianz Polska OFE/DFE (8.12%) and Nationale-Nederlanden OFE/DFE (6.40%) are private pension funds; "
+         gov_dropped=[], gov_note=("Allianz Polska OFE/DFE (8.12%) and Nationale-Nederlanden OFE/DFE (6.40%) do not meet the pension rule (2026-11-26): each "
+                                   "OFE is created and run by a private joint-stock pension company whose own general meeting appoints its "
+                                   "board (Act on pension funds, arts. 3, 27, 40); "
                                    "Orange S.A.'s 50.67% is from the Orange Polska 2025 financial report "
                                    "(https://www.orange-ir.pl/wp-content/uploads/2026/03/financial-report-OPL-Group-2025.pdf)"),
          core=V('Ericsson', ORANGE_SA, "Orange (21 Feb 2022): Ericsson for the 5G SA core in Poland; Oracle supplies signalling/routing "

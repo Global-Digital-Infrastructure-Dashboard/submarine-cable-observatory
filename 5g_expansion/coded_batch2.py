@@ -204,15 +204,16 @@ OPERATORS = [
                 chain='Orange S.A. -> Joint Investment Telecommunications Company (fully owned) -> 51.00% of Jordan Telecommunications Company'),
               G('Jordan', 'Government of the Hashemite Kingdom of Jordan', 'government_ministry', 0.0, 'Jordan Telecommunications Company', 'direct',
                 '2026-11-19', 'https://www.sdc.com.jo/en/companyInfo?member_info=131206',
-                'Securities Depository Center record: one board representative, no shareholding reported', board_seat='yes')],
-         gov_note=("FLAG: the Social Security Corporation holds 28.88% directly with 2 of 7 board seats (Orange Jordan AR 2025), but no source "
-                   "calls it state-owned and it is not on data/state_holders.csv, so under the evidence rule it is not coded. PENDING "
-                   "Prof. Shen (asked 2026-11-23): whether to add it to the reference list. Legal status (exp|supp|jordan-ssc): a "
-                   "'financially and administratively independent juridical person' under the Social Security Law (SSC website); "
-                   "ISSA and the World Bank describe a publicly owned, independently governed institution outside the central-government "
-                   "budget, with no source classing it as a state-owned enterprise. The stake is held by its investment arm, the Social "
-                   "Security Investment Fund (54,150,000 shares, 28.88%, SSIF annual reports 2016 and 2023); the WTO Trade Policy "
-                   "Review (Aug 2023) says the government retained a 28.9% interest through the SSC"),
+                'Securities Depository Center record: one board representative, no shareholding reported', board_seat='yes'),
+              G('Jordan', 'Social Security Corporation (via its Social Security Investment Fund)', 'pension_fund', 28.88,
+                'Jordan Telecommunications Company', 'direct', '2025-12-31',
+                'https://orange.jo/sites/default/files/documents/Orange-Jordan-Annual-Report-2025-English.pdf',
+                "Orange Jordan annual report 2025, p.13: 54,150,000 shares, 28.88% at 31 Dec 2024 and 2025; two board members "
+                "represent the SSC (pp.16, 27); held via the Social Security Investment Fund (SSIF annual report 2023)", board_seat='yes')],
+         gov_note=("Social Security Corporation coded under Prof. Shen's pension rule (2026-11-26): set up under the Social Security "
+                   "Law to cover all laborers under the labor law (SSC website). Before that rule it was left uncoded because no "
+                   "source calls it state-owned (exp|supp|jordan-ssc: a 'financially and administratively independent juridical "
+                   "person'; the WTO Trade Policy Review, Aug 2023, says the government retained a 28.9% interest through the SSC)"),
          gov_dropped=[],
          core=V('Ericsson', 'https://www.ericsson.com/en/press-releases/5/2023/orange-jordan-selects-ericsson-to-bolster-5g-core-network-infrastructure-in-jordan',
                 'cloud-native dual-mode 5G Core and 5G Charging (7 Aug 2023)'),

@@ -42,3 +42,5 @@ data/datacenter_enrichment*
 # 5G pipeline: search cache and run logs stay local
 data/5g_*.jsonl
 data/5g_*.csv
+# Local copies of primary sources read directly while coding (third-party documents)
+data/5g_direct/

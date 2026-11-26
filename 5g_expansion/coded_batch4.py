@@ -36,6 +36,11 @@ ID_SHARE = 'https://scriptaintelektual.com/scripta-economica/article/download/14
 ID_NOTE = ('academic article (Scripta Economica, 2026), Table: Q1 2026 subscriber market share Telkomsel 48.77, Indosat '
            'Ooredoo Hutchison 29.83, XLSmart 21.39 (subscribers 153.67m / 94.00m / 67.40m); no regulator publishes '
            'operator shares. Telkomsel\'s own 2024 annual report claims ~50.3% (a table in the same report says 50.9%)')
+XL_CHAIN = ('Axiata Group Berhad 36.91% effective of XLSmart (equal with the Sinar Mas shareholders), via Axiata Investments (Labuan) '
+            '-> Axiata Investments (Indonesia)')
+EPF_NOTE = ("Axiata IAR2025 shareholding structure as at 31 Mar 2026 (Overview document, PDF p.2; read 2026-11-26); an EPF "
+            "representative director sits on Axiata's board per its governance disclosures (exp|supp|axiata-holders). Coded under Prof. Shen's pension rule (2026-11-26): EPF is established by the Employees Provident Fund Act 1991 "
+            "(Act 452) and its Board is appointed by the Minister. The XLSmart ownership search gave 17.68% (undated), not used")
 OOREDOO_AR = 'https://www.ooredoo.com/wp-content/uploads/2026/03/2025-Ooredoo-Annual-Report_English_FINAL.pdf'
 OOREDOO_GOV = 'https://www.ooredoo.com/2025-annual-report/pdfs/Ooredoo_English_2025_Corporate-Governance.pdf'
 IOH_OWN = 'https://ioh.co.id/EN/ioh-corp-kepemilikan-saham'
@@ -115,13 +120,15 @@ OPERATORS = [
          ran5=[], ran5_note='Huawei 5G appears only in a personal LinkedIn profile (not cited)',
          ran4=[], ran4_note=("Ericsson/Nokia LTE and an Ericsson-to-Huawei swap of 200 Tehran sites appear only in personal LinkedIn "
                              "profiles; MTN's 2009 report names Nokia-Siemens, Ericsson and Huawei as BTS build vendors without a generation"),
-         gov=[], gov_note=("MTN Group holds 49% (FY2025 statements). The Iranian 51% (Kowsar Sign Paniz / IEDC) has no documented ownership "
-                           "chain or percentages; a third-party report links IEDC to Iran Electronics Industries and Bonyad Mostazafan "
-                           "without percentages. GEPF (19.94% of MTN Group per MTN's FY2025 statements; 22% at 31 Mar 2022 per GEPF's own "
-                           "report) is not coded: GEPF's annual report says it is constituted under the Government Employees Pension Law and "
-                           "is reported to Parliament by the Minister of Finance, and calls the PIC (its investment manager) government-owned, "
-                           "but no source calls GEPF itself a government or state pension fund, and it is not on data/state_holders.csv "
-                           "(exp|supp|gepf-status)"),
+         gov=[G('South Africa', 'Government Employees Pension Fund (GEPF)', 'pension_fund', 19.94, 'MTN Group Limited', 'via_parent',
+                '2025-12-31', 'https://www.mtn.com/wp-content/uploads/2026/03/MTN-Group-FY-25-Annual-Financial-Statements.pdf',
+                "MTN FY2025 annual financial statements, p.146, beneficial shareholders of 5% or more (19.44% in 2024; GEPF's own "
+                "report gave 22% at 31 Mar 2022). Coded under Prof. Shen's pension rule (2026-11-26): GEPF is governed by the "
+                "Government Employees Pension Law 1996 and manages pensions for government employees (GEPF website). Its investment "
+                "manager, the PIC, is government-owned (GEPF annual report 2022)",
+                parent_pct=49.0, chain='MTN Group 49% of Irancell Telecommunication Company Services (FY2025 statements)')],
+         gov_note=("The Iranian 51% (Kowsar Sign Paniz / IEDC) has no documented ownership chain or percentages; a third-party report "
+                   "links IEDC to Iran Electronics Industries and Bonyad Mostazafan without percentages"),
          gov_dropped=[],
          core=ND("The Diplomat (Oct 2020): Irancell used 'various vendors' for 5G; Ericsson's 2024 MTN core deal covers South Africa and Nigeria only"),
          first_contract=ND('Ericsson 5G test connection in Tehran, Sep 2017, was a test, not a contract'),
@@ -216,12 +223,14 @@ OPERATORS = [
                 'https://www.axiata.com/2025IAR/documents/Axiata-Integrated-Annual-Report-2025-Overview.pdf',
                 "Axiata's audited statements call Khazanah 'the sovereign wealth fund of the Government of Malaysia' (36.71% direct at 31 Dec 2025)",
                 link_url='https://www.axiata.com/2025IAR/documents/Axiata-Governance-and-Audited-Financial-Statements-2025.pdf',
-                chain='Axiata Group Berhad 36.91% effective of XLSmart (equal with the Sinar Mas shareholders), via Axiata Investments (Labuan) -> Axiata Investments (Indonesia)')],
+                chain=XL_CHAIN),
+              G('Malaysia', 'Employees Provident Fund Board (EPF)', 'pension_fund', 19.36, 'Axiata Group Berhad', 'via_parent', '2026-03-31',
+                'https://www.axiata.com/2025IAR/documents/Axiata-Integrated-Annual-Report-2025-Overview.pdf', EPF_NOTE,
+                chain=XL_CHAIN, board_seat='yes')],
          gov_note=("Khazanah's basis is stated_in_source (Axiata IAR2025 p.38 and audited statements: 'the sovereign wealth fund of the "
-                   "Government of Malaysia'; exp|supp|axiata-holders). EPF 19.36% and PNB 18.28% of Axiata (31 Mar 2026) each have a "
-                   "representative director but Axiata does not call them government-owned or state-controlled, and they are not on "
-                   "data/state_holders.csv, so they are not coded; Amanah Saham Bumiputera 12.48% likewise. No state holder among the "
-                   "Sinar Mas shareholders"),
+                   "Government of Malaysia'; exp|supp|axiata-holders). PNB 18.28% and Amanah Saham Bumiputera 12.48% of Axiata are not "
+                   "coded: they are unit-trust managers, not pension funds, and Axiata does not call them state-owned. No state holder "
+                   "among the Sinar Mas shareholders"),
          gov_dropped=['PT Industri Telekomunikasi Indonesia (Persero) 0.003% of Smart Telecom (pre-merger presentation; no board seat found)'],
          core=V('Ericsson', 'https://idx.id/Portals/0/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/110cc1027f_4662632cc3.pdf',
                 "XL Axiata 2024 integrated annual report (p.46): 'the first operator to implement a dual-mode 5G core network in partnership with Ericsson' (verified)"),

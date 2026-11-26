@@ -78,8 +78,14 @@ def telia_gov(basis='via_parent', chain='', url=TELIA_AR25, as_of='2025-12-31'):
               'largest shareholder of the listed parent', **kw)]
 
 
-FOLKETRYGD_NOTE = ("Folketrygdfondet (4.35-4.76% of Telenor ASA in 2025-26) is below 5% and the Telenor disclosures do not state its "
-                   "state link; not recorded")
+FOLKETRYGD_NOTE = ("Folketrygdfondet meets Prof. Shen's pension rule (2026-11-26: owned by the state alone, board appointed by the "
+                   "Ministry of Finance, Lov om Folketrygdfondet) but holds under 5% of Telenor ASA, so it is listed below the threshold")
+FOLKETRYGD_DROP = 'Folketrygdfondet (Government Pension Fund Norway) 4.35-4.76% of Telenor ASA (2025-26; meets the pension rule; board seat not checked)'
+
+LYSE_AR = ('https://live.euronext.com/sites/default/files/company_press_releases/attachments_oslo/2026/03/25/'
+           '669268_Lyse%20%C3%85rsrapport%202025.pdf')
+LYSE_NOTE = "municipal shareholder of Lyse AS at 31 Dec 2025 (Lyse annual report 2025, p.216 and p.251 shareholder table)"
+LYSE_CHAIN = "Lyse AS 100% of Ice Communication Norge AS and of Ice Norge AS (annual report 2025, p.247 subsidiary list)"
 
 OPERATORS = [
     # ------------------------------------------------------------------ Sweden
@@ -115,7 +121,7 @@ OPERATORS = [
                   "The search's '24 May 2020' is Tele2's switch-on, not Telenor's. Verified 2026-11-24"),
          ran5=n4m_ran5(), ran4=n4m_ran4(),
          gov=telenor_gov('Telenor ASA -> Telenor Sverige; percentage not stated (the core panel treats it as wholly owned)'),
-         gov_note=FOLKETRYGD_NOTE, gov_dropped=[],
+         gov_note=FOLKETRYGD_NOTE, gov_dropped=[FOLKETRYGD_DROP],
          core=ND('no Telenor Sweden or Net4Mobility core vendor named'),
          first_contract=ND(), vendor_operates=ND(),
          switches=n4m_switch()),
@@ -150,7 +156,7 @@ OPERATORS = [
                  "RAN basis). Verified 2026-11-24")],
          gov=telenor_gov('Telenor ASA -> Telenor Norge; percentage not stated (the core panel treats it as wholly owned)'),
          gov_note=FOLKETRYGD_NOTE,
-         gov_dropped=['Kuwait Investment Authority 0.53% of Telenor ASA (2026-02-27; board seat not checked)'],
+         gov_dropped=[FOLKETRYGD_DROP, 'Kuwait Investment Authority 0.53% of Telenor ASA (2026-02-27; board seat not checked)'],
          core=V('Ericsson', 'https://www.ericsson.com/en/press-releases/2018/11/telenor-selects-ericsson-for-5g-core-network-transformation',
                 "Ericsson selected for the 5G core transformation (Nov 2018); Telenor's Dec 2019 release says the core is upgraded through "
                 'agreements with Nokia and Ericsson'),
@@ -189,9 +195,17 @@ OPERATORS = [
                  "'for 2G, 3G and 4G networks, Ice has on its own initiative chosen to exclusively use Nokia' (Ice Group annual report 2021, "
                  "p.38). Verified 2026-11-24")],
          ran4_note='the 2014 Alcatel-Lucent LTE contract is not coded as a switch (Alcatel-Lucent became part of Nokia in 2016)',
-         gov=[], gov_note=("ownership not coded, as in the core panel: the ownership search returns an A1/America Movil chain while Nkom "
-                           "approved Lyse AS to take over Ice's frequency licences; Lyse's own owners are not in the evidence"),
-         gov_dropped=[],
+         gov=[G('Norway', f'{m} kommune', 'government_ministry', pct, 'Lyse AS', 'via_parent', '2025-12-31', LYSE_AR,
+                LYSE_NOTE, parent_pct=100.0, chain=LYSE_CHAIN, level='local')
+              for m, pct in (('Stavanger', 45.74), ('Sandnes', 19.53), ('Sola', 8.74), ('Time', 5.83))],
+         gov_note=("local government (Prof. Shen, 2026-11-26): Lyse AS is owned by 15 municipalities in Rogaland and Agder; its "
+                   "articles allow only municipalities as shareholders, and the municipalities are represented on the group board "
+                   "(Lyse annual report 2025, pp. 98, 216, 251; read directly 2026-11-26). This replaces the earlier 'not coded': the "
+                   "ownership search's A1/America Movil chain is wrong for Ice since Lyse's takeover"),
+         gov_dropped=[f'{m} kommune {pct}% of Lyse AS (2025-12-31; local government; board seat not checked)'
+                      for m, pct in (('Klepp', 4.23), ('Hå', 3.78), ('Randaberg', 3.28), ('Eigersund', 2.95), ('Strand', 2.53),
+                                     ('Hjelmeland', 0.99), ('Gjesdal', 0.93), ('Lund', 0.71), ('Bjerkreim', 0.51), ('Suldal', 0.12),
+                                     ('Sirdal', 0.12))],
          core=V('Mavenir', 'https://www.mavenir.com/press-releases/mavenirs-converged-packet-core-powering-ice-norways-4g-and-5g-network/',
                 "converged packet core for 4G, 5G NSA and 5G SA (9 Feb 2023); an earlier Nokia AirFrame core agreement existed, and whether "
                 'Mavenir replaced it is not stated'),
@@ -210,9 +224,16 @@ OPERATORS = [
                  "Ericsson takes over 'maintaining and expanding TDC's LTE network' (Mar 2019). Verified 2026-11-24"),
                R('Huawei', 'not_disclosed', 'https://www.sdxcentral.com/news/ericsson-ousts-huawei-as-tdcs-5g-vendor-in-denmark/',
                  'six-year LTE deal signed in 2014 (historical); share not stated. Verified 2026-11-24')],
-         gov=[], gov_note=("no state holder: ATP (16.7% of DKT Holdings) is a Danish statutory pension institution, but no source states it "
-                           "is state-controlled and it is not on data/state_holders.csv; Macquarie's 2025 deal to buy out ATP, PFA and "
-                           "PKA was pending at the 2025 reporting date"),
+         gov=[G('Denmark', 'Arbejdsmarkedets Tillægspension (ATP)', 'pension_fund', 16.7, 'DKT Holdings ApS', 'via_parent', '2022-12-31',
+                'https://tdcgroup.com/media/qaidx3mm/dkth_annual-report-2022.pdf',
+                "DKT Holdings annual report 2022, p.3 (latest shareholder split found). TDC NET's 2025 annual report (signed 5 Mar 2026, "
+                "p.33) still names ATP, PKA and PFA as owners of 50% and Macquarie's May 2025 agreement to buy them out as pending; "
+                "no completion found. Pension rule (2026-11-26): ATP was established by law in 1964 and the Minister of Employment "
+                "appoints its boards (atp.dk)",
+                chain='DKT Holdings ApS -> DK Telekommunikation ApS (100%) -> TDC Holding A/S (100%) -> TDC NET A/S (100%)')],
+         gov_note=("PFA and PKA (16.7% each of DKT Holdings) are not coded: neither is shown to be set up by law or to have a "
+                   "government-appointed board (not checked against their own sites). DISPUTED timing: if Macquarie's purchase has "
+                   "closed, ATP is no longer a holder; the Danish company register (CVR 39186829) was not reachable by script"),
          gov_dropped=[],
          core=V('Ericsson', 'https://www.ericsson.com/en/press-releases/3/2023/ericsson-and-tdc-net-launch-first-5g-standalone-network-in-denmark',
                 'dual-mode 5G core; first 5G SA network in Denmark (Aug 2023)'),
@@ -254,7 +275,7 @@ OPERATORS = [
                          note='Telenor annual report 2025: Norwegian state 54% at 31 Dec 2025; Danish network joint operation 50% Telenor.'),
          gov_note=("the Swedish state's 41.1% of Telia Company is not counted: Telia's Danish business was sold to Norlys on 2 Apr 2024 and "
                    'Telenor names only "the other party" as co-owner. ' + FOLKETRYGD_NOTE),
-         gov_dropped=[],
+         gov_dropped=[FOLKETRYGD_DROP],
          core=ND('no TT-Network core vendor named'),
          first_contract=V('2021-06', 'https://www.computerweekly.com/news/252502637/Telenor-Telia-tap-Nokia-for-5G-joint-network-roll-out-in-Denmark',
                           'TTN selected Nokia as sole 5G RAN vendor on 17 Jun 2021 (per the search; Computer Weekly returned 403, not checked)'),

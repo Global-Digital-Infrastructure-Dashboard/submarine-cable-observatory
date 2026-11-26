@@ -8,16 +8,20 @@
 Coding comes from every 5g_expansion/coded_batch*.py module (OPERATORS list each). The schema, source types,
 holder types and the 5% rule are in schema.py.
 
-Provenance check: every source_url (and state_link_url) must appear in the cached search evidence (answers or
-result lists in data/5g_expansion_searches.jsonl, or data/5g_searches.jsonl for reused core-panel facts), or be
-NBIM's holdings file, which was downloaded and read directly.
+Provenance check: every source_url (and state_link_url, owner_body_url) must appear in the cached search evidence
+(answers or result lists in data/5g_expansion_searches.jsonl, or data/5g_searches.jsonl for reused core-panel facts),
+or be a primary source read directly: NBIM's holdings file, or any URL logged as 'confirmed' with a quote in a
+5g_expansion/verify_*.csv file (fund statutes, Lyse's annual report; copies kept locally in data/5g_direct/).
+
+Sample status (Prof. Shen, 2026-11-26): an operator with sample_status = pilot_only (Ukraine: pilots only, no commercial
+launch) stays in all four files but is outside the main sample; counts are printed for the main sample and pilots.
 
 Spot-check: random.Random(SEED).sample over the non-European operators of batch 1 (kept as drawn on 2026-11-15).
 Run from the repo root: python3 5g_expansion/build_panel.py [--check]   (--check validates without writing)
 """
 import csv, glob, importlib, json, os, random, sys
 sys.path.insert(0, os.path.join(os.getcwd(), '5g_expansion'))
-from schema import VENDORS, source_type
+from schema import SAMPLE_STATUS, VENDORS, source_type
 
 SEED = 20261115
 NBIM = 'https://www.nbim.no/api/investments/v2/report/?assetType=eq&date=2025-12-31&fileType=xlsx'
@@ -45,12 +49,21 @@ def evidence_text():
     return '\n'.join(text)
 
 
+def direct_sources():
+    """URLs read directly and logged as confirmed, with the quote relied on, in a verify CSV."""
+    urls = set()
+    for path in glob.glob('5g_expansion/verify_*.csv'):
+        with open(path) as f:
+            urls |= {r['url'] for r in csv.DictReader(f) if r['result'] == 'confirmed'}
+    return urls
+
+
 def main():
-    evidence, problems = evidence_text(), []
+    evidence, direct, problems = evidence_text(), direct_sources(), []
 
     def sourced(url, where):
         """Source type for a cited URL, after checking it is in the evidence."""
-        if url and url != NBIM and url not in evidence:
+        if url and url != NBIM and url not in direct and url not in evidence:
             problems.append(f'{where}: URL not in cached evidence: {url}')
         try:
             return source_type(url)
@@ -72,7 +85,10 @@ def main():
             if any(r['operator_id'] == oid for r in panel):
                 problems.append(f'{oid}: coded twice')
             row = dict(operator_id=oid, region=op['region'], country=op['country'], operator_name=op['operator_name'],
-                       name_note=op.get('name_note', ''), core_operator_id=op.get('core_operator_id', ''))
+                       name_note=op.get('name_note', ''), core_operator_id=op.get('core_operator_id', ''),
+                       sample_status=op.get('sample_status', 'main'), sample_status_note=op.get('sample_status_note', ''))
+            if row['sample_status'] not in SAMPLE_STATUS:
+                problems.append(f"{oid}: sample_status {row['sample_status']}")
             for field, name in SCALARS.items():
                 f = op[field]
                 if f['status'] == 'value' and not f['source_url']:
@@ -108,14 +124,20 @@ def main():
                 stype = sourced(g['source_url'], f'{oid} gov {g["holder"]}')
                 if g['state_link_url'] and g['state_link_url'] != g['source_url']:
                     sourced(g['state_link_url'], f'{oid} gov {g["holder"]} state link')
+                if g['owner_body_url']:
+                    sourced(g['owner_body_url'], f'{oid} gov {g["holder"]} owner body')
+                if g['holder_type'] == 'pension_fund' and source_type(g['state_link_url']) not in ('company', 'government'):
+                    problems.append(f'{oid} gov {g["holder"]}: pension-fund basis must come from the fund itself or its law')
                 gov.append(dict(operator_id=oid, country=op['country'], operator_name=op['operator_name'],
-                                government=g['government'], holder=g['holder'], holder_type=g['holder_type'],
+                                government=g['government'], government_level=g['government_level'], holder=g['holder'],
+                                holder_type=g['holder_type'],
                                 pct=g['pct'] if g['pct'] is not None else '', pct_status='value' if g['pct'] is not None else 'not_disclosed',
                                 pct_of=g['pct_of'], basis=g['basis'],
                                 parent_ownership_pct_of_operator=g['parent_ownership_pct_of_operator'] if g['parent_ownership_pct_of_operator'] is not None else '',
                                 ownership_chain=g['ownership_chain'], board_seat=g['board_seat'], as_of=g['as_of'],
                                 source_url=g['source_url'], source_type=stype, state_link_basis=g['state_link_basis'],
-                                state_link_url=g['state_link_url'], note=g['note']))
+                                state_link_url=g['state_link_url'], pension_rule=g['pension_rule'],
+                                owner_body=g['owner_body'], owner_body_url=g['owner_body_url'], note=g['note']))
             for s in op.get('switches', []):
                 stype = sourced(s['source_url'], f'{oid} switch')
                 switches.append(dict(operator_id=oid, country=op['country'], operator_name=op['operator_name'], **{**s, 'source_type': stype}))
@@ -147,6 +169,13 @@ def main():
     if problems:
         print('\n'.join(problems))
         sys.exit(f'{len(problems)} problem(s); nothing written')
+    main_ids = {r['operator_id'] for r in panel if r['sample_status'] == 'main'}
+    for label, keep in (('main sample', lambda i: i in main_ids), ('pilot_only', lambda i: i not in main_ids)):
+        n = [r for r in panel if keep(r['operator_id'])]
+        g = [r for r in gov if keep(r['operator_id'])]
+        print(f"{label}: {len(n)} operators in {len({r['country'] for r in n})} countries; {len(g)} stakes "
+              f"({sum(1 for r in g if r['government_level'] == 'local')} local); "
+              f"{sum(1 for r in ran if keep(r['operator_id']))} RAN rows; {sum(1 for r in switches if keep(r['operator_id']))} switches")
     if '--check' in sys.argv:
         print(f'check passed: {len(panel)} operators, {len(gov)} stakes, {len(ran)} RAN rows, {len(switches)} switches; nothing written')
         return

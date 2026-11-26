@@ -225,7 +225,8 @@ OPERATORS = [
          gov=[G('China', 'China Telecommunications Corporation', 'state_owned_company', 63.9, 'China Telecom Corporation Limited', 'direct', '2025-12-31',
                 'https://www.chinatelecom-h.com/en/ir/report/annual2025/annual2025_12.pdf', "listed as a 'state-owned legal person'; SASAC is the ultimate controller"),
               G('China', 'Guangdong Rising Holdings Group Co., Ltd.', 'state_owned_company', 5.24, 'China Telecom Corporation Limited', 'direct', '2025-12-31',
-                'https://www.chinatelecom-h.com/en/ir/report/annual2025/annual2025_12.pdf', "listed as a 'state-owned legal person'")],
+                'https://www.chinatelecom-h.com/en/ir/report/annual2025/annual2025_12.pdf', "listed as a 'state-owned legal person'. government_level left at national (the default): the holder is probably a "
+                "Guangdong provincial enterprise, which would make it local, but no source found (2026-11-26) names its owner")],
          gov_note='HKSCC Nominees 15.11% is a nominee holding with unknown beneficial owners',
          gov_dropped=[],
          core=ND(), first_contract=ND(), vendor_operates=ND()),

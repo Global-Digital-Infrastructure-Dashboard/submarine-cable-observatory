@@ -85,7 +85,8 @@ OPERATORS = [
                 "major-shareholder listing; Solidium described as the Finnish state investment company. S&P (24 Mar 2026) puts the Finnish "
                 "government at 10.5%",
                 link_url='https://static.elisa.com/v2/image/2tqybbhjs47b/2yRSJFxrClU1u5UYgaNoPL/RatingsDirect_TearSheet_ElisaOyj_3543894_Apr-10-2026.pdf')],
-         gov_dropped=[], gov_note='Ilmarinen (3.134%) is a private-sector pension insurer, not a state holder',
+         gov_dropped=[], gov_note=('Ilmarinen (3.134%) does not meet the pension rule (2026-11-26): a mutual pension insurer owned by its policyholders '
+                                   'and insured, whose board is elected by its supervisory board, not appointed by government (ilmarinen.fi)'),
          core=V('Ericsson', 'https://www.ericsson.com/en/press-releases/2020/9/elisa-finland-adds-5g-ran-to-ericsson-5g-core-partnership',
                 'Ericsson Cloud Packet Core live in the 5G network; dual-mode 5G Core being deployed for SA (29 Sep 2020)'),
          first_contract=ND('Nokia and Ericsson 5G RAN agreements announced 29-30 Sep 2020, after the 2018 launch; first 5G contract date not found'),
@@ -104,7 +105,8 @@ OPERATORS = [
          gov=[G('Norway', 'Government of Norway', 'government_ministry', 53.97, 'Telenor ASA', 'via_parent', '2026-02-27',
                 'https://www.telenor.com/investors/shareholder-centre/major-shareholders/shareholders-as-of-27-february-2026/', '',
                 chain="Telenor ASA -> Telenor Finland Holding Oy (sole shareholder of DNA Plc; Telenor's percentage of it not stated)")],
-         gov_dropped=[], gov_note='Folketrygdfondet (4.55% of Telenor) is below 5% and its state link is not stated in the sources',
+         gov_dropped=['Folketrygdfondet (Government Pension Fund Norway) 4.55% of Telenor ASA (meets the pension rule, 2026-11-26; board seat not checked)'],
+         gov_note='Folketrygdfondet meets the pension rule (state-owned by statute, board appointed by the Ministry of Finance) but is below 5%',
          core=V('Affirmed Networks', 'https://www.sttinfo.fi/tiedote/69871562/dna-home-5g-service-launched?publisherId=1881',
                 'virtualised 5G core from Affirmed Networks on a Nokia virtualisation platform; SA core for all 5G base stations by end-2021'),
          first_contract=ND(),
